@@ -3,14 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/login_form_provider.dart';
 
-class LoginForm extends ConsumerStatefulWidget {
-  const LoginForm({super.key});
+class LoginFormWidget extends ConsumerStatefulWidget {
+  const LoginFormWidget({super.key});
 
   @override
-  ConsumerState<LoginForm> createState() => _LoginFormState();
+  ConsumerState<LoginFormWidget> createState() => _LoginFormWidget();
 }
 
-class _LoginFormState extends ConsumerState<LoginForm> {
+class _LoginFormWidget extends ConsumerState<LoginFormWidget> {
   bool _obscurePassword = true;
 
   @override
@@ -40,8 +40,8 @@ class _LoginFormState extends ConsumerState<LoginForm> {
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
               ),
               onPressed: () {
                 setState(() {

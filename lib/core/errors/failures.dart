@@ -1,4 +1,4 @@
-abstract final class Failure {
+sealed class Failure {
   final String message;
   final String? code;
 

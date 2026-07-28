@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/login_form_provider.dart';
 import '../widgets/login_button.dart';
 import '../widgets/login_form.dart';
+import '../widgets/login_error_banner.dart';
 import '../widgets/login_header.dart';
 
-class LoginPage extends ConsumerWidget {
+class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isFormValid = ref.watch(loginFormProvider).isValid;
-
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -26,9 +23,11 @@ class LoginPage extends ConsumerWidget {
                 children: [
                   const LoginHeader(),
                   const SizedBox(height: 48),
-                  const LoginForm(),
+                  const LoginErrorBanner(),
                   const SizedBox(height: 24),
-                  LoginButton(isFormValid: isFormValid),
+                  const LoginFormWidget(),
+                  const SizedBox(height: 24),
+                  const LoginButton(),
                   const SizedBox(height: 8),
                 ],
               ),

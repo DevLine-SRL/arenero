@@ -38,6 +38,7 @@ dependencies:
   riverpod_annotation: ^4.0.3
   go_router: ^17.3.0
   supabase_flutter: ^2.16.0
+  dartz: ^0.10.1
 
 dev_dependencies:
   flutter_test:

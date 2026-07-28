@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'login_form_provider.dart';
+part of 'logout_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,51 +9,50 @@ part of 'login_form_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(LoginForm)
-final loginFormProvider = LoginFormProvider._();
+@ProviderFor(Logout)
+final logoutProvider = LogoutProvider._();
 
-final class LoginFormProvider
-    extends $NotifierProvider<LoginForm, LoginFormState> {
-  LoginFormProvider._()
+final class LogoutProvider extends $NotifierProvider<Logout, AsyncValue<void>> {
+  LogoutProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'loginFormProvider',
+        name: r'logoutProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$loginFormHash();
+  String debugGetCreateSourceHash() => _$logoutHash();
 
   @$internal
   @override
-  LoginForm create() => LoginForm();
+  Logout create() => Logout();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(LoginFormState value) {
+  Override overrideWithValue(AsyncValue<void> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<LoginFormState>(value),
+      providerOverride: $SyncValueProvider<AsyncValue<void>>(value),
     );
   }
 }
 
-String _$loginFormHash() => r'8a4e7e617cfede1fd25e5150f85beb7de9479bae';
+String _$logoutHash() => r'fbc757e64443c5a305530c03db1e2f973e6c2f0e';
 
-abstract class _$LoginForm extends $Notifier<LoginFormState> {
-  LoginFormState build();
+abstract class _$Logout extends $Notifier<AsyncValue<void>> {
+  AsyncValue<void> build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<LoginFormState, LoginFormState>;
+    final ref = this.ref as $Ref<AsyncValue<void>, AsyncValue<void>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<LoginFormState, LoginFormState>,
-              LoginFormState,
+              AnyNotifier<AsyncValue<void>, AsyncValue<void>>,
+              AsyncValue<void>,
               Object?,
               Object?
             >;

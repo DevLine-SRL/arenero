@@ -1,26 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/router/route_paths.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final auth = ref.watch(authSessionProvider);
+    final user = auth.value;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Arenero Dashboard'),
         actions: [
           IconButton(
-            onPressed: () {
-              context.goNamed(RouteNames.login);
+            onPressed: () async {
+              await ref.read(logoutUseCaseProvider)();
             },
             tooltip: 'Cerrar Sesión',
             icon: Icon(Icons.logout_rounded),
           ),
         ],
       ),
+      body: Center(child: Text(user?.email ?? '')),
     );
   }
 }

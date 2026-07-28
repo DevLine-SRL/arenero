@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/router/route_paths.dart';
+import '../../presentation/providers/login_form_provider.dart';
 
-class LoginButton extends StatelessWidget {
-  final bool isFormValid;
-
-  const LoginButton({super.key, required this.isFormValid});
+class LoginButton extends ConsumerWidget {
+  const LoginButton({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFormValid = ref.watch(loginFormProvider).isValid;
+
     return FilledButton.icon(
       onPressed: isFormValid
-        ? () => context.goNamed(RouteNames.home)
+        ? () => ref.read(loginFormProvider.notifier).submit()
         : null,
       icon: const Icon(Icons.login),
       label: const Text('Iniciar Sesión'),
