@@ -1,17 +1,28 @@
-# arenero
+# Arenero
 
-A new Flutter project.
+## Requisitos
 
-## Getting Started
+- Flutter SDK 3.12+
+- Supabase project
 
-This project is a starting point for a Flutter application.
+## Ejecutar
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+flutter run \
+  --dart-define=SUPABASE_URL='https://<project>.supabase.co' \
+  --dart-define=SUPABASE_PUBLISHABLE_KEY='sb_publishable_<key>'
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Build
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter build apk \
+  --dart-define=SUPABASE_URL='https://<project>.supabase.co' \
+  --dart-define=SUPABASE_PUBLISHABLE_KEY='sb_publishable_<key>'
+```
+
+## Generar código (Riverpod)
+
+```bash
+dart run build_runner build
+```
