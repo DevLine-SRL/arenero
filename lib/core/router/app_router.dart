@@ -28,7 +28,7 @@ GoRouter appRouter(Ref ref) {
       final isLoggingIn = state.matchedLocation == RoutePaths.login;
 
       if (!isLoggedIn && !isLoggingIn) return RoutePaths.login;
-      if (isLoggedIn && isLoggingIn) return RoutePaths.home;
+      if (isLoggedIn && isLoggingIn) return RoutePaths.dashboard;
       return null;
     },
     routes: routes,
