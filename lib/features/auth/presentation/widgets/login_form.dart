@@ -21,7 +21,18 @@ class _LoginFormWidget extends ConsumerState<LoginFormWidget> {
       children: [
         TextField(
           decoration: InputDecoration(
-            labelText: 'Correo electrónico',
+            label: RichText(
+            text: TextSpan(
+              text: 'Correo electrónico',
+              style: Theme.of(context).textTheme.bodyLarge,
+              children: const [
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ],
+            ),
+          ),
             prefixIcon: const Icon(Icons.email_outlined),
             errorText: state.emailError,
           ),
@@ -34,7 +45,18 @@ class _LoginFormWidget extends ConsumerState<LoginFormWidget> {
         const SizedBox(height: 16),
         TextField(
           decoration: InputDecoration(
-            labelText: 'Contraseña',
+            label: RichText(
+            text: TextSpan(
+              text: 'Contraseña',
+              style: Theme.of(context).textTheme.bodyLarge,
+              children: const [
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ],
+            ),
+          ),
             prefixIcon: const Icon(Icons.lock_outlined),
             errorText: state.passwordError,
             suffixIcon: IconButton(
