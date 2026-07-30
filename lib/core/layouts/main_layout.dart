@@ -3,11 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
+import '../../shared/widgets/confirm_dialog.dart';
 
 class MainLayout extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
   const MainLayout({super.key, required this.navigationShell});
+
+  Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showConfirmDialog(
+      context: context,
+      title: 'Cerrar sesión',
+      content: '¿Estás seguro de que deseas cerrar sesión?',
+      confirmLabel: 'Si, cerrar sesión',
+    );
+
+    if (confirmed) {
+      ref.read(logoutUseCaseProvider)();
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,9 +39,7 @@ class MainLayout extends ConsumerWidget {
         title: Text(title),
         actions: [
           IconButton(
-            onPressed: () async {
-              await ref.read(logoutUseCaseProvider)();
-            },
+            onPressed: () => _confirmLogout(context, ref),
             tooltip: 'Cerrar Sesión',
             icon: Icon(Icons.logout_rounded),
           ),
