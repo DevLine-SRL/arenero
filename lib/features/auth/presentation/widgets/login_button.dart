@@ -8,18 +8,43 @@ class LoginButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isFormValid = ref.watch(loginFormProvider).isValid;
+    final state = ref.watch(loginFormProvider);
 
-    return FilledButton.icon(
-      onPressed: isFormValid
+    return FilledButton(
+      onPressed: state.isValid && !state.isSubmitting
         ? () => ref.read(loginFormProvider.notifier).submit()
         : null,
-      icon: const Icon(Icons.login),
-      label: const Text('Iniciar Sesión'),
       style: FilledButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16),
         textStyle: const TextStyle(fontSize: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
+      child: state.isSubmitting
+        ? const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(width: 8),
+              Text('Iniciando sesión...'),
+            ],
+          )
+      : const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.login),
+            SizedBox(width: 8),
+            Text('Iniciar sesión'),
+          ],
+        ),
     );
   }
 }

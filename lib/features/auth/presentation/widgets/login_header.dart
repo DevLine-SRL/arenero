@@ -10,7 +10,7 @@ class LoginHeader extends StatelessWidget {
     return Column(
       children: [
         Icon(
-          Icons.texture,
+          Icons.landscape_rounded,
           size: 80,
           color: theme.colorScheme.primary,
         ),

@@ -22,13 +22,24 @@ class LoginPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const LoginHeader(),
-                  const SizedBox(height: 48),
-                  const LoginErrorBanner(),
-                  const SizedBox(height: 24),
-                  const LoginFormWidget(),
-                  const SizedBox(height: 24),
-                  const LoginButton(),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 32),
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      spacing: 16,
+                      children: [
+                        LoginFormWidget(),
+                        LoginErrorBanner(),
+                        LoginButton(),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
