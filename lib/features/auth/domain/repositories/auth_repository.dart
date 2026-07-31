@@ -14,5 +14,5 @@ abstract class AuthRepository {
 
   Stream<User?> watchAuthState();
 
-  User? get currentUser;
+  Future<User?> currentUser();
 }

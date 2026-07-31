@@ -6,11 +6,12 @@ abstract class AuthRemoteDataSource {
   Future<UserModel> login({required String email, required String password});
   Future<void> logout();
   Stream<UserModel?> watchAuthState();
-  UserModel? get currentUser;
+  Future<UserModel?> currentUser();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final supabase.SupabaseClient client;
+
   const AuthRemoteDataSourceImpl(this.client);
 
   @override
@@ -25,7 +26,12 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw const supabase.AuthException('Login falló sin usuario retornado');
     }
 
-    return UserModel.fromSupabase(user);
+    final profile = await _fetchProfile(user.id);
+    if (profile == null || profile['active'] == false) {
+      await client.auth.signOut();
+      throw const supabase.AuthException('Credenciales inválidas.');
+    }
+    return UserModel.fromProfile(user, profile);
   }
 
   @override
@@ -35,15 +41,30 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Stream<UserModel?> watchAuthState() {
-    return client.auth.onAuthStateChange.map((data) {
+    return client.auth.onAuthStateChange.asyncMap((data) async {
       final user = data.session?.user;
-      return user != null ? UserModel.fromSupabase(user) : null;
+      if (user == null) return null;
+
+      final profile = await _fetchProfile(user.id);
+      if (profile == null || profile['active'] == false) {
+        await client.auth.signOut();
+        return null;
+      }
+      return UserModel.fromProfile(user, profile);
     });
   }
 
   @override
-  UserModel? get currentUser {
+  Future<UserModel?> currentUser() async {
     final user = client.auth.currentUser;
-    return user != null ? UserModel.fromSupabase(user) : null;
+    if (user == null) return null;
+
+    final profile = await _fetchProfile(user.id);
+    if (profile == null || profile['active'] == false) return null;
+    return UserModel.fromProfile(user, profile);
+  }
+
+  Future<Map<String, dynamic>?> _fetchProfile(String userId) async {
+    return client.from('profiles').select('role, active').eq('id', userId).maybeSingle();
   }
 }

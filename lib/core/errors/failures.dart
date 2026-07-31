@@ -12,6 +12,10 @@ final class NetworkFailure extends Failure {
   const NetworkFailure({super.message = 'Sin conexión a internet', super.code});
 }
 
+final class UnexpectedFailure extends Failure {
+  const UnexpectedFailure({super.message = 'Error inesperado', super.code});
+}
+
 final class InvalidCredentialsFailure extends Failure {
   const InvalidCredentialsFailure({super.message = 'Credenciales inválidas', super.code});
 }

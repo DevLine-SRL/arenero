@@ -6,7 +6,7 @@ class GetCurrentUserUseCase {
 
   const GetCurrentUserUseCase(this.repository);
 
-  User? call() {
-    return repository.currentUser;
+  Future<User?> call() {
+    return repository.currentUser();
   }
 }

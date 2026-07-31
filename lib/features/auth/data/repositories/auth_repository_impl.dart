@@ -26,7 +26,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on supabase.AuthException catch (e) {
       return Left(_mapAuthException(e));
     } catch (e) {
-      return const Left(NetworkFailure());
+      return const Left(UnexpectedFailure(message: 'Error inesperado al iniciar sesión. Inténtalo de nuevo.'));
     }
   }
 
@@ -37,7 +37,7 @@ class AuthRepositoryImpl implements AuthRepository {
   Stream<User?> watchAuthState() => remoteDataSource.watchAuthState();
 
   @override
-  User? get currentUser => remoteDataSource.currentUser;
+  Future<User?> currentUser() => remoteDataSource.currentUser();
 
   Failure _mapAuthException(supabase.AuthException e) {
     return switch (e.statusCode) {

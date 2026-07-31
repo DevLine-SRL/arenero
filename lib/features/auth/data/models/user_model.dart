@@ -7,13 +7,17 @@ class UserModel extends User {
     required super.id,
     required super.email,
     super.name,
+    required super.role,
+    required super.active,
   });
 
-  factory UserModel.fromSupabase(supabase.User supabaseUser) {
+  factory UserModel.fromProfile(supabase.User supabaseUser, Map<String, dynamic> profile) {
     return UserModel(
       id: supabaseUser.id,
       email: supabaseUser.email ?? '',
       name: supabaseUser.userMetadata?['name'] as String?,
+      role: profile['role'] as String,
+      active: profile['active'] as bool,
     );
   }
 }
