@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../shared/widgets/confirm_dialog.dart';
+import '../router/route_definitions.dart';
+import 'bottom_nav_bar.dart';
+import 'sidebar.dart';
 
 class MainLayout extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
@@ -28,14 +31,27 @@ class MainLayout extends ConsumerWidget {
     const titles = [
       'Panel',
       'Registrar Venta',
-      'Historial de Ventas',
+      'Clientes',
       'Productos',
+      'Gestión de Vendedores',
     ];
 
-    final title = titles[navigationShell.currentIndex];
+    final currentIndex = navigationShell.currentIndex;
+    final title = titles[currentIndex];
+    final isAdminBranch = currentIndex >= adminBranchIndex;
+    final isAdmin = ref.watch(authSessionProvider).value?.role == 'admin';
 
     return Scaffold(
       appBar: AppBar(
+        leading: isAdmin
+          ? Builder(
+              builder: (context) => IconButton(
+                icon: const Icon(Icons.menu_rounded),
+                tooltip: 'Menú',
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              ),
+            )
+          : null,
         title: Text(title),
         actions: [
           IconButton(
@@ -45,28 +61,12 @@ class MainLayout extends ConsumerWidget {
           ),
         ],
       ),
+      drawer: isAdmin ? Sidebar(navigationShell: navigationShell) : null,
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: navigationShell.currentIndex,
+      bottomNavigationBar: MainBottomNavBar(
+        currentIndex: currentIndex,
+        isAdminBranch: isAdminBranch,
         onDestinationSelected: (index) => navigationShell.goBranch(index),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_rounded),
-            label: 'Panel',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.point_of_sale_rounded),
-            label: 'Registrar Venta',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.receipt_long_rounded),
-            label: 'Historial',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_rounded),
-            label: 'Productos',
-          ),
-        ],
       ),
     );
   }

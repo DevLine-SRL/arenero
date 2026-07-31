@@ -1,12 +1,18 @@
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/clients/presentation/pages/clients_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/products/presentation/pages/products_page.dart';
 import '../../features/sales/presentation/pages/register_sale_page.dart';
-import '../../features/sales/presentation/pages/sales_history_page.dart';
+import '../../features/sellers/presentation/pages/sellers/sellers_management_page.dart';
+import '../../shared/widgets/forbidden_page.dart';
 import '../layouts/main_layout.dart';
 import 'route_paths.dart';
+
+const adminBranchIndex = 4;
+
+final adminOnlyRoutes = <String>[RoutePaths.sellersManagement];
 
 final publicRoutes = <RouteBase>[
   GoRoute(
@@ -41,9 +47,9 @@ final protectedRoutes = StatefulShellRoute.indexedStack(
     StatefulShellBranch(
       routes: [
         GoRoute(
-          path: RoutePaths.salesHistory,
-          name: RouteNames.salesHistory,
-          builder: (context, state) => const SalesHistoryPage(),
+          path: RoutePaths.clients,
+          name: RouteNames.clients,
+          builder: (context, state) => const ClientsPage(),
         ),
       ],
     ),
@@ -56,10 +62,24 @@ final protectedRoutes = StatefulShellRoute.indexedStack(
         ),
       ],
     ),
+    StatefulShellBranch(
+      routes: [
+        GoRoute(
+          path: RoutePaths.sellersManagement,
+          name: RouteNames.sellersManagement,
+          builder: (context, state) => const SellersManagementPage(),
+        ),
+      ],
+    ),
   ],
 );
 
 final routes = <RouteBase>[
   ...publicRoutes,
+  GoRoute(
+    path: RoutePaths.forbidden,
+    name: RouteNames.forbidden,
+    builder: (context, state) => const ForbiddenPage(),
+  ),
   protectedRoutes,
 ];

@@ -20,7 +20,7 @@ abstract final class AppColors {
   // ── Surface ───────────────────────────────────────────
   static const Color background = Color(0xFFF5EFE2);
   static const Color surface = Color(0xFFFDF9F2);
-  // static const Color surfaceVariant = Color(0xFFEDE3CF);
+  static const Color surfaceVariant = Color(0xFFEDE3CF);
   static const Color onSurface = Color(0xFF3E2723);
   static const Color onSurfaceVariant = Color(0xFF5D4037);
 
@@ -33,5 +33,5 @@ abstract final class AppColors {
 
   // ── Misc ──────────────────────────────────────────────
   static const Color outline = Color(0xFFC4B5A5);
-  // static const Color divider = Color(0xFFE0D6C8);
+  static const Color divider = Color(0xFFE0D6C8);
 }

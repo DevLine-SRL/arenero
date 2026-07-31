@@ -24,11 +24,17 @@ GoRouter appRouter(Ref ref) {
     refreshListenable: refreshNotifier,
     redirect: (BuildContext context, GoRouterState state) {
       final authState = ref.read(authSessionProvider);
-      final isLoggedIn = authState.value != null;
+      final user = authState.value;
+      final isLoggedIn = user != null;
       final isLoggingIn = state.matchedLocation == RoutePaths.login;
 
       if (!isLoggedIn && !isLoggingIn) return RoutePaths.login;
       if (isLoggedIn && isLoggingIn) return RoutePaths.dashboard;
+
+      final isAdminRoute = adminOnlyRoutes.contains(state.matchedLocation);
+      if (isLoggedIn && isAdminRoute && user.role != 'admin') {
+        return RoutePaths.forbidden;
+      }
       return null;
     },
     routes: routes,
