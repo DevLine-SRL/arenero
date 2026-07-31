@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../shared/validators/validators.dart';
-import '../../domain/value_objects/email.dart';
+import '../../../../shared/value_objects/email.dart';
 import 'auth_providers.dart';
 import 'login_form_state.dart';
 
