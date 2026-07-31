@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
+import '../../features/auth/presentation/providers/logout_provider.dart';
 import '../../shared/widgets/confirm_dialog.dart';
 import '../router/route_definitions.dart';
 import 'bottom_nav_bar.dart';
@@ -22,7 +23,7 @@ class MainLayout extends ConsumerWidget {
     );
 
     if (confirmed) {
-      ref.read(logoutUseCaseProvider)();
+      ref.read(logoutProvider.notifier)();
     }
   }
 
