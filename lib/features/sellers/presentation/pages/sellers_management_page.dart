@@ -72,7 +72,7 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
           data: (sellers) => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SellersHeader(),
+              const SellersHeader(),
               const SizedBox(height: 12),
               ActiveAccountsBadge(
                 activeCount: sellers.where((s) => s.active).length,

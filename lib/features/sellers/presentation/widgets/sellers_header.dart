@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'create_seller_dialog.dart';
+
 class SellersHeader extends StatelessWidget {
   const SellersHeader({super.key});
 
@@ -29,7 +31,7 @@ class SellersHeader extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(top: 6),
           child: FilledButton.icon(
-            onPressed: null,
+            onPressed: () => CreateSellerDialog.show(context),
             icon: const Icon(Icons.add_rounded),
             label: const Text('Agregar'),
           ),
