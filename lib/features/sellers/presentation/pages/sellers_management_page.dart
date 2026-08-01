@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../shared/widgets/confirm_dialog.dart';
 import '../providers/sellers_controller_provider.dart';
 import '../widgets/active_accounts_badge.dart';
 import '../widgets/seller_list_item.dart';
@@ -29,10 +30,20 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
     });
   }
 
-  void _setActive(bool active) {
+  Future<void> _setActive(bool active) async {
     if (_selected.isEmpty) return;
 
-    ref.read(sellersControllerProvider.notifier).setActive(_selected, active);
+    final confirmed = await showConfirmDialog(
+      context: context,
+      title: active ? 'Habilitar vendedores' : 'Deshabilitar vendedores',
+      content: active
+        ? '¿Estás seguro de que deseas habilitar ${_selected.length == 1 ? 'el vendedor seleccionado' : 'los ${_selected.length} vendedores seleccionados'}?'
+        : '¿Estás seguro de que deseas deshabilitar ${_selected.length == 1 ? 'el vendedor seleccionado' : 'los ${_selected.length} vendedores seleccionados'}?',
+      confirmLabel: active ? 'Si, habilitar' : 'si, deshabilitar',
+    );
+    if (!confirmed) return;
+
+    await ref.read(sellersControllerProvider.notifier).setActive(_selected, active);
     setState(_selected.clear);
   }
 
