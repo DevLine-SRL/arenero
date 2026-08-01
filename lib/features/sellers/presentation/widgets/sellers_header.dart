@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SellersHeader extends StatelessWidget {
-  final VoidCallback onAddPressed;
-
-  const SellersHeader({super.key, required this.onAddPressed});
+  const SellersHeader({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +29,7 @@ class SellersHeader extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(top: 6),
           child: FilledButton.icon(
-            onPressed: onAddPressed,
+            onPressed: null,
             icon: const Icon(Icons.add_rounded),
             label: const Text('Agregar'),
           ),

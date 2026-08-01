@@ -5,7 +5,7 @@ import '../../features/clients/presentation/pages/clients_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/products/presentation/pages/products_page.dart';
 import '../../features/sales/presentation/pages/register_sale_page.dart';
-import '../../features/sellers/presentation/pages/sellers/sellers_management_page.dart';
+import '../../features/sellers/presentation/pages/sellers_management_page.dart';
 import '../../shared/widgets/forbidden_page.dart';
 import '../layouts/main_layout.dart';
 import 'route_paths.dart';
