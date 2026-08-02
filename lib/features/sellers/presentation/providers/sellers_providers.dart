@@ -4,6 +4,7 @@ import '../../../../core/providers/supabase_client_provider.dart';
 import '../../data/datasources/sellers_remote_datasource.dart';
 import '../../data/repositories/sellers_repository_impl.dart';
 import '../../domain/repositories/sellers_repository.dart';
+import '../../domain/usecases/create_seller_usecase.dart';
 import '../../domain/usecases/get_sellers_usecase.dart';
 import '../../domain/usecases/set_sellers_active_usecase.dart';
 
@@ -27,4 +28,9 @@ GetSellersUseCase getSellersUseCase(Ref ref) {
 @riverpod
 SetSellersActiveUseCase setSellersActiveUseCase(Ref ref) {
   return SetSellersActiveUseCase(ref.watch(sellersRepositoryProvider));
+}
+
+@riverpod
+CreateSellerUseCase createSellerUseCase(Ref ref) {
+  return CreateSellerUseCase(ref.watch(sellersRepositoryProvider));
 }

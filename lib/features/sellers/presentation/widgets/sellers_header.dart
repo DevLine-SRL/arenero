@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../providers/sellers_controller_provider.dart';
 import 'create_seller_dialog.dart';
 
-class SellersHeader extends StatelessWidget {
+class SellersHeader extends ConsumerWidget {
   const SellersHeader({super.key});
 
+  Future<void> _openCreateDialog(BuildContext context, WidgetRef ref) async {
+    final created = await CreateSellerDialog.show(context);
+    if (created == true) {
+      ref.invalidate(sellersControllerProvider);
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Row(
@@ -31,7 +40,7 @@ class SellersHeader extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(top: 6),
           child: FilledButton.icon(
-            onPressed: () => CreateSellerDialog.show(context),
+            onPressed: () => _openCreateDialog(context, ref),
             icon: const Icon(Icons.add_rounded),
             label: const Text('Agregar'),
           ),

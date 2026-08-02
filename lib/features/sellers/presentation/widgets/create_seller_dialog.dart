@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/create_seller_form_provider.dart';
 import 'create_seller_dialog_actions.dart';
+import 'create_seller_form_error_banner.dart';
 import 'create_seller_form_fields.dart';
 
 class CreateSellerDialog extends ConsumerStatefulWidget {
@@ -34,7 +35,15 @@ class _CreateSellerDialogState extends ConsumerState<CreateSellerDialog> {
       title: const Text('Agregar vendedor'),
       constraints: const BoxConstraints(minWidth: 480, maxWidth: 560),
       content: SingleChildScrollView(
-        child: CreateSellerFormFields(onSubmitted: _submit),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            CreateSellerFormFields(onSubmitted: _submit),
+            const SizedBox(height: 16),
+            const CreateSellerFormErrorBanner(),
+          ],
+        ),
       ),
       actions: [CreateSellerDialogActions(onSubmit: _submit)],
     );

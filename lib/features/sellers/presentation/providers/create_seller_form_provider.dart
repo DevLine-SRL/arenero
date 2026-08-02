@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../shared/validators/validators.dart';
 import '../../../../shared/value_objects/value_objects.dart';
 import 'create_seller_form_state.dart';
+import 'sellers_providers.dart';
 
 part 'create_seller_form_provider.g.dart';
 
@@ -54,8 +55,19 @@ class CreateSellerForm extends _$CreateSellerForm {
 
     state = state.copyWith(isSubmitting: true, submitError: null);
 
+    final useCase = ref.read(createSellerUseCaseProvider);
+    final result = await useCase(
+      name: state.name,
+      rawEmail: state.email,
+      rawPassword: state.password,
+    );
+
     state = state.copyWith(isSubmitting: false);
-    return true;
+
+    return result.fold((failure) {
+      state = state.copyWith(submitError: failure.message);
+      return false;
+    }, (_) => true);
   }
 
   bool _validateAll() {
@@ -79,9 +91,9 @@ class CreateSellerForm extends _$CreateSellerForm {
     );
 
     return nameError == null &&
-      emailError == null &&
-      passwordError == null &&
-      confirmPasswordError == null;
+        emailError == null &&
+        passwordError == null &&
+        confirmPasswordError == null;
   }
 
   String? _confirmPasswordError(String confirm, String password) {
