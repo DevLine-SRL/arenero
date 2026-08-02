@@ -4,11 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
 import '../providers/sellers_controller_provider.dart';
-import '../widgets/active_accounts_badge.dart';
 import '../widgets/seller_list_item.dart';
 import '../widgets/sellers_actions_bar.dart';
 import '../widgets/sellers_empty_state.dart';
 import '../widgets/sellers_header.dart';
+import '../widgets/sellers_status_filter.dart';
 
 class SellersManagementPage extends ConsumerStatefulWidget {
   const SellersManagementPage({super.key});
@@ -19,6 +19,7 @@ class SellersManagementPage extends ConsumerStatefulWidget {
 
 class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
   final Set<String> _selected = {};
+  SellerStatusFilter _filter = SellerStatusFilter.active;
 
   void _toggleSelected(String id, bool selected) {
     setState(() {
@@ -27,6 +28,13 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
       } else {
         _selected.remove(id);
       }
+    });
+  }
+
+  void _onFilterChanged(SellerStatusFilter filter) {
+    setState(() {
+      _filter = filter;
+      _selected.clear();
     });
   }
 
@@ -69,41 +77,68 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
               ],
             ),
           ),
-          data: (sellers) => Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SellersHeader(),
-              const SizedBox(height: 12),
-              ActiveAccountsBadge(
-                activeCount: sellers.where((s) => s.active).length,
-                total: sellers.length,
-              ),
-              const SizedBox(height: 16),
-              SellersActionsBar(
-                selectedCount: _selected.length,
-                onEnable: _selected.isEmpty ? null : () => _setActive(true),
-                onDisable: _selected.isEmpty ? null : () => _setActive(false),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: sellers.isEmpty
-                  ? const SellersEmptyState()
-                  : ListView.separated(
-                      padding: EdgeInsets.zero,
-                      itemCount: sellers.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final seller = sellers[index];
-                        return SellerListItem(
-                          seller: seller,
-                          isSelected: _selected.contains(seller.id),
-                          onToggle: (selected) => _toggleSelected(seller.id, selected),
-                        );
-                      },
-                    ),
-              ),
-            ],
-          ),
+          data: (sellers) {
+            final activeCount = sellers.where((s) => s.active).length;
+            final inactiveCount = sellers.length - activeCount;
+
+            final visibleSellers = switch (_filter) {
+              SellerStatusFilter.active => sellers
+                  .where((s) => s.active)
+                  .toList(),
+              SellerStatusFilter.inactive => sellers
+                  .where((s) => !s.active)
+                  .toList(),
+              SellerStatusFilter.all => sellers,
+            };
+
+            final emptyMessage = sellers.isEmpty
+              ? 'Aún no hay vendedores registrados'
+              : switch (_filter) {
+                  SellerStatusFilter.active => 'No hay vendedores activos',
+                  SellerStatusFilter.inactive => 'No hay vendedores inactivos',
+                  SellerStatusFilter.all => 'No hay vendedores',
+                };
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SellersHeader(),
+                const SizedBox(height: 12),
+                SellersStatusFilter(
+                  value: _filter,
+                  activeCount: activeCount,
+                  inactiveCount: inactiveCount,
+                  total: sellers.length,
+                  onChanged: _onFilterChanged,
+                ),
+                const SizedBox(height: 16),
+                SellersActionsBar(
+                  filter: _filter,
+                  selectedCount: _selected.length,
+                  onEnable: _selected.isEmpty ? null : () => _setActive(true),
+                  onDisable: _selected.isEmpty ? null : () => _setActive(false),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: visibleSellers.isEmpty
+                    ? SellersEmptyState(message: emptyMessage)
+                    : ListView.separated(
+                        padding: EdgeInsets.zero,
+                        itemCount: visibleSellers.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final seller = visibleSellers[index];
+                          return SellerListItem(
+                            seller: seller,
+                            isSelected: _selected.contains(seller.id),
+                            onToggle: (selected) => _toggleSelected(seller.id, selected),
+                          );
+                        },
+                      ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

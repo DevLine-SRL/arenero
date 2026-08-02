@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class SellersEmptyState extends StatelessWidget {
-  const SellersEmptyState({super.key});
+  final String message;
+
+  const SellersEmptyState({super.key, required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -9,7 +11,7 @@ class SellersEmptyState extends StatelessWidget {
 
     return Center(
       child: Text(
-        'Aún no hay vendedores registrados',
+        message,
         style: theme.textTheme.bodyMedium?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
         ),

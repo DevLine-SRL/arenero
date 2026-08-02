@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'sellers_status_filter.dart';
+
 class SellersActionsBar extends StatelessWidget {
+  final SellerStatusFilter filter;
   final int selectedCount;
   final VoidCallback? onEnable;
   final VoidCallback? onDisable;
 
   const SellersActionsBar({
     super.key,
+    required this.filter,
     required this.selectedCount,
     required this.onEnable,
     required this.onDisable,
@@ -17,22 +21,31 @@ class SellersActionsBar extends StatelessWidget {
     final theme = Theme.of(context);
     final hasSelection = selectedCount > 0;
 
+    final showEnable =
+      filter == SellerStatusFilter.inactive ||
+      filter == SellerStatusFilter.all;
+    final showDisable =
+      filter == SellerStatusFilter.active ||
+      filter == SellerStatusFilter.all;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Wrap(
           spacing: 8,
           children: [
-            OutlinedButton.icon(
-              onPressed: onEnable,
-              icon: const Icon(Icons.check_circle_outline_rounded),
-              label: const Text('Habilitar'),
-            ),
-            OutlinedButton.icon(
-              onPressed: onDisable,
-              icon: const Icon(Icons.block_rounded),
-              label: const Text('Deshabilitar'),
-            ),
+            if (showEnable)
+              OutlinedButton.icon(
+                onPressed: onEnable,
+                icon: const Icon(Icons.check_circle_outline_rounded),
+                label: const Text('Habilitar'),
+              ),
+            if (showDisable)
+              OutlinedButton.icon(
+                onPressed: onDisable,
+                icon: const Icon(Icons.block_rounded),
+                label: const Text('Deshabilitar'),
+              ),
           ],
         ),
         if (hasSelection) ...[
