@@ -151,3 +151,99 @@ final class SearchClientsUseCaseProvider
 
 String _$searchClientsUseCaseHash() =>
     r'6a65b2b25296eef5185b7fa1430dcff66be78c49';
+
+@ProviderFor(createClientUseCase)
+final createClientUseCaseProvider = CreateClientUseCaseProvider._();
+
+final class CreateClientUseCaseProvider
+    extends
+        $FunctionalProvider<
+          CreateClientUseCase,
+          CreateClientUseCase,
+          CreateClientUseCase
+        >
+    with $Provider<CreateClientUseCase> {
+  CreateClientUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'createClientUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$createClientUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<CreateClientUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CreateClientUseCase create(Ref ref) {
+    return createClientUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CreateClientUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CreateClientUseCase>(value),
+    );
+  }
+}
+
+String _$createClientUseCaseHash() =>
+    r'97a0b79e971f2c01665851d4b9b23a985b4b503b';
+
+@ProviderFor(checkCiAvailableUseCase)
+final checkCiAvailableUseCaseProvider = CheckCiAvailableUseCaseProvider._();
+
+final class CheckCiAvailableUseCaseProvider
+    extends
+        $FunctionalProvider<
+          CheckCiAvailableUseCase,
+          CheckCiAvailableUseCase,
+          CheckCiAvailableUseCase
+        >
+    with $Provider<CheckCiAvailableUseCase> {
+  CheckCiAvailableUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'checkCiAvailableUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$checkCiAvailableUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<CheckCiAvailableUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CheckCiAvailableUseCase create(Ref ref) {
+    return checkCiAvailableUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CheckCiAvailableUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CheckCiAvailableUseCase>(value),
+    );
+  }
+}
+
+String _$checkCiAvailableUseCaseHash() =>
+    r'706f1c95bd9624f87187831a7dc4f35ee61fa628';
