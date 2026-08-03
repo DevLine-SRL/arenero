@@ -5,6 +5,7 @@ import '../../../../core/errors/failures.dart';
 import '../providers/clients_search_provider.dart';
 import '../providers/clients_search_query_provider.dart';
 import '../widgets/client_list_item.dart';
+import '../widgets/clients_actions_bar.dart';
 import '../widgets/clients_empty_state.dart';
 import '../widgets/clients_search_field.dart';
 
@@ -23,6 +24,8 @@ class ClientsPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const ClientsSearchField(),
+            const SizedBox(height: 12),
+            const ClientsActionsBar(),
             const SizedBox(height: 16),
             Expanded(
               child: clientsAsync.when(
