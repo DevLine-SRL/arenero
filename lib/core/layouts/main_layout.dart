@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/providers/logout_provider.dart';
 import '../../shared/widgets/confirm_dialog.dart';
+import '../../shared/widgets/connection_status_indicator.dart';
 import '../router/route_definitions.dart';
 import 'bottom_nav_bar.dart';
 import 'sidebar.dart';
@@ -55,10 +56,14 @@ class MainLayout extends ConsumerWidget {
           : null,
         title: Text(title),
         actions: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Center(child: ConnectionStatusIndicator()),
+          ),
           IconButton(
             onPressed: () => _confirmLogout(context, ref),
             tooltip: 'Cerrar Sesión',
-            icon: Icon(Icons.logout_rounded),
+            icon: const Icon(Icons.logout_rounded),
           ),
         ],
       ),
