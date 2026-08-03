@@ -59,7 +59,7 @@ dartz, Supabase (nube). Backend versionado en `supabase/`.
 
 ```bash
 dart format lib test
-dart run build_runner build --delete-conflicting-outputs   # si tocaste providers
+dart run build_runner build   # si tocaste providers
 flutter analyze
 flutter test
 ```

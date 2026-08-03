@@ -143,7 +143,7 @@ Generación de código con `@riverpod` de `riverpod_annotation`. Tras editar
 cualquier provider:
 
 ```bash
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 ```
 
 Los `.g.dart` se commitean.

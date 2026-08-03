@@ -126,7 +126,7 @@ Nunca edites una migración que ya está en `main`.
 
 ```bash
 dart format lib test
-dart run build_runner build --delete-conflicting-outputs   # si tocaste providers
+dart run build_runner build   # si tocaste providers
 flutter analyze
 flutter test
 ```

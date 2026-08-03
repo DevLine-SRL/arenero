@@ -75,7 +75,7 @@ lib/features/<plural>/
 10. **Codegen y verificación.**
 
 ```bash
-dart run build_runner build --delete-conflicting-outputs
+dart run build_runner build
 dart format lib
 flutter analyze
 flutter test
