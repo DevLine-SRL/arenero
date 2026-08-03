@@ -23,6 +23,8 @@ class AuthRepositoryImpl implements AuthRepository {
         password: password,
       );
       return Right(user);
+    } on supabase.AuthRetryableFetchException {
+      return const Left(NetworkFailure());
     } on supabase.AuthException catch (e) {
       return Left(_mapAuthException(e));
     } catch (e) {
