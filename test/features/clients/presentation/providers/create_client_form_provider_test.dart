@@ -32,7 +32,8 @@ void main() {
     notifier()
       ..onNameChanged('Juan Pérez')
       ..onCiChanged('1234567')
-      ..onPhoneChanged('70011223');
+      ..onPhoneChanged('70011223')
+      ..onNitChanged('1234567890');
   }
 
   group('field validation', () {
@@ -52,6 +53,19 @@ void main() {
       notifier().onPhoneChanged('');
 
       expect(state().phoneError, isNull);
+    });
+
+    test('accepts an empty nit because the field is optional', () {
+      notifier().onNitChanged('');
+
+      expect(state().nitError, isNull);
+    });
+
+    test('flags a malformed nit', () {
+      notifier().onNitChanged('12A');
+
+      expect(state().nitError, isNotNull);
+      expect(state().canSubmit, isFalse);
     });
 
     test('is not submittable until name and ci are valid', () {
@@ -144,8 +158,10 @@ void main() {
       expect(submitted, isTrue);
       expect(repository.lastCreatedName, 'Juan Pérez');
       expect(repository.lastCreatedCi, '1234567');
+      expect(repository.lastCreatedNit, '1234567890');
       expect(state().name, '');
       expect(state().ci, '');
+      expect(state().nit, '');
     });
 
     // Tarea #40: la restricción de la base de datos es la garantía real, así

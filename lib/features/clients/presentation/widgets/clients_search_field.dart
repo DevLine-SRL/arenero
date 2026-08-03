@@ -49,7 +49,7 @@ class _ClientsSearchFieldState extends ConsumerState<ClientsSearchField> {
     return TextField(
       controller: _controller,
       decoration: InputDecoration(
-        hintText: 'Buscar por nombre o cédula',
+        hintText: 'Buscar por nombre, cédula o NIT',
         prefixIcon: const Icon(Icons.search_rounded),
         suffixIcon: hasText
             ? IconButton(

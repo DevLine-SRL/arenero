@@ -10,7 +10,7 @@ part 'create_client_form_provider.g.dart';
 
 /// `CreateClientFormState.copyWith` borra los mensajes de error que no recibe,
 /// para poder limpiarlos pasando `null`. Por eso cada método de aquí declara
-/// los tres errores: así se ve en el sitio qué queda y qué se limpia, sin
+/// los cuatro errores: así se ve en el sitio qué queda y qué se limpia, sin
 /// depender de un valor por defecto escondido.
 @riverpod
 class CreateClientForm extends _$CreateClientForm {
@@ -23,6 +23,7 @@ class CreateClientForm extends _$CreateClientForm {
       nameError: required(value),
       ciError: state.ciError,
       phoneError: state.phoneError,
+      nitError: state.nitError,
       submitError: null,
     );
   }
@@ -35,6 +36,7 @@ class CreateClientForm extends _$CreateClientForm {
       nameError: state.nameError,
       ciError: ci(value),
       phoneError: state.phoneError,
+      nitError: state.nitError,
       isCheckingCi: false,
       submitError: null,
     );
@@ -46,6 +48,18 @@ class CreateClientForm extends _$CreateClientForm {
       nameError: state.nameError,
       ciError: state.ciError,
       phoneError: phone(value),
+      nitError: state.nitError,
+      submitError: null,
+    );
+  }
+
+  void onNitChanged(String value) {
+    state = state.copyWith(
+      nit: value,
+      nameError: state.nameError,
+      ciError: state.ciError,
+      phoneError: state.phoneError,
+      nitError: nit(value),
       submitError: null,
     );
   }
@@ -63,6 +77,7 @@ class CreateClientForm extends _$CreateClientForm {
       nameError: state.nameError,
       ciError: state.ciError,
       phoneError: state.phoneError,
+      nitError: state.nitError,
       isCheckingCi: true,
     );
 
@@ -78,6 +93,7 @@ class CreateClientForm extends _$CreateClientForm {
         (available) => available ? null : 'Esta cédula ya está registrada',
       ),
       phoneError: state.phoneError,
+      nitError: state.nitError,
       isCheckingCi: false,
     );
   }
@@ -89,6 +105,7 @@ class CreateClientForm extends _$CreateClientForm {
       nameError: state.nameError,
       ciError: state.ciError,
       phoneError: state.phoneError,
+      nitError: state.nitError,
       isSubmitting: true,
       submitError: null,
     );
@@ -97,6 +114,7 @@ class CreateClientForm extends _$CreateClientForm {
       name: state.name,
       rawCi: state.ci,
       phone: state.phone,
+      nit: state.nit,
     );
 
     return result.fold(
@@ -105,6 +123,7 @@ class CreateClientForm extends _$CreateClientForm {
           nameError: _fieldError(failure, 'name') ?? state.nameError,
           ciError: _fieldError(failure, 'ci') ?? state.ciError,
           phoneError: state.phoneError,
+          nitError: _fieldError(failure, 'nit') ?? state.nitError,
           isSubmitting: false,
           submitError: failure.message,
         );
@@ -122,18 +141,21 @@ class CreateClientForm extends _$CreateClientForm {
     final nameError = required(state.name);
     final ciFormatError = ci(state.ci);
     final phoneError = phone(state.phone);
+    final nitError = nit(state.nit);
 
     state = state.copyWith(
       nameError: nameError,
       // Con el formato correcto, un aviso previo de duplicado sigue vigente.
       ciError: ciFormatError ?? state.ciError,
       phoneError: phoneError,
+      nitError: nitError,
       submitError: null,
     );
 
     return state.nameError == null &&
         state.ciError == null &&
-        state.phoneError == null;
+        state.phoneError == null &&
+        state.nitError == null;
   }
 
   String? _fieldError(Failure failure, String field) {

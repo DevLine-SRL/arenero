@@ -40,6 +40,15 @@ class ClientListItem extends StatelessWidget {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+                if (client.nit != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'NIT ${client.nit}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
                 if (client.phone != null) ...[
                   const SizedBox(height: 2),
                   Text(
