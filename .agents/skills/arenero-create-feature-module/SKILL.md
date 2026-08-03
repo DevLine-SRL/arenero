@@ -42,7 +42,6 @@ lib/features/<plural>/
   presentation/
     pages/<plural>_page.dart
     providers/<plural>_providers.dart
-    routes.dart
     widgets/
 ```
 
@@ -63,9 +62,16 @@ lib/features/<plural>/
 6. **Casos de uso.** Uno por operación, con un único método `call`.
 7. **Providers.** En `<plural>_providers.dart`: datasource, repositorio y
    casos de uso. Un `@riverpod` por declaración.
-8. **`routes.dart`.** Exporta el `StatefulShellBranch` del feature.
-9. **Registro.** Agrega la constante en `lib/core/router/route_paths.dart` y
-   una línea en `lib/core/router/route_definitions.dart`.
+8. **Registro de la ruta.** Agrega las constantes en
+   `lib/core/router/route_paths.dart` y un `StatefulShellBranch` **al final**
+   de la lista de `branches` en `lib/core/router/route_definitions.dart`. No
+   reordenes las ramas existentes: hay índices escritos a mano en
+   `adminBranchIndex`, en la lista `titles` de `main_layout.dart` y en los
+   destinos de `bottom_nav_bar.dart`, y desalinearlos no produce ningún
+   error visible.
+9. **Navegación.** Agrega el título en `main_layout.dart` y el destino en
+   `bottom_nav_bar.dart`, o en `sidebar.dart` si el módulo es solo para
+   administradores.
 10. **Codegen y verificación.**
 
 ```bash

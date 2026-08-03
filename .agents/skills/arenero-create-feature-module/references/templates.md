@@ -245,17 +245,25 @@ class ClientsController extends _$ClientsController {
 La página lo consume con `AsyncValue.when` y muestra `error.message` cuando
 el error es un `Failure`.
 
-## Rutas del feature
+## Registro de la ruta
 
-`lib/features/clients/presentation/routes.dart`
+En `lib/core/router/route_paths.dart`, una constante en cada clase:
 
 ```dart
-import 'package:go_router/go_router.dart';
+abstract final class RoutePaths {
+  static const clients = '/clientes';
+}
 
-import '../../../core/router/route_paths.dart';
-import 'pages/clients_page.dart';
+abstract final class RouteNames {
+  static const clients = 'clients';
+}
+```
 
-final clientsBranch = StatefulShellBranch(
+En `lib/core/router/route_definitions.dart`, **al final** de la lista de
+`branches`:
+
+```dart
+StatefulShellBranch(
   routes: [
     GoRoute(
       path: RoutePaths.clients,
@@ -263,8 +271,12 @@ final clientsBranch = StatefulShellBranch(
       builder: (context, state) => const ClientsPage(),
     ),
   ],
-);
+),
 ```
 
-Después agrega `clientsBranch` a `protectedBranches` en
-`lib/core/router/route_definitions.dart` — una sola línea.
+No reordenes las ramas existentes. `adminBranchIndex` en ese mismo archivo, la
+lista `titles` de `main_layout.dart` y los destinos de `bottom_nav_bar.dart`
+están indexados por posición a mano, y desalinearlos no produce ningún error.
+
+Si el módulo es solo para administradores, agrega además su ruta a
+`adminOnlyRoutes` y su destino a `sidebar.dart`.

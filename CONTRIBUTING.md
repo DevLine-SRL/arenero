@@ -101,14 +101,17 @@ Los toca todo el equipo. Cambios mínimos y aviso previo:
 | Archivo | Qué se le agrega |
 |---|---|
 | `lib/core/router/route_paths.dart` | Una constante de ruta y una de nombre |
-| `lib/core/router/route_definitions.dart` | Una línea con el branch del feature |
-| `lib/core/layouts/sidebar.dart` | Un destino de menú |
-| `lib/core/layouts/bottom_nav_bar.dart` | Un ítem de navegación |
+| `lib/core/router/route_definitions.dart` | Un `StatefulShellBranch` para el módulo |
+| `lib/core/layouts/main_layout.dart` | Un título en la lista `titles` |
+| `lib/core/layouts/bottom_nav_bar.dart` | Un destino de navegación |
+| `lib/core/layouts/sidebar.dart` | Un destino de menú, si es de administración |
 | `pubspec.yaml` | Dependencias — consúltalo con el equipo antes |
 
-La convención de rutas (cada feature declara su branch en
-`presentation/routes.dart`) existe justamente para que
-`route_definitions.dart` sea una línea por módulo.
+**Agrega tu rama al final de la lista de `branches` y no reordenes las
+existentes.** Las posiciones están escritas a mano en tres sitios
+(`adminBranchIndex`, la lista `titles` y los destinos de la barra inferior);
+insertar un módulo en medio las desalinea sin dar ningún error. Está
+explicado en `docs/convenciones/flutter.md`.
 
 ## Migraciones en paralelo
 

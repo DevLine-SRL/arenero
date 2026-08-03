@@ -23,7 +23,6 @@ lib/features/<feature>/
     pages/             una página por ruta
     providers/         un provider por archivo
     widgets/           un widget por archivo
-    routes.dart        declaración de rutas del feature
 ```
 
 Reglas de dependencia:
@@ -222,31 +221,35 @@ dominio no debe poder representar el valor inválido, es un value object.
 
 ## Rutas
 
-Cada feature declara sus rutas en
-`lib/features/<feature>/presentation/routes.dart`:
+Toda la navegación vive en `lib/core/router/`:
 
-```dart
-final clientsBranch = StatefulShellBranch(
-  routes: [
-    GoRoute(
-      path: RoutePaths.clients,
-      name: RouteNames.clients,
-      builder: (context, state) => const ClientsPage(),
-    ),
-  ],
-);
-```
+- `route_paths.dart` — constantes `RoutePaths` y `RouteNames`. Agrega una de
+  cada una para tu módulo.
+- `route_definitions.dart` — un `StatefulShellBranch` por módulo dentro de
+  `protectedRoutes`, más `adminOnlyRoutes` para las rutas restringidas.
+- `app_router.dart` — el `GoRouter` y el guard de sesión y rol.
 
-`lib/core/router/route_definitions.dart` solo compone la lista. Así agregar un
-módulo toca una línea de un archivo compartido, no un bloque.
+Es un archivo compartido por todo el equipo: agrega tu bloque al final de la
+lista de `branches` y no reordenes los existentes.
 
-Las constantes de ruta viven en `lib/core/router/route_paths.dart`. Las rutas
-de solo administrador se listan en `adminOnlyRoutes`.
+### Riesgo conocido: los índices de rama están escritos a mano
 
-**No escribas índices de rama a mano.** El índice de una rama dentro del
-`StatefulShellRoute` se deriva de su posición en la lista
-(`protectedBranches.indexOf(...)`). Hubo un `const adminBranchIndex = 4`
-escrito a mano que se rompía en silencio al insertar un módulo antes.
+`route_definitions.dart` declara `const adminBranchIndex = 4` apuntando a la
+posición de la rama de vendedores. `main_layout.dart` indexa una lista
+`titles` por el mismo número, y `bottom_nav_bar.dart` lista sus destinos en
+ese mismo orden.
+
+Insertar un módulo **antes** de la posición 4 desplaza las tres cosas: el
+título de la AppBar deja de corresponder, los íconos de la barra inferior se
+desalinean y el menú de administración navega a la rama equivocada. Nada de
+eso da error de compilación ni excepción en tiempo de ejecución.
+
+Mientras siga así: **agrega tu rama al final de la lista** y revisa
+`adminBranchIndex`, `titles` y `_navBarDestinations` si tocas el orden.
+
+Arreglarlo requiere refactorizar archivos compartidos por varias personas, así
+que es una tarea que se acuerda con el equipo, no algo que se cuela dentro de
+una historia de usuario.
 
 ## Textos
 
