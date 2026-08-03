@@ -26,6 +26,23 @@ dartz, Supabase (nube). Backend versionado en `supabase/`.
 - Código compartido entre features va en `lib/shared/`. Infraestructura de la
   aplicación (router, tema, layouts, providers globales) va en `lib/core/`.
 
+## Código compartido
+
+Antes de escribir una validación o un widget de uso común, mira si ya existe.
+Duplicarlos es la forma más rápida de que dos módulos validen lo mismo de dos
+maneras distintas.
+
+- `lib/shared/validators/` — `required`, `minLength`, `maxLength`, `email`,
+  `isNumber`, `min`, `max`, `matches`, `ci`, `nit`, `phone`. Se combinan con
+  `compose`.
+- `lib/shared/value_objects/` — `Email`, `Password`, `Ci`. Constructor privado
+  más `static Either<Failure, T> create(String)`.
+- `lib/shared/widgets/` — `RequiredLabel`, `showConfirmDialog`,
+  `NotFoundPage`, `ForbiddenPage`.
+
+Si tu módulo necesita una regla nueva de uso general, agrégala aquí y expórtala
+en el barrel correspondiente.
+
 ## Errores
 
 - Todo método de repositorio devuelve `Either<Failure, T>`.
@@ -65,6 +82,43 @@ flutter test
 ```
 
 Los cuatro deben pasar. Los archivos `.g.dart` se commitean.
+
+Para levantar la app hacen falta las claves del `.env`:
+
+```bash
+flutter run --dart-define-from-file=.env
+```
+
+## Cuando algo falla
+
+**`build_runner` dice `Waiting for already-running build_runner`.** Quedó un
+lock sin dueño porque un proceso murió a media escritura. Cortar con Ctrl-C no
+alcanza: mata el envoltorio `dart`, no la VM que retiene el lock.
+
+```bash
+pkill -f 'build_runner.dart-'
+rm -f .dart_tool/build/lock/build_runner.lock*
+```
+
+**Nunca corras dos `build_runner` a la vez.** Se bloquean mutuamente y dejan el
+grafo de assets inconsistente.
+
+**El `.g.dart` no se regenera y el build dice `skipped`.** El generador ignora
+las librerías que no analizan. Si un archivo referencia un provider que aún no
+existe, ni ese archivo ni su compañero se generan nunca. Sal del ciclo apartando
+temporalmente los archivos que dan error, generando, y devolviéndolos.
+
+**Gradle falla con `does not provide the required capabilities: [JAVA_COMPILER]`.**
+Falta un JDK completo; los paquetes `jre-*` no traen compilador. Java 21, no 25:
+Gradle y el plugin de Android todavía no soportan bien 25.
+
+```bash
+sudo dnf install java-21-openjdk-devel        # Fedora / Nobara
+flutter config --jdk-dir /usr/lib/jvm/java-21-openjdk
+```
+
+**La consulta falla con `column ... does not exist`.** Alguien subió una
+migración que tú no aplicaste: `npm run supabase:deploy`.
 
 ## Documentación
 
