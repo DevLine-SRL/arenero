@@ -18,6 +18,7 @@ class FakeClientsRepository implements ClientsRepository {
   String? lastCreatedName;
   String? lastCreatedCi;
   String? lastCreatedPhone;
+  String? lastCreatedNit;
   String? lastSearchQuery;
   bool? lastIncludeInactive;
   Ci? lastCheckedCi;
@@ -29,12 +30,15 @@ class FakeClientsRepository implements ClientsRepository {
     required String name,
     required Ci ci,
     String? phone,
+    String? nit,
   }) async {
     createCallCount++;
     lastCreatedName = name;
     lastCreatedCi = ci.value;
     lastCreatedPhone = phone;
-    return createResult ?? Right(buildClient(name: name, ci: ci.value));
+    lastCreatedNit = nit;
+    return createResult ??
+        Right(buildClient(name: name, ci: ci.value, nit: nit));
   }
 
   @override
@@ -60,8 +64,10 @@ class FakeClientsRepository implements ClientsRepository {
     required String name,
     required Ci ci,
     String? phone,
+    String? nit,
   }) async {
-    return updateResult ?? Right(buildClient(id: id, name: name, ci: ci.value));
+    return updateResult ??
+        Right(buildClient(id: id, name: name, ci: ci.value, nit: nit));
   }
 
   @override

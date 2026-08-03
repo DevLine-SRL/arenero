@@ -116,12 +116,16 @@ void main() {
   });
 
   group('searchClients', () {
-    test('forwards the query and the inactive flag', () async {
-      await repository.searchClients(query: 'juan', includeInactive: true);
+    // Criterio de aceptación #37: nombre, cédula o NIT.
+    test(
+      'forwards the query so the data source can match name, ci or nit',
+      () async {
+        await repository.searchClients(query: 'juan', includeInactive: true);
 
-      expect(dataSource.lastSearchQuery, 'juan');
-      expect(dataSource.lastIncludeInactive, isTrue);
-    });
+        expect(dataSource.lastSearchQuery, 'juan');
+        expect(dataSource.lastIncludeInactive, isTrue);
+      },
+    );
 
     test('excludes inactive clients by default', () async {
       await repository.searchClients(query: '');

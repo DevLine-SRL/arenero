@@ -18,12 +18,14 @@ void main() {
       name: 'Juan Pérez',
       rawCi: '1234567',
       phone: '70011223',
+      nit: '1234567890',
     );
 
     expect(result.isRight(), isTrue);
     expect(repository.lastCreatedName, 'Juan Pérez');
     expect(repository.lastCreatedCi, '1234567');
     expect(repository.lastCreatedPhone, '70011223');
+    expect(repository.lastCreatedNit, '1234567890');
   });
 
   test('rejects an invalid ci without reaching the repository', () async {

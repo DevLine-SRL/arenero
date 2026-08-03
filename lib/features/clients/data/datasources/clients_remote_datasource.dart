@@ -12,6 +12,7 @@ abstract class ClientsRemoteDataSource {
     required String name,
     required String ci,
     String? phone,
+    String? nit,
   });
 
   Future<bool> existsByCi(String ci);
@@ -21,6 +22,7 @@ abstract class ClientsRemoteDataSource {
     required String name,
     required String ci,
     String? phone,
+    String? nit,
   });
 
   Future<void> setActive(String id, bool active);
@@ -44,7 +46,9 @@ class ClientsRemoteDataSourceImpl implements ClientsRemoteDataSource {
 
     final term = _sanitizeSearchTerm(query);
     if (term.isNotEmpty) {
-      filter = filter.or('name.ilike.%$term%,ci.ilike.%$term%');
+      filter = filter.or(
+        'name.ilike.%$term%,ci.ilike.%$term%,nit.ilike.%$term%',
+      );
     }
 
     final rows = await filter.order('name');
@@ -57,10 +61,16 @@ class ClientsRemoteDataSourceImpl implements ClientsRemoteDataSource {
     required String name,
     required String ci,
     String? phone,
+    String? nit,
   }) async {
     final row = await client
         .from('clients')
-        .insert({'name': name.trim(), 'ci': ci, 'phone': _nullIfBlank(phone)})
+        .insert({
+          'name': name.trim(),
+          'ci': ci,
+          'phone': _nullIfBlank(phone),
+          'nit': _nullIfBlank(nit),
+        })
         .select()
         .single();
 
@@ -84,10 +94,16 @@ class ClientsRemoteDataSourceImpl implements ClientsRemoteDataSource {
     required String name,
     required String ci,
     String? phone,
+    String? nit,
   }) async {
     final row = await client
         .from('clients')
-        .update({'name': name.trim(), 'ci': ci, 'phone': _nullIfBlank(phone)})
+        .update({
+          'name': name.trim(),
+          'ci': ci,
+          'phone': _nullIfBlank(phone),
+          'nit': _nullIfBlank(nit),
+        })
         .eq('id', id)
         .select()
         .single();

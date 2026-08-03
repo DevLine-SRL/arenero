@@ -8,7 +8,8 @@ import '../entities/client.dart';
 /// todavía no tienen interfaz de usuario. Se acuerda una sola vez para que
 /// las tareas de la historia #22 avancen sobre archivos disjuntos.
 abstract class ClientsRepository {
-  /// Tarea #37. Con `query` vacío devuelve todos los clientes activos.
+  /// Tarea #37. Busca por nombre, cédula o NIT. Con `query` vacío devuelve
+  /// todos los clientes activos.
   Future<Either<Failure, List<Client>>> searchClients({
     required String query,
     bool includeInactive = false,
@@ -19,6 +20,7 @@ abstract class ClientsRepository {
     required String name,
     required Ci ci,
     String? phone,
+    String? nit,
   });
 
   /// Tarea #40. Comprobación previa para avisar al usuario mientras escribe.
@@ -34,6 +36,7 @@ abstract class ClientsRepository {
     required String name,
     required Ci ci,
     String? phone,
+    String? nit,
   });
 
   /// Tarea #39.

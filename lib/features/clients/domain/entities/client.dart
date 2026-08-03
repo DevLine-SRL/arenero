@@ -3,6 +3,7 @@ class Client {
   final String name;
   final String? phone;
   final String ci;
+  final String? nit;
   final bool active;
 
   const Client({
@@ -10,6 +11,7 @@ class Client {
     required this.name,
     this.phone,
     required this.ci,
+    this.nit,
     required this.active,
   });
 
@@ -18,6 +20,7 @@ class Client {
     String? name,
     String? phone,
     String? ci,
+    String? nit,
     bool? active,
   }) {
     return Client(
@@ -25,6 +28,7 @@ class Client {
       name: name ?? this.name,
       phone: phone ?? this.phone,
       ci: ci ?? this.ci,
+      nit: nit ?? this.nit,
       active: active ?? this.active,
     );
   }

@@ -14,10 +14,12 @@ class CreateClientUseCase {
     required String name,
     required String rawCi,
     String? phone,
+    String? nit,
   }) async {
     return Ci.create(rawCi).fold(
       (failure) => Left<Failure, Client>(failure),
-      (ci) => repository.createClient(name: name, ci: ci, phone: phone),
+      (ci) =>
+          repository.createClient(name: name, ci: ci, phone: phone, nit: nit),
     );
   }
 }

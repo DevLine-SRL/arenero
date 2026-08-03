@@ -7,7 +7,15 @@ Client buildClient({
   String name = 'Juan Pérez',
   String? phone = '70011223',
   String ci = '1234567',
+  String? nit,
   bool active = true,
 }) {
-  return Client(id: id, name: name, phone: phone, ci: ci, active: active);
+  return Client(
+    id: id,
+    name: name,
+    phone: phone,
+    ci: ci,
+    nit: nit,
+    active: active,
+  );
 }

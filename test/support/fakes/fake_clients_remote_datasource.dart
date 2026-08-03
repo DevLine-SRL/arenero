@@ -20,6 +20,7 @@ class FakeClientsRemoteDataSource implements ClientsRemoteDataSource {
   String? lastCreatedCi;
   String? lastCreatedName;
   String? lastCreatedPhone;
+  String? lastCreatedNit;
   int setActiveCallCount = 0;
 
   @override
@@ -38,10 +39,12 @@ class FakeClientsRemoteDataSource implements ClientsRemoteDataSource {
     required String name,
     required String ci,
     String? phone,
+    String? nit,
   }) async {
     lastCreatedName = name;
     lastCreatedCi = ci;
     lastCreatedPhone = phone;
+    lastCreatedNit = nit;
     _throwIfConfigured();
     return createResult ??
         ClientModel(
@@ -49,6 +52,7 @@ class FakeClientsRemoteDataSource implements ClientsRemoteDataSource {
           name: name,
           ci: ci,
           phone: phone,
+          nit: nit,
           active: true,
         );
   }
@@ -65,10 +69,18 @@ class FakeClientsRemoteDataSource implements ClientsRemoteDataSource {
     required String name,
     required String ci,
     String? phone,
+    String? nit,
   }) async {
     _throwIfConfigured();
     return updateResult ??
-        ClientModel(id: id, name: name, ci: ci, phone: phone, active: true);
+        ClientModel(
+          id: id,
+          name: name,
+          ci: ci,
+          phone: phone,
+          nit: nit,
+          active: true,
+        );
   }
 
   @override

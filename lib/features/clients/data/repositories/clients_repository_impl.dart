@@ -39,12 +39,14 @@ class ClientsRepositoryImpl implements ClientsRepository {
     required String name,
     required Ci ci,
     String? phone,
+    String? nit,
   }) async {
     try {
       final client = await remoteDataSource.createClient(
         name: name,
         ci: ci.value,
         phone: phone,
+        nit: nit,
       );
       return Right(client);
     } on supabase.PostgrestException catch (e) {
@@ -77,6 +79,7 @@ class ClientsRepositoryImpl implements ClientsRepository {
     required String name,
     required Ci ci,
     String? phone,
+    String? nit,
   }) async {
     try {
       final client = await remoteDataSource.updateClient(
@@ -84,6 +87,7 @@ class ClientsRepositoryImpl implements ClientsRepository {
         name: name,
         ci: ci.value,
         phone: phone,
+        nit: nit,
       );
       return Right(client);
     } on supabase.PostgrestException catch (e) {
