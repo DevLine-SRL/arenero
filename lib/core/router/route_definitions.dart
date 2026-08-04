@@ -12,7 +12,10 @@ import 'route_paths.dart';
 
 const adminBranchIndex = 4;
 
-final adminOnlyRoutes = <String>[RoutePaths.sellersManagement];
+final adminOnlyRoutes = <String>[
+  RoutePaths.products,
+  RoutePaths.sellersManagement,
+];
 
 final publicRoutes = <RouteBase>[
   GoRoute(
