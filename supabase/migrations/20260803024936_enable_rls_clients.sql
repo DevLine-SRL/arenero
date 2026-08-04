@@ -1,57 +1,14 @@
--- Migración: habilita RLS en clients y client_addresses.
--- Las tablas se crearon en 20260802200029_base_schema.sql sin RLS, así que
--- cualquier portador de la clave publicable podía leerlas y escribirlas.
--- Sin políticas de DELETE: las bajas son lógicas con la columna `active`.
-
--- clients
-
-ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "clients_select" ON public.clients
-  FOR SELECT
-  TO authenticated
-  USING (true);
-
-CREATE POLICY "clients_insert" ON public.clients
-  FOR INSERT
-  TO authenticated
-  WITH CHECK (true);
-
-CREATE POLICY "clients_update" ON public.clients
-  FOR UPDATE
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
-CREATE POLICY "clients_block_inactive" ON public.clients
-  AS RESTRICTIVE
-  TO authenticated
-  USING ((select public.is_active()));
-
--- client_addresses
-
-ALTER TABLE public.client_addresses ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "client_addresses_select" ON public.client_addresses
-  FOR SELECT
-  TO authenticated
-  USING (true);
-
-CREATE POLICY "client_addresses_insert" ON public.client_addresses
-  FOR INSERT
-  TO authenticated
-  WITH CHECK (true);
-
-CREATE POLICY "client_addresses_update" ON public.client_addresses
-  FOR UPDATE
-  TO authenticated
-  USING (true)
-  WITH CHECK (true);
-
-CREATE POLICY "client_addresses_block_inactive" ON public.client_addresses
-  AS RESTRICTIVE
-  TO authenticated
-  USING ((select public.is_active()));
+-- Migración: restricción única con nombre explícito e índices de búsqueda
+-- para clients.
+--
+-- Originalmente esta migración también habilitaba RLS y creaba las políticas
+-- de `clients` y `client_addresses`. Esa parte se eliminó porque
+-- 20260802220000_rls_policies_rpc.sql ya las crea con los mismos nombres, y
+-- corre antes: mantener ambas fallaba con
+-- `policy "clients_select" for table "clients" already exists`.
+-- Las políticas de esa migración son además más estrictas (verifican
+-- `is_active()` e `is_admin()` dentro de cada política en vez de delegar en
+-- una política RESTRICTIVE aparte).
 
 -- Nombre explícito para la restricción única de la cédula: el repositorio
 -- distingue qué restricción se violó leyendo el mensaje del error 23505.
