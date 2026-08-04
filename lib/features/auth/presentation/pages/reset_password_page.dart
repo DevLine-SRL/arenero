@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../core/router/route_paths.dart';
-import '../widgets/login_button.dart';
-import '../widgets/login_form.dart';
-import '../widgets/login_error_banner.dart';
-import '../widgets/login_header.dart';
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+import '../widgets/reset_password_form.dart';
+import '../widgets/reset_password_header.dart';
+import '../widgets/reset_password_button.dart';
+import '../widgets/reset_password_message.dart';
+
+class ResetPasswordPage extends StatelessWidget {
+  const ResetPasswordPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Recuperar contraseña'),
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -20,12 +22,12 @@ class LoginPage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const LoginHeader(),
+                  const SizedBox(height: 16),
+                  const ResetPasswordHeader(),
                   const SizedBox(height: 32),
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
@@ -34,17 +36,12 @@ class LoginPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       spacing: 16,
                       children: [
-                        LoginFormWidget(),
-                        LoginErrorBanner(),
-                        LoginButton(),
-                        TextButton(
-                          onPressed: () => context.pushNamed(RouteNames.resetPassword),
-                          child: const Text('¿Olvidaste tu contraseña?'),
-                        ),
+                        ResetPasswordFormWidget(),
+                        ResetPasswordMessage(),
+                        ResetPasswordButton(),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
                 ],
               ),
             ),

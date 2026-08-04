@@ -15,4 +15,6 @@ abstract class AuthRepository {
   Stream<User?> watchAuthState();
 
   Future<User?> currentUser();
+
+  Future<Either<Failure, void> resetPassword({required Email email});
 }

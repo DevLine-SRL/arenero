@@ -1,5 +1,6 @@
 abstract final class RoutePaths {
   static const login = '/login';
+  static const resetPassword = '/reset-password';
   static const dashboard = '/panel';
   static const registerSale = '/ventas/registrar';
   static const clients = '/clientes';
@@ -10,6 +11,7 @@ abstract final class RoutePaths {
 
 abstract final class RouteNames {
   static const login = 'login';
+  static const resetPassword = 'resetPassword';
   static const dashboard = 'dashboard';
   static const registerSale = 'registerSale';
   static const clients = 'clients';

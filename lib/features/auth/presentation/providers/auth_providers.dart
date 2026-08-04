@@ -47,3 +47,8 @@ Stream<User?> authSession(Ref ref) {
   final useCase = ref.watch(watchAuthStateUseCaseProvider);
   return useCase();
 }
+
+@riverpod
+ResetPasswordUseCase resetPasswordUseCase(Ref ref) {
+  return ResetPasswordUseCase(ref.watch(authRepositoryProvider));
+}

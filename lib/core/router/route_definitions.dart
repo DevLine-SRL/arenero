@@ -7,6 +7,7 @@ import '../../features/products/presentation/pages/products_page.dart';
 import '../../features/sales/presentation/pages/register_sale_page.dart';
 import '../../features/sellers/presentation/pages/sellers_management_page.dart';
 import '../../shared/widgets/forbidden_page.dart';
+import '../../features/auth/presentation/pages/reset_password_page.dart';
 import '../layouts/main_layout.dart';
 import 'route_paths.dart';
 
@@ -82,4 +83,17 @@ final routes = <RouteBase>[
     builder: (context, state) => const ForbiddenPage(),
   ),
   protectedRoutes,
+];
+
+final publicRoutes = <RouteBase>[
+  GoRoute(
+    path: RoutePaths.login,
+    name: RouteNames.login,
+    builder: (context, state) => const LoginPage(),
+  ),
+  GoRoute( 
+    path: RoutePaths.resetPassword,
+    name: RouteNames.resetPassword,
+    builder: (context, state) => const ResetPasswordPage(),
+  ),
 ];
