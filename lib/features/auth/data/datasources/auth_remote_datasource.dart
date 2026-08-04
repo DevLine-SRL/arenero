@@ -7,7 +7,6 @@ abstract class AuthRemoteDataSource {
   Future<void> logout();
   Stream<UserModel?> watchAuthState();
   Future<UserModel?> currentUser();
-  Future<void> reserPassword({required String email});
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -67,13 +66,5 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   Future<Map<String, dynamic>?> _fetchProfile(String userId) async {
     return client.from('profiles').select('role, active').eq('id', userId).maybeSingle();
-  }
-
-  @override
-  Future<void> reserPassword({required String email}) async{
-    await client.auth.resetPasswordForEmail(
-      email,
-      redirecctTo: 'myapp://reset-password', //Deep link para la app
-    );
   }
 }

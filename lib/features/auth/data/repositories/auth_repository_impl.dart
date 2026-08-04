@@ -48,20 +48,4 @@ class AuthRepositoryImpl implements AuthRepository {
       _ => InvalidCredentialsFailure(),
     };
   }
-
-  @override
-  Future<Either<Failure, void> resetPassword({required Email email} async){
-    try{
-      await remoteDataSource.resetPassword (email: email.value);
-      return const Right(null);
-    } on supabase.AuthRetryableFetchException{
-      return const Left(NetworkFailure());
-    } on supabase.AuthException catch (e){
-      return Left(_mapAuthException(e));
-    }catch (e){
-      return const Left(
-        UnexpetedFailure(message: 'Error al enviar el correo de recuperacion.'),
-      );
-    }
-  }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../core/router/route_paths.dart';
+
 import '../widgets/login_button.dart';
 import '../widgets/login_form.dart';
 import '../widgets/login_error_banner.dart';
@@ -37,10 +36,6 @@ class LoginPage extends StatelessWidget {
                         LoginFormWidget(),
                         LoginErrorBanner(),
                         LoginButton(),
-                        TextButton(
-                          onPressed: () => context.pushNamed(RouteNames.resetPassword),
-                          child: const Text('¿Olvidaste tu contraseña?'),
-                        ),
                       ],
                     ),
                   ),
