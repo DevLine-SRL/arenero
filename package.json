@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "supabase:setup": "supabase login && supabase link && supabase db push --linked && supabase functions deploy --use-api",
+    "supabase:deploy": "supabase db push --linked && supabase functions deploy --use-api",
+    "supabase:status": "supabase migration list --linked && supabase functions list"
+  },
   "devDependencies": {
     "supabase": "^2.111.0"
   }
