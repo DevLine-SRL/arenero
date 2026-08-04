@@ -40,7 +40,7 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
   }) async {
     final product = await client
         .from('products')
-        .insert({'name': name})
+        .insert({'name': name, 'active': true})
         .select('id')
         .single();
 
@@ -48,6 +48,7 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
       'product_id': product['id'],
       'unit': unit.databaseValue,
       'unit_price': unitPrice,
+      'active': true,
     });
   }
 
