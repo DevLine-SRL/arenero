@@ -106,7 +106,7 @@ class _CreateProductDialogState extends ConsumerState<CreateProductDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Registrar producto'),
+      title: const Text('Nuevo registro'),
       constraints: const BoxConstraints(minWidth: 480, maxWidth: 560),
       content: SingleChildScrollView(
         child: Column(
@@ -179,7 +179,7 @@ class _CreateProductDialogState extends ConsumerState<CreateProductDialog> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.save_rounded),
-          label: const Text('Registrar'),
+          label: const Text('Guardar'),
         ),
       ],
     );

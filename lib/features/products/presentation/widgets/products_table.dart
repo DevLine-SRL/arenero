@@ -16,14 +16,16 @@ class ProductsTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
+        final tableWidth = constraints.maxWidth < 720
+            ? 720.0
+            : constraints.maxWidth;
+
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minWidth: constraints.maxWidth < 900 ? 900 : constraints.maxWidth,
-            ),
+          child: SizedBox(
+            width: tableWidth,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(24, 22, 24, 24),
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
               decoration: BoxDecoration(
                 color: const Color(0xFFFFFBF4),
                 borderRadius: BorderRadius.circular(14),
@@ -71,14 +73,7 @@ class _ProductsTableHeader extends StatelessWidget {
         Expanded(flex: 30, child: _HeaderText('Nombre')),
         Expanded(flex: 16, child: _HeaderText('Unidad')),
         Expanded(flex: 18, child: _HeaderText('Precio')),
-        Expanded(flex: 34, child: _HeaderText('Estado')),
-        SizedBox(
-          width: 96,
-          child: Align(
-            alignment: Alignment.center,
-            child: _HeaderText('Acciones'),
-          ),
-        ),
+        Expanded(flex: 36, child: _HeaderText('Estado')),
       ],
     );
   }
@@ -136,7 +131,7 @@ class _ProductTableRow extends StatelessWidget {
             ),
           ),
           Expanded(
-            flex: 34,
+            flex: 36,
             child: Row(
               children: [
                 _ProductToggle(
@@ -144,25 +139,14 @@ class _ProductTableRow extends StatelessWidget {
                   onChanged: onActiveChanged,
                 ),
                 const SizedBox(width: 10),
-                _MutedText(
-                  product.active
-                      ? 'Disponible para ventas'
-                      : 'No disponible para ventas',
+                Expanded(
+                  child: _MutedText(
+                    product.active
+                        ? 'Disponible para ventas'
+                        : 'No aparece en ventas nuevas',
+                  ),
                 ),
               ],
-            ),
-          ),
-          SizedBox(
-            width: 96,
-            child: Align(
-              alignment: Alignment.center,
-              child: IconButton(
-                tooltip: 'Editar',
-                onPressed: null,
-                icon: const Icon(Icons.edit_outlined),
-                color: const Color(0xFF7B4A21),
-                disabledColor: const Color(0xFF7B4A21),
-              ),
             ),
           ),
         ],
@@ -176,7 +160,7 @@ class _ProductTableRow extends StatelessWidget {
       RegExp(r'\B(?=(\d{3})+(?!\d))'),
       (_) => '.',
     );
-    return '\$$text';
+    return 'Bs. $text';
   }
 }
 

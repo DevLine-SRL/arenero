@@ -37,11 +37,17 @@ class ProductsController extends AsyncNotifier<List<Product>> {
       existingProducts: currentProducts,
     );
 
-    return result.fold((failure) => failure, (_) async {
-      state = const AsyncLoading();
-      state = await AsyncValue.guard(_fetchProducts);
-      return null;
-    });
+    return result.fold(
+      (failure) async {
+        state = await AsyncValue.guard(_fetchProducts);
+        return failure;
+      },
+      (_) async {
+        state = const AsyncLoading();
+        state = await AsyncValue.guard(_fetchProducts);
+        return null;
+      },
+    );
   }
 
   Future<Failure?> setActive(String id, bool active) async {

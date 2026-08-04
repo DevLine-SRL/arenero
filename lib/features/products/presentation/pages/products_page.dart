@@ -6,7 +6,7 @@ import '../../domain/entities/product.dart';
 import '../../domain/services/product_duplicate_guard.dart';
 import '../providers/products_controller_provider.dart';
 import '../widgets/products_empty_state.dart';
-import '../widgets/products_header.dart';
+import '../widgets/create_product_dialog.dart';
 import '../widgets/products_table.dart';
 
 class ProductsPage extends ConsumerStatefulWidget {
@@ -30,6 +30,10 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
         .read(productsControllerProvider.notifier)
         .setActive(product.id, active);
     if (failure != null && mounted) _showFailure(failure);
+  }
+
+  Future<void> _openCreateDialog(List<Product> products) async {
+    await CreateProductDialog.show(context, products);
   }
 
   @override
@@ -69,7 +73,38 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                ProductsHeader(products: products, activeCount: activeCount),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Productos',
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '$activeCount activo${activeCount == 1 ? '' : 's'}',
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(color: const Color(0xFF7D5A3C)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    FilledButton.icon(
+                      onPressed: () => _openCreateDialog(products),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Nuevo'),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 28),
                 Align(
                   alignment: Alignment.centerLeft,
