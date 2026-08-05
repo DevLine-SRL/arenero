@@ -20,10 +20,7 @@ class ReadOnlyAmount extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 2),
-        Text(
-          value,
-          style: theme.textTheme.titleMedium,
-        ),
+        Text(value, style: theme.textTheme.titleMedium),
       ],
     );
   }
@@ -33,7 +30,7 @@ class QuantityStepper extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onDecrement;
   final VoidCallback onIncrement;
-  final ValueChanged<double> onChanged;
+  final ValueChanged<String> onChanged;
 
   const QuantityStepper({
     super.key,
@@ -73,10 +70,7 @@ class QuantityStepper extends StatelessWidget {
                 border: InputBorder.none,
               ),
               style: theme.textTheme.bodyMedium,
-              onChanged: (raw) {
-                final value = double.tryParse(raw.replaceAll(',', '.'));
-                if (value != null) onChanged(value);
-              },
+              onChanged: onChanged,
             ),
           ),
           IconButton(

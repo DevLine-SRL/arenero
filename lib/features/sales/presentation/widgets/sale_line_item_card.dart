@@ -61,22 +61,42 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
     return false;
   }
 
-  void _changeQuantity(double value) {
-    final normalized = value == value.roundToDouble()
-        ? value.roundToDouble()
-        : value;
+  void _stepQuantity(double value) {
+    final clamped = value < 1 ? 1.0 : value;
+    final normalized = clamped == clamped.roundToDouble()
+        ? clamped.roundToDouble()
+        : clamped;
     _quantityController.text = normalized.toString();
     ref
         .read(registerSaleControllerProvider.notifier)
         .changeLineQuantity(item.rowId, normalized);
   }
 
+  void _onQuantityText(String raw) {
+    final value = double.tryParse(raw.replaceAll(',', '.'));
+    if (value == null) return;
+    if (value < 1) {
+      ref
+          .read(registerSaleControllerProvider.notifier)
+          .changeLineQuantity(item.rowId, 1);
+      return;
+    }
+    ref
+        .read(registerSaleControllerProvider.notifier)
+        .changeLineQuantity(item.rowId, value);
+  }
+
   void _changeDiscount(String raw) {
     final value = double.tryParse(raw.replaceAll(',', '.'));
     if (value == null) return;
+    final maxDiscount = item.quantity * item.unitPrice;
+    final clamped = value.clamp(0.0, maxDiscount).toDouble();
+    if (clamped != value) {
+      _discountController.text = clamped.toStringAsFixed(2);
+    }
     ref
         .read(registerSaleControllerProvider.notifier)
-        .changeLineDiscount(item.rowId, value);
+        .changeLineDiscount(item.rowId, clamped);
   }
 
   @override
@@ -216,9 +236,9 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
                   padding: const EdgeInsets.only(top: 6),
                   child: QuantityStepper(
                     controller: _quantityController,
-                    onDecrement: () => _changeQuantity(item.quantity - 1),
-                    onIncrement: () => _changeQuantity(item.quantity + 1),
-                    onChanged: _changeQuantity,
+                    onDecrement: () => _stepQuantity(item.quantity - 1),
+                    onIncrement: () => _stepQuantity(item.quantity + 1),
+                    onChanged: _onQuantityText,
                   ),
                 ),
               ],
