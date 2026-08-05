@@ -7,6 +7,8 @@ import '../../domain/services/product_duplicate_guard.dart';
 import '../providers/products_controller_provider.dart';
 import '../widgets/products_empty_state.dart';
 import '../widgets/create_product_dialog.dart';
+import '../widgets/edit_product_dialog.dart';
+import '../widgets/update_product_price_dialog.dart';
 import '../widgets/products_table.dart';
 
 class ProductsPage extends ConsumerStatefulWidget {
@@ -26,14 +28,63 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
   }
 
   Future<void> _setActive(Product product, bool active) async {
+    final confirmed = await _confirmActiveChange(product, active);
+    if (!confirmed || !mounted) return;
+
     final failure = await ref
         .read(productsControllerProvider.notifier)
         .setActive(product.id, active);
     if (failure != null && mounted) _showFailure(failure);
   }
 
+  Future<bool> _confirmActiveChange(Product product, bool active) async {
+    final action = active ? 'Reactivar' : 'Desactivar';
+    final description = active
+        ? 'El producto volverá a estar disponible para nuevas ventas.'
+        : 'El producto dejará de estar disponible para nuevas ventas. Las ventas existentes no cambiarán.';
+
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('$action producto'),
+            content: Text('¿$action "${product.name}"?\n\n$description'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton(
+                style: active
+                    ? null
+                    : FilledButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                        foregroundColor: Theme.of(context).colorScheme.onError,
+                      ),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(action),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
   Future<void> _openCreateDialog(List<Product> products) async {
     await CreateProductDialog.show(context, products);
+  }
+
+  Future<void> _openEditDialog(Product product, List<Product> products) async {
+    await EditProductDialog.show(
+      context,
+      product: product,
+      products: products,
+    );
+  }
+
+  Future<void> _openUpdatePriceDialog(Product product) async {
+    final unit = product.primaryUnit;
+    if (unit == null || !product.active || !unit.active) return;
+    await UpdateProductPriceDialog.show(context, product: product, unit: unit);
   }
 
   @override
@@ -144,6 +195,8 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                       : SingleChildScrollView(
                           child: ProductsTable(
                             products: visibleProducts,
+                            onEdit: (product) => _openEditDialog(product, products),
+                            onUpdatePrice: _openUpdatePriceDialog,
                             onActiveChanged: (change) =>
                                 _setActive(change.product, change.active),
                           ),

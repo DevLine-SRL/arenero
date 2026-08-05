@@ -20,7 +20,7 @@ class SaleCartSection extends ConsumerWidget {
       final products =
           ref.watch(productsControllerProvider).value ?? const <Product>[];
       final hasProducts = products.any(
-        (product) => product.units.any((unit) => unit.active),
+        (product) => product.active && product.units.any((unit) => unit.active),
       );
 
       return SizedBox(

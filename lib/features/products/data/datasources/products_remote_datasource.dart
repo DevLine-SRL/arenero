@@ -12,6 +12,13 @@ abstract class ProductsRemoteDataSource {
     required double unitPrice,
   });
 
+  Future<void> updateProductName({required String id, required String name});
+
+  Future<void> updateUnitPrice({
+    required String unitId,
+    required double unitPrice,
+  });
+
   Future<void> setActive(String id, bool active);
 }
 
@@ -55,5 +62,24 @@ class ProductsRemoteDataSourceImpl implements ProductsRemoteDataSource {
   @override
   Future<void> setActive(String id, bool active) async {
     await client.from('products').update({'active': active}).eq('id', id);
+  }
+
+  @override
+  Future<void> updateProductName({
+    required String id,
+    required String name,
+  }) async {
+    await client.from('products').update({'name': name}).eq('id', id);
+  }
+
+  @override
+  Future<void> updateUnitPrice({
+    required String unitId,
+    required double unitPrice,
+  }) async {
+    await client
+        .from('product_units')
+        .update({'unit_price': unitPrice})
+        .eq('id', unitId);
   }
 }

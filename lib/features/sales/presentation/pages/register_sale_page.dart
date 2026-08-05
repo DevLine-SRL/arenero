@@ -20,6 +20,8 @@ class RegisterSalePage extends ConsumerWidget {
     Product product,
     Map<String, Set<ProductUnitOfMeasure>> usedUnitsByProduct,
   ) {
+    if (!product.active) return false;
+
     final used =
         usedUnitsByProduct[product.id] ?? const <ProductUnitOfMeasure>{};
     return product.units.any(

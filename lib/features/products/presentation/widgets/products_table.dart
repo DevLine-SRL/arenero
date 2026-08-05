@@ -5,11 +5,15 @@ import '../../domain/entities/product.dart';
 class ProductsTable extends StatelessWidget {
   final List<Product> products;
   final ValueChanged<ProductActiveChange> onActiveChanged;
+  final ValueChanged<Product> onEdit;
+  final ValueChanged<Product> onUpdatePrice;
 
   const ProductsTable({
     super.key,
     required this.products,
     required this.onActiveChanged,
+    required this.onEdit,
+    required this.onUpdatePrice,
   });
 
   @override
@@ -39,6 +43,8 @@ class ProductsTable extends StatelessWidget {
                   for (var index = 0; index < products.length; index++) ...[
                     _ProductTableRow(
                       product: products[index],
+                      onEdit: () => onEdit(products[index]),
+                      onUpdatePrice: () => onUpdatePrice(products[index]),
                       onActiveChanged: (active) => onActiveChanged(
                         ProductActiveChange(products[index], active),
                       ),
@@ -82,10 +88,14 @@ class _ProductsTableHeader extends StatelessWidget {
 class _ProductTableRow extends StatelessWidget {
   final Product product;
   final ValueChanged<bool> onActiveChanged;
+  final VoidCallback onEdit;
+  final VoidCallback onUpdatePrice;
 
   const _ProductTableRow({
     required this.product,
     required this.onActiveChanged,
+    required this.onEdit,
+    required this.onUpdatePrice,
   });
 
   @override
@@ -119,15 +129,28 @@ class _ProductTableRow extends StatelessWidget {
           ),
           Expanded(
             flex: 18,
-            child: Text(
-              primaryUnit == null
-                  ? '-'
-                  : _formatCurrency(primaryUnit.unitPrice),
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Colors.black,
-                fontWeight: FontWeight.w800,
-                fontFamily: 'monospace',
-              ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    primaryUnit == null
+                        ? '-'
+                        : _formatCurrency(primaryUnit.unitPrice),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w800,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.edit_note_rounded),
+                  tooltip: 'Actualizar precio',
+                  onPressed: product.active && primaryUnit != null
+                      ? onUpdatePrice
+                      : null,
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -139,6 +162,11 @@ class _ProductTableRow extends StatelessWidget {
                   onChanged: onActiveChanged,
                 ),
                 const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: 'Modificar producto',
+                  onPressed: onEdit,
+                ),
                 Expanded(
                   child: _MutedText(
                     product.active
@@ -231,25 +259,34 @@ class _ProductToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(999),
-      onTap: () => onChanged(!active),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        width: 52,
-        height: 28,
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: active ? const Color(0xFF7B4318) : const Color(0xFFCAB8A2),
+    final action = active ? 'Desactivar' : 'Reactivar';
+
+    return Tooltip(
+      message: '$action producto',
+      child: Semantics(
+        button: true,
+        label: '$action producto',
+        child: InkWell(
           borderRadius: BorderRadius.circular(999),
-        ),
-        alignment: active ? Alignment.centerRight : Alignment.centerLeft,
-        child: Container(
-          width: 20,
-          height: 20,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
+          onTap: () => onChanged(!active),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            width: 52,
+            height: 28,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: active ? const Color(0xFF7B4318) : const Color(0xFFCAB8A2),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            alignment: active ? Alignment.centerRight : Alignment.centerLeft,
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
           ),
         ),
       ),

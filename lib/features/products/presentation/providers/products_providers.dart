@@ -7,6 +7,8 @@ import '../../domain/repositories/products_repository.dart';
 import '../../domain/usecases/create_product_usecase.dart';
 import '../../domain/usecases/get_products_usecase.dart';
 import '../../domain/usecases/set_product_active_usecase.dart';
+import '../../domain/usecases/update_product_name_usecase.dart';
+import '../../domain/usecases/update_product_price_usecase.dart';
 
 final productsRemoteDataSourceProvider = Provider<ProductsRemoteDataSource>(
   (ref) => ProductsRemoteDataSourceImpl(ref.watch(supabaseClientProvider)),
@@ -26,4 +28,12 @@ final createProductUseCaseProvider = Provider<CreateProductUseCase>(
 
 final setProductActiveUseCaseProvider = Provider<SetProductActiveUseCase>(
   (ref) => SetProductActiveUseCase(ref.watch(productsRepositoryProvider)),
+);
+
+final updateProductNameUseCaseProvider = Provider<UpdateProductNameUseCase>(
+  (ref) => UpdateProductNameUseCase(ref.watch(productsRepositoryProvider)),
+);
+
+final updateProductPriceUseCaseProvider = Provider<UpdateProductPriceUseCase>(
+  (ref) => UpdateProductPriceUseCase(ref.watch(productsRepositoryProvider)),
 );
