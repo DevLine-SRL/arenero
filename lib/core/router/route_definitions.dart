@@ -5,14 +5,25 @@ import '../../features/clients/presentation/pages/clients_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/products/presentation/pages/products_page.dart';
 import '../../features/sales/presentation/pages/register_sale_page.dart';
+import '../../features/sales/presentation/pages/sales_history_page.dart';
 import '../../features/sellers/presentation/pages/sellers_management_page.dart';
 import '../../shared/widgets/forbidden_page.dart';
 import '../layouts/main_layout.dart';
 import 'route_paths.dart';
 
-const adminBranchIndex = 4;
+const adminBranchStart = 3;
 
-final adminOnlyRoutes = <String>[
+const branchTitles = <String, String>{
+  RoutePaths.salesHistory: 'Ventas',
+  RoutePaths.registerSale: 'Registrar Venta',
+  RoutePaths.clients: 'Clientes',
+  RoutePaths.dashboard: 'Panel',
+  RoutePaths.sellersManagement: 'Gestión de Vendedores',
+  RoutePaths.products: 'Gestión de Productos',
+};
+
+const adminOnlyRoutes = <String>[
+  RoutePaths.dashboard,
   RoutePaths.products,
   RoutePaths.sellersManagement,
 ];
@@ -32,9 +43,9 @@ final protectedRoutes = StatefulShellRoute.indexedStack(
     StatefulShellBranch(
       routes: [
         GoRoute(
-          path: RoutePaths.dashboard,
-          name: RouteNames.dashboard,
-          builder: (context, state) => const DashboardPage(),
+          path: RoutePaths.salesHistory,
+          name: RouteNames.salesHistory,
+          builder: (context, state) => const SalesHistoryPage(),
         ),
       ],
     ),
@@ -59,9 +70,9 @@ final protectedRoutes = StatefulShellRoute.indexedStack(
     StatefulShellBranch(
       routes: [
         GoRoute(
-          path: RoutePaths.products,
-          name: RouteNames.products,
-          builder: (context, state) => const ProductsPage(),
+          path: RoutePaths.dashboard,
+          name: RouteNames.dashboard,
+          builder: (context, state) => const DashboardPage(),
         ),
       ],
     ),
@@ -71,6 +82,15 @@ final protectedRoutes = StatefulShellRoute.indexedStack(
           path: RoutePaths.sellersManagement,
           name: RouteNames.sellersManagement,
           builder: (context, state) => const SellersManagementPage(),
+        ),
+      ],
+    ),
+    StatefulShellBranch(
+      routes: [
+        GoRoute(
+          path: RoutePaths.products,
+          name: RouteNames.products,
+          builder: (context, state) => const ProductsPage(),
         ),
       ],
     ),
