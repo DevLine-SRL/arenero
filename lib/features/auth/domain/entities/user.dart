@@ -4,6 +4,7 @@ class User {
   final String? name;
   final String role;
   final bool active;
+  final DateTime? lastSeenAt;
 
   const User({
     required this.id,
@@ -11,5 +12,6 @@ class User {
     this.name,
     required this.role,
     required this.active,
+    this.lastSeenAt,
   });
 }

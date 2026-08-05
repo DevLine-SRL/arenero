@@ -276,6 +276,54 @@ final class GetCurrentUserUseCaseProvider
 String _$getCurrentUserUseCaseHash() =>
     r'4a27d130940e444424e46ed4afad7c5a5c8cf5b2';
 
+@ProviderFor(touchLastSeenUseCase)
+final touchLastSeenUseCaseProvider = TouchLastSeenUseCaseProvider._();
+
+final class TouchLastSeenUseCaseProvider
+    extends
+        $FunctionalProvider<
+          TouchLastSeenUseCase,
+          TouchLastSeenUseCase,
+          TouchLastSeenUseCase
+        >
+    with $Provider<TouchLastSeenUseCase> {
+  TouchLastSeenUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'touchLastSeenUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$touchLastSeenUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<TouchLastSeenUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  TouchLastSeenUseCase create(Ref ref) {
+    return touchLastSeenUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(TouchLastSeenUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<TouchLastSeenUseCase>(value),
+    );
+  }
+}
+
+String _$touchLastSeenUseCaseHash() =>
+    r'a445261a6d7e2a6397319ebc4f9ccd9388adda48';
+
 @ProviderFor(authSession)
 final authSessionProvider = AuthSessionProvider._();
 

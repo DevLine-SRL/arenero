@@ -7,6 +7,7 @@ abstract class AuthRemoteDataSource {
   Future<void> logout();
   Stream<UserModel?> watchAuthState();
   Future<UserModel?> currentUser();
+  Future<DateTime?> touchLastSeen();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -15,7 +16,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   const AuthRemoteDataSourceImpl(this.client);
 
   @override
-  Future<UserModel> login({required String email, required String password}) async {
+  Future<UserModel> login({
+    required String email,
+    required String password,
+  }) async {
     final response = await client.auth.signInWithPassword(
       email: email,
       password: password,
@@ -31,7 +35,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await client.auth.signOut();
       throw const supabase.AuthException('Credenciales inválidas.');
     }
-    return UserModel.fromProfile(user, profile);
+
+    // El usuario acaba de autenticarse: marca la actividad actual para que una
+    // ausencia previa (2-3 días sin entrar) no cierre una sesión recién abierta.
+    await client.rpc('touch_last_seen');
+    final freshProfile = await _fetchProfile(user.id);
+
+    return UserModel.fromProfile(user, freshProfile ?? profile);
   }
 
   @override
@@ -64,7 +74,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     return UserModel.fromProfile(user, profile);
   }
 
+  @override
+  Future<DateTime?> touchLastSeen() async {
+    final result = await client.rpc('touch_last_seen');
+    if (result is! String) return null;
+    return DateTime.tryParse(result);
+  }
+
   Future<Map<String, dynamic>?> _fetchProfile(String userId) async {
-    return client.from('profiles').select('role, active').eq('id', userId).maybeSingle();
+    return client
+        .from('profiles')
+        .select('role, active, last_seen_at')
+        .eq('id', userId)
+        .maybeSingle();
   }
 }
