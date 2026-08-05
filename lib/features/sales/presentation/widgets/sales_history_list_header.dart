@@ -12,26 +12,20 @@ class SalesHistoryListHeader extends StatelessWidget {
       fontWeight: FontWeight.w700,
     );
 
-    return SizedBox(
-      width: SalesHistoryListItem.contentWidth,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Row(
-          children: [
-            SizedBox(
-              width: SalesHistoryListItem.numberColumnWidth,
-              child: Text('Nº venta', style: style),
-            ),
-            SizedBox(
-              width: SalesHistoryListItem.clientColumnWidth,
-              child: Text('Cliente', style: style, maxLines: 1),
-            ),
-            SizedBox(
-              width: SalesHistoryListItem.totalColumnWidth,
-              child: Text('Total', style: style, textAlign: TextAlign.end),
-            ),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: SalesHistoryListItem.numberColumnWidth,
+            child: Text('Nº venta', style: style),
+          ),
+          Expanded(child: Text('Cliente', style: style, maxLines: 1)),
+          SizedBox(
+            width: SalesHistoryListItem.totalColumnWidth,
+            child: Text('Total', style: style, textAlign: TextAlign.end),
+          ),
+        ],
       ),
     );
   }
