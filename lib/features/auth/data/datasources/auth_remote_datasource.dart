@@ -8,6 +8,9 @@ abstract class AuthRemoteDataSource {
   Stream<UserModel?> watchAuthState();
   Future<UserModel?> currentUser();
   Future<DateTime?> touchLastSeen();
+  Future<Map<String, dynamic>> getLoginLock({required String email});
+  Future<Map<String, dynamic>> registerFailedLogin({required String email});
+  Future<void> resetLoginAttempts({required String email});
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -36,8 +39,6 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw const supabase.AuthException('Credenciales inválidas.');
     }
 
-    // El usuario acaba de autenticarse: marca la actividad actual para que una
-    // ausencia previa (2-3 días sin entrar) no cierre una sesión recién abierta.
     await client.rpc('touch_last_seen');
     final freshProfile = await _fetchProfile(user.id);
 
@@ -79,6 +80,42 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final result = await client.rpc('touch_last_seen');
     if (result is! String) return null;
     return DateTime.tryParse(result);
+  }
+
+  @override
+  Future<Map<String, dynamic>> getLoginLock({required String email}) async {
+    final result = await client.rpc(
+      'get_login_lock',
+      params: {'p_email': email},
+    );
+    return _asLockMap(result);
+  }
+
+  @override
+  Future<Map<String, dynamic>> registerFailedLogin({
+    required String email,
+  }) async {
+    final result = await client.rpc(
+      'register_failed_login',
+      params: {'p_email': email},
+    );
+    return _asLockMap(result);
+  }
+
+  @override
+  Future<void> resetLoginAttempts({required String email}) async {
+    await client.rpc('reset_login_attempts', params: {'p_email': email});
+  }
+
+  Map<String, dynamic> _asLockMap(dynamic result) {
+    if (result is Map) return Map<String, dynamic>.from(result);
+    return const {
+      'locked': false,
+      'remaining_seconds': 0,
+      'attempts_left': 5,
+      'max_attempts': 5,
+      'lock_minutes': 15,
+    };
   }
 
   Future<Map<String, dynamic>?> _fetchProfile(String userId) async {

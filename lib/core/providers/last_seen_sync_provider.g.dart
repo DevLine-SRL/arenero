@@ -8,26 +8,11 @@ part of 'last_seen_sync_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Mantiene viva la sesión por cuenta: registra la última actividad del
-/// usuario en `profiles.last_seen_at` y, al abrir la app, cierra la sesión si
-/// lleva más de `AppConfig.sessionMaxAbsence` sin entrar. Así el timer de
-/// inactividad (`SessionTimeoutController`) cubre la sesión abierta, y este
-/// provider cubre la ausencia prolongada entre aperturas.
 
 @ProviderFor(LastSeenSync)
 final lastSeenSyncProvider = LastSeenSyncProvider._();
 
-/// Mantiene viva la sesión por cuenta: registra la última actividad del
-/// usuario en `profiles.last_seen_at` y, al abrir la app, cierra la sesión si
-/// lleva más de `AppConfig.sessionMaxAbsence` sin entrar. Así el timer de
-/// inactividad (`SessionTimeoutController`) cubre la sesión abierta, y este
-/// provider cubre la ausencia prolongada entre aperturas.
 final class LastSeenSyncProvider extends $NotifierProvider<LastSeenSync, void> {
-  /// Mantiene viva la sesión por cuenta: registra la última actividad del
-  /// usuario en `profiles.last_seen_at` y, al abrir la app, cierra la sesión si
-  /// lleva más de `AppConfig.sessionMaxAbsence` sin entrar. Así el timer de
-  /// inactividad (`SessionTimeoutController`) cubre la sesión abierta, y este
-  /// provider cubre la ausencia prolongada entre aperturas.
   LastSeenSyncProvider._()
     : super(
         from: null,
@@ -56,12 +41,6 @@ final class LastSeenSyncProvider extends $NotifierProvider<LastSeenSync, void> {
 }
 
 String _$lastSeenSyncHash() => r'1658479d90d16689afee2adc847408146a67bb0c';
-
-/// Mantiene viva la sesión por cuenta: registra la última actividad del
-/// usuario en `profiles.last_seen_at` y, al abrir la app, cierra la sesión si
-/// lleva más de `AppConfig.sessionMaxAbsence` sin entrar. Así el timer de
-/// inactividad (`SessionTimeoutController`) cubre la sesión abierta, y este
-/// provider cubre la ausencia prolongada entre aperturas.
 
 abstract class _$LastSeenSync extends $Notifier<void> {
   void build();

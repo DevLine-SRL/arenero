@@ -5,9 +5,12 @@ import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../domain/usecases/check_login_lock_usecase.dart';
 import '../../domain/usecases/get_current_user_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
+import '../../domain/usecases/register_failed_login_usecase.dart';
+import '../../domain/usecases/reset_login_attempts_usecase.dart';
 import '../../domain/usecases/touch_last_seen_usecase.dart';
 import '../../domain/usecases/watch_auth_state_usecase.dart';
 
@@ -46,6 +49,21 @@ GetCurrentUserUseCase getCurrentUserUseCase(Ref ref) {
 @riverpod
 TouchLastSeenUseCase touchLastSeenUseCase(Ref ref) {
   return TouchLastSeenUseCase(ref.watch(authRepositoryProvider));
+}
+
+@riverpod
+CheckLoginLockUseCase checkLoginLockUseCase(Ref ref) {
+  return CheckLoginLockUseCase(ref.watch(authRepositoryProvider));
+}
+
+@riverpod
+RegisterFailedLoginUseCase registerFailedLoginUseCase(Ref ref) {
+  return RegisterFailedLoginUseCase(ref.watch(authRepositoryProvider));
+}
+
+@riverpod
+ResetLoginAttemptsUseCase resetLoginAttemptsUseCase(Ref ref) {
+  return ResetLoginAttemptsUseCase(ref.watch(authRepositoryProvider));
 }
 
 @riverpod
