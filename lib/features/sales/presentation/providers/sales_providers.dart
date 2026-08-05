@@ -4,6 +4,7 @@ import '../../../../core/providers/supabase_client_provider.dart';
 import '../../data/datasources/sales_remote_datasource.dart';
 import '../../data/repositories/sales_repository_impl.dart';
 import '../../domain/repositories/sales_repository.dart';
+import '../../domain/usecases/get_sales_history_usecase.dart';
 import '../../domain/usecases/get_sales_usecase.dart';
 import '../../domain/usecases/register_sale_usecase.dart';
 import '../../domain/usecases/void_sale_usecase.dart';
@@ -28,6 +29,11 @@ RegisterSaleUseCase registerSaleUseCase(Ref ref) {
 @riverpod
 GetSalesUseCase getSalesUseCase(Ref ref) {
   return GetSalesUseCase(ref.watch(salesRepositoryProvider));
+}
+
+@riverpod
+GetSalesHistoryUseCase getSalesHistoryUseCase(Ref ref) {
+  return GetSalesHistoryUseCase(ref.watch(salesRepositoryProvider));
 }
 
 @riverpod

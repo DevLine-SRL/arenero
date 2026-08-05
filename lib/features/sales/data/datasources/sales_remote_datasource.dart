@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import '../../domain/entities/sale.dart';
 import '../models/sale_detail_model.dart';
 import '../models/sale_delivery_model.dart';
+import '../models/sale_history_item_model.dart';
 import '../models/sale_model.dart';
 
 const String _saleSelect = '''
@@ -27,6 +28,11 @@ abstract class SalesRemoteDataSource {
 
   Future<List<SaleModel>> getSales({
     SaleStatus? status,
+    DateTime? from,
+    DateTime? to,
+  });
+
+  Future<List<SaleHistoryItemModel>> getSalesHistory({
     DateTime? from,
     DateTime? to,
   });
@@ -79,6 +85,25 @@ class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
 
     final rows = await query.order('sale_date', ascending: false);
     return [for (final row in rows) SaleModel.fromJson(row)];
+  }
+
+  @override
+  Future<List<SaleHistoryItemModel>> getSalesHistory({
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    var query = client.from('v_sales').select();
+
+    if (from != null) {
+      query = query.gte('sale_date', from.toIso8601String());
+    }
+    if (to != null) {
+      final endOfDay = DateTime(to.year, to.month, to.day, 23, 59, 59);
+      query = query.lte('sale_date', endOfDay.toIso8601String());
+    }
+
+    final rows = await query.order('sale_date', ascending: false);
+    return [for (final row in rows) SaleHistoryItemModel.fromJson(row)];
   }
 
   @override

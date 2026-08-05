@@ -25,8 +25,6 @@ class SaleDetailModel extends SaleDetail {
     );
   }
 
-  /// Solo las columnas que la aplicación escribe. La unidad vive en
-  /// `product_units`; no se replica aquí.
   Map<String, dynamic> toJson() {
     return {
       'product_unit_id': productUnitId,

@@ -19,8 +19,8 @@ class SaleNotesField extends ConsumerWidget {
       maxLines: 4,
       textCapitalization: TextCapitalization.sentences,
       onChanged: ref
-        .read(registerSaleControllerProvider.notifier)
-        .onNotesChanged,
+          .read(registerSaleControllerProvider.notifier)
+          .onNotesChanged,
     );
   }
 }
