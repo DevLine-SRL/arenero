@@ -9,9 +9,20 @@
 | [Git](https://git-scm.com/) | — | Control de versiones |
 | [Flutter](https://docs.flutter.dev/get-started/install) | 3.44+ (Dart 3.12+) | Canal stable. El proyecto exige Dart `^3.12.2` |
 | [Node.js + npm](https://nodejs.org/) | Node 20+ | Necesario para el CLI de Supabase (`npx`) |
-| [Docker](https://www.docker.com/products/docker-desktop/) | — | Stack local de Supabase (motor + Compose) |
+| [Docker](https://www.docker.com/products/docker-desktop/) | — | **Opcional**: solo para el stack local de Supabase |
 
-> El CLI de Supabase **no se instala globalmente**: vive como devDependency de npm en el proyecto y se invoca con `npx supabase ...`.
+> El CLI de Supabase **no se instala globalmente**: vive como devDependency de npm en el proyecto y se invoca con `npx supabase ...` (o con los scripts npm).
+
+---
+
+## Arquitectura de backend
+
+El backend es **Supabase en la nube**. Todo lo que define el backend está **versionado en git**:
+
+- `supabase/migrations/*.sql` — esquema (tablas, triggers, RLS, funciones)
+- `supabase/functions/**` — Edge Functions (ej. `create-seller`)
+
+El `.env` está en `.gitignore`: contiene la URL y las claves de **tu** proyecto y no se comparte. Solo el plan (migraciones + funciones) viaja por git.
 
 ---
 
@@ -36,20 +47,94 @@ flutter pub get
 npm install
 ```
 
-Verifica que quedó disponible:
+### 4. Configurar el backend (primera vez)
 
 ```bash
-npx supabase --version
+cp .env.example .env        # pega la URL y las claves de tu proyecto
+npm run supabase:setup      # login → link → migraciones → Edge Functions
 ```
 
-### 4. Levantar Supabase local
+- `supabase:setup` te pedirá el `--project-ref` (el subdominio de tu URL, ej. `<ref>.supabase.co`) y lo guarda.
+- El `link` te pedirá el password de la DB de tu proyecto.
+
+### 5. Ejecutar la app
 
 ```bash
-npx supabase start
+flutter run --dart-define-from-file=.env
 ```
 
-- La **primera vez** descarga las imágenes Docker (puede tardar unos minutos).
-- Las migraciones de `supabase/migrations/` se aplican automáticamente al iniciar.
+O con `--dart-define` directo:
+
+```bash
+flutter run \
+  --dart-define=SUPABASE_URL='https://<ref>.supabase.co' \
+  --dart-define=SUPABASE_PUBLISHABLE_KEY='sb_publishable_xxxxxxxx'
+```
+
+### 6. Crear usuario admin (primera vez)
+
+1. Dashboard → **Authentication → Users → Add user** (ej. `admin@arenero.com`).
+2. El trigger `on_auth_user_created` crea su fila en `profiles` automáticamente.
+3. Para que sea admin y pueda iniciar sesión:
+
+```sql
+update public.profiles set role = 'admin', active = true where email = 'admin@arenero.com';
+```
+
+(Ejecuta el SQL en **SQL Editor**, o edita la fila en **Table Editor → profiles**: `role` es una columna de `profiles`, no de `auth.users`.)
+
+---
+
+## Mantener el backend al día
+
+Después de cada `git pull` que incluya cambios en `supabase/`:
+
+```bash
+npm run supabase:deploy    # migraciones pendientes + Edge Functions
+npm run supabase:status    # estado de migraciones y funciones
+```
+
+---
+
+## Supabase
+
+### Flujo de migraciones (obligatorio)
+
+1. Todos los cambios de esquema viven en `supabase/migrations/<timestamp>_<nombre>.sql`.
+2. Crear una migración nueva:
+
+   ```bash
+   npx supabase migration new <nombre_descriptivo>
+   ```
+
+3. Aplicarla a tu proyecto y revisar el estado:
+
+   ```bash
+   npm run supabase:deploy
+   npm run supabase:status
+   ```
+
+4. Commit del archivo `.sql`.
+
+> **Importante**: nunca pegues SQL a mano en el SQL Editor del dashboard. Eso crea los objetos **sin registrar el historial de migraciones** y rompe `db push` (error `type "X" already exists`).
+
+### Reparar historial desincronizado
+
+Si la nube tiene objetos sin historial (o a la inversa), `db push` falla con `migration history does not match`. Marca las versiones afectadas:
+
+```bash
+npx supabase migration repair --linked --status applied <version>
+npx supabase migration list --linked
+```
+
+### Supabase local (alternativa opcional)
+
+Si prefieres un backend 100% offline (requiere Docker, más pesado):
+
+```bash
+npx supabase start          # descarga imágenes Docker y aplica migraciones
+npx supabase status -o env  # claves para el .env
+```
 
 Servicios útiles (puertos de `supabase/config.toml`):
 
@@ -59,95 +144,3 @@ Servicios útiles (puertos de `supabase/config.toml`):
 | API (REST/GraphQL) | http://127.0.0.1:54321 |
 | Mailer de prueba (Inbucket) | http://127.0.0.1:54324 |
 | Base de datos (Postgres) | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` |
-
-### 5. Configurar las variables de entorno
-
-Copia el template y edítalo:
-
-```bash
-cp .env.example .env
-```
-
-Para **desarrollo local**, obtén las claves que necesitas:
-
-```bash
-npx supabase status -o env
-```
-
-Usa los valores `API_URL` y `PUBLISHABLE_KEY`:
-
-```
-SUPABASE_URL=http://127.0.0.1:54321
-SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxxxxxxx
-```
-
-> `.env` está en `.gitignore`, nunca se sube al repositorio. Para ver la plantilla versionada revisa [`.env.example`](.env.example).
-
-### 6. Ejecutar la app
-
-```bash
-flutter run --dart-define-from-file=.env
-```
-
-O directamente con `--dart-define`:
-
-```bash
-flutter run \
-  --dart-define=SUPABASE_URL='http://127.0.0.1:54321' \
-  --dart-define=SUPABASE_PUBLISHABLE_KEY='sb_publishable_xxxxxxxx'
-```
-
-### 7. Crear un usuario de prueba (opcional)
-
-1. Abre Studio (http://127.0.0.1:54323).
-2. **Authentication → Users → Add user**, crea un usuario (ej. `admin@arenero.com`).
-3. El trigger `on_auth_user_created` crea su fila en `profiles` automáticamente.
-4. Para que sea admin y pueda iniciar sesión, en **Table Editor → profiles** pon `role = 'admin'` y `active = true`.
-
----
-
-## Supabase
-
-### Flujo de migraciones
-
-1. Todos los cambios de esquema viven en `supabase/migrations/<timestamp>_<nombre>.sql`.
-2. Crear una migración nueva:
-
-   ```bash
-   npx supabase migration new <nombre_descriptivo>
-   ```
-
-3. Aplicarla a la DB local:
-
-   ```bash
-   npx supabase db push --local
-   ```
-
-4. Revisar el estado:
-
-   ```bash
-   npx supabase migration list --local
-   ```
-
-### Sincronizar con la nube
-
-1. Enlazar el proyecto local con el proyecto de la nube (te pedirá el password de la DB):
-
-   ```bash
-   npx supabase link --project-ref <project-ref>
-   ```
-
-   El `project-ref` es el subdominio de tu URL: `https://<project-ref>.supabase.co` (o el "Project ID" en el dashboard → Settings → General).
-
-2. Aplicar las migraciones pendientes a la nube:
-
-   ```bash
-   npx supabase db push --linked
-   ```
-
-3. Si la nube tiene entradas de historial sin archivo local correspondiente, `db push` o `db pull` fallarán con `migration history does not match`. Repara el historial remoto marcando esas versiones como `reverted`:
-
-   ```bash
-   npx supabase migration repair --linked --status reverted <version>
-   ```
-
