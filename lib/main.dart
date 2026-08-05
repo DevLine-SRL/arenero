@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/config/app_config.dart';
+import 'core/providers/last_seen_sync_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
-import 'shared/widgets/activity_listener.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,14 +28,13 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+    ref.watch(lastSeenSyncProvider);
 
-    return ActivityListener(
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        title: 'Arenero',
-        theme: AppTheme.light,
-        routerConfig: router,
-      ),
+    return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
+      title: 'Arenero',
+      theme: AppTheme.light,
+      routerConfig: router,
     );
   }
 }

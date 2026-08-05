@@ -28,7 +28,11 @@ class AuthRepositoryImpl implements AuthRepository {
     } on supabase.AuthException catch (e) {
       return Left(_mapAuthException(e));
     } catch (e) {
-      return const Left(UnexpectedFailure(message: 'Error inesperado al iniciar sesión. Inténtalo de nuevo.'));
+      return const Left(
+        UnexpectedFailure(
+          message: 'Error inesperado al iniciar sesión. Inténtalo de nuevo.',
+        ),
+      );
     }
   }
 
@@ -41,11 +45,44 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<User?> currentUser() => remoteDataSource.currentUser();
 
+  @override
+  Future<Either<Failure, DateTime?>> touchLastSeen() async {
+    try {
+      final lastSeenAt = await remoteDataSource.touchLastSeen();
+      return Right(lastSeenAt);
+    } on supabase.PostgrestException catch (e) {
+      return Left(
+        _mapPostgrestException(e, 'Error inesperado al registrar actividad.'),
+      );
+    } catch (_) {
+      return const Left(
+        UnexpectedFailure(message: 'Error inesperado al registrar actividad.'),
+      );
+    }
+  }
+
   Failure _mapAuthException(supabase.AuthException e) {
     return switch (e.statusCode) {
       '400' => InvalidCredentialsFailure(),
       '422' => ValidationFailure(),
       _ => InvalidCredentialsFailure(),
+    };
+  }
+
+  Failure _mapPostgrestException(
+    supabase.PostgrestException e,
+    String fallback,
+  ) {
+    return switch (e.code) {
+      '42501' => const UnauthorizedFailure(
+        message: 'No tienes permisos para realizar esta acción.',
+        code: '42501',
+      ),
+      'PGRST116' => const NotFoundFailure(
+        message: 'El usuario no existe.',
+        code: 'PGRST116',
+      ),
+      _ => UnexpectedFailure(message: fallback, code: e.code),
     };
   }
 }

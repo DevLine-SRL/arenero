@@ -7,18 +7,20 @@ abstract final class AppConfig {
     'SUPABASE_PUBLISHABLE_KEY',
   );
 
-  static Duration get sessionTimeout {
-    const raw = String.fromEnvironment('SESSION_TIMEOUT_SECONDS');
-    if (raw.isEmpty) return const Duration(minutes: 5);
-    final seconds = int.tryParse(raw);
-    if (seconds == null || seconds <= 0) {
+  static Duration get sessionMaxAbsence {
+    const raw = String.fromEnvironment('SESSION_MAX_ABSENCE_HOURS');
+    if (raw.isEmpty) return const Duration(hours: 72);
+    final hours = int.tryParse(raw);
+    if (hours == null || hours <= 0) {
       throw ArgumentError(
-        'Invalid sessuib timeout seconds. '
-        'It must be a positive number of seconds.',
+        'Invalid session max absence hours. '
+        'It must be a positive number of hours.',
       );
     }
-    return Duration(seconds: seconds);
+    return Duration(hours: hours);
   }
+
+  static Duration get lastSeenTouchInterval => const Duration(minutes: 5);
 
   static String _require(String value, String name) {
     if (value.isEmpty) {
