@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/widgets/required_label.dart';
-import '../providers/mock_sales_data.dart';
+import '../../domain/entities/sale.dart';
 import '../providers/register_sale_controller_provider.dart';
 import '../utils/sale_formatters.dart';
 
@@ -19,7 +19,9 @@ class SaleDeliveryFields extends ConsumerWidget {
       helpText: 'Fecha de entrega',
     );
     if (picked != null) {
-      ref.read(registerSaleControllerProvider.notifier).onDeliveryDateChanged(picked);
+      ref
+          .read(registerSaleControllerProvider.notifier)
+          .onDeliveryDateChanged(picked);
     }
   }
 
@@ -28,7 +30,7 @@ class SaleDeliveryFields extends ConsumerWidget {
     final theme = Theme.of(context);
     final state = ref.watch(registerSaleControllerProvider);
 
-    if (state.deliveryMode != DeliveryMode.companyDelivery) {
+    if (state.deliveryMode != SaleDeliveryMode.companyDelivery) {
       return const SizedBox.shrink();
     }
 
@@ -72,8 +74,8 @@ class SaleDeliveryFields extends ConsumerWidget {
                     ),
                     child: Text(
                       state.deliveryDate == null
-                        ? 'Seleccionar'
-                        : formatDate(state.deliveryDate!),
+                          ? 'Seleccionar'
+                          : formatDate(state.deliveryDate!),
                       style: theme.textTheme.bodyLarge,
                     ),
                   ),

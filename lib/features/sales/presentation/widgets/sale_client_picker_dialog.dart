@@ -1,39 +1,43 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/mock_sales_data.dart';
-import '../utils/sale_formatters.dart';
+import '../providers/clients_picker_provider.dart';
 
-class SaleClientPickerDialog extends StatefulWidget {
+class SaleClientPickerDialog extends ConsumerStatefulWidget {
   const SaleClientPickerDialog({super.key});
 
   @override
-  State<SaleClientPickerDialog> createState() => _SaleClientPickerDialogState();
+  ConsumerState<SaleClientPickerDialog> createState() =>
+      _SaleClientPickerDialogState();
 }
 
-class _SaleClientPickerDialogState extends State<SaleClientPickerDialog> {
+class _SaleClientPickerDialogState
+    extends ConsumerState<SaleClientPickerDialog> {
   final _searchController = TextEditingController();
+  Timer? _debounce;
   String _query = '';
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
-  List<ClientEntry> get _filteredClients {
-    final query = normalizeSearchText(_query.trim());
-    if (query.isEmpty) return MockCatalog.clients;
-
-    return MockCatalog.clients.where((client) {
-      return normalizeSearchText(client.name).contains(query) ||
-          normalizeSearchText(client.ci).contains(query);
-    }).toList();
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      if (mounted) setState(() => _query = value);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final clients = _filteredClients;
+    final query = _query.trim();
+    final clientsAsync = ref.watch(clientsPickerResultsProvider(query));
 
     return AlertDialog(
       title: const Text('Seleccionar cliente'),
@@ -55,37 +59,45 @@ class _SaleClientPickerDialogState extends State<SaleClientPickerDialog> {
                 prefixIcon: Icon(Icons.search_rounded),
                 isDense: true,
               ),
-              onChanged: (value) => setState(() => _query = value),
+              onChanged: _onSearchChanged,
             ),
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                _query.trim().isEmpty
-                    ? '${MockCatalog.clients.length} clientes'
-                    : '${clients.length} resultado${clients.length == 1 ? '' : 's'}',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              child: clientsAsync.maybeWhen(
+                data: (clients) => Text(
+                  query.isEmpty
+                      ? '${clients.length} clientes'
+                      : '${clients.length} resultado${clients.length == 1 ? '' : 's'}',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
+                orElse: () => const SizedBox.shrink(),
               ),
             ),
             const SizedBox(height: 4),
             Expanded(
-              child: clients.isEmpty
-                  ? _ClientEmptyState(query: _query.trim())
-                  : ListView.builder(
-                      itemCount: clients.length,
-                      itemBuilder: (context, index) {
-                        final client = clients[index];
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(Icons.person_outline_rounded),
-                          title: Text(client.name),
-                          subtitle: Text('CI: ${client.ci}'),
-                          onTap: () => Navigator.of(context).pop(client),
-                        );
-                      },
-                    ),
+              child: clientsAsync.when(
+                data: (clients) => clients.isEmpty
+                    ? _ClientEmptyState(query: query)
+                    : ListView.builder(
+                        itemCount: clients.length,
+                        itemBuilder: (context, index) {
+                          final client = clients[index];
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.person_outline_rounded),
+                            title: Text(client.name),
+                            subtitle: Text('CI: ${client.ci}'),
+                            onTap: () => Navigator.of(context).pop(client),
+                          );
+                        },
+                      ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) =>
+                    _ClientEmptyState(query: query, isError: true),
+              ),
             ),
           ],
         ),
@@ -102,8 +114,9 @@ class _SaleClientPickerDialogState extends State<SaleClientPickerDialog> {
 
 class _ClientEmptyState extends StatelessWidget {
   final String query;
+  final bool isError;
 
-  const _ClientEmptyState({required this.query});
+  const _ClientEmptyState({required this.query, this.isError = false});
 
   @override
   Widget build(BuildContext context) {
@@ -114,13 +127,15 @@ class _ClientEmptyState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.search_off_rounded,
+            isError ? Icons.error_outline_rounded : Icons.search_off_rounded,
             size: 40,
             color: theme.colorScheme.onSurfaceVariant,
           ),
           const SizedBox(height: 8),
           Text(
-            query.isEmpty
+            isError
+                ? 'No se pudieron cargar los clientes'
+                : query.isEmpty
                 ? 'No hay clientes registrados'
                 : 'Sin resultados para "$query"',
             textAlign: TextAlign.center,

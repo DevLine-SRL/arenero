@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/mock_sales_data.dart';
+import '../../../products/domain/entities/product.dart';
+import '../../../products/presentation/providers/products_controller_provider.dart';
 import '../providers/register_sale_controller_provider.dart';
 import '../providers/register_sale_state.dart';
 import '../utils/sale_formatters.dart';
@@ -28,9 +29,7 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
     _discountController = TextEditingController(
       text: item.discount.toStringAsFixed(2),
     );
-    _quantityController = TextEditingController(
-      text: item.quantity.toString(),
-    );
+    _quantityController = TextEditingController(text: item.quantity.toString());
   }
 
   @override
@@ -40,16 +39,9 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
     super.dispose();
   }
 
-  ProductEntry? get _selectedProduct {
-    final productId = item.productId;
-    if (productId == null) return null;
-    for (final product in MockCatalog.products) {
-      if (product.id == productId) return product;
-    }
-    return null;
-  }
-
-  List<ProductUnitEntry> _availableUnitEntries(Set<UnitOfMeasure> usedUnits) {
+  List<ProductUnitPrice> _availableUnitEntries(
+    Set<ProductUnitOfMeasure> usedUnits,
+  ) {
     return [
       for (final entry in item.availableUnits)
         if (!usedUnits.contains(entry.unit) || entry.unit == item.unit) entry,
@@ -57,43 +49,50 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
   }
 
   bool _hasAvailableUnit(
-    ProductEntry product,
-    Set<UnitOfMeasure>? usedUnits,
+    Product product,
+    Set<ProductUnitOfMeasure>? usedUnits,
   ) {
-    final used = usedUnits ?? const <UnitOfMeasure>{};
+    final used = usedUnits ?? const <ProductUnitOfMeasure>{};
     for (final entry in product.units) {
-      if (!used.contains(entry.unit)) return true;
+      if (entry.active && !used.contains(entry.unit)) return true;
     }
     return false;
   }
 
   void _changeQuantity(double value) {
-    final normalized = value == value.roundToDouble() ? value.roundToDouble() : value;
+    final normalized = value == value.roundToDouble()
+        ? value.roundToDouble()
+        : value;
     _quantityController.text = normalized.toString();
     ref
-      .read(registerSaleControllerProvider.notifier)
-      .changeLineQuantity(item.rowId, normalized);
+        .read(registerSaleControllerProvider.notifier)
+        .changeLineQuantity(item.rowId, normalized);
   }
 
   void _changeDiscount(String raw) {
     final value = double.tryParse(raw.replaceAll(',', '.'));
     if (value == null) return;
     ref
-      .read(registerSaleControllerProvider.notifier)
-      .changeLineDiscount(item.rowId, value);
+        .read(registerSaleControllerProvider.notifier)
+        .changeLineDiscount(item.rowId, value);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final controller = ref.read(registerSaleControllerProvider.notifier);
-    final selectedProduct = _selectedProduct;
+    final productsAsync = ref.watch(productsControllerProvider);
+
+    final products = productsAsync.value ?? const <Product>[];
+    final selectedProduct = products
+        .where((product) => product.id == item.productId)
+        .firstOrNull;
     final hasProduct = selectedProduct != null;
 
     final allItems = ref.watch(
       registerSaleControllerProvider.select((state) => state.items),
     );
-    final usedUnits = <UnitOfMeasure>{
+    final usedUnits = <ProductUnitOfMeasure>{
       for (final other in allItems)
         if (other.rowId != item.rowId &&
             other.isComplete &&
@@ -103,25 +102,22 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
     };
     final availableUnits = _availableUnitEntries(usedUnits);
 
-    final usedUnitsByProduct = <String, Set<UnitOfMeasure>>{};
+    final usedUnitsByProduct = <String, Set<ProductUnitOfMeasure>>{};
     for (final other in allItems) {
-      if (other.isComplete &&
-          other.productId != null &&
-          other.unit != null) {
+      if (other.isComplete && other.productId != null && other.unit != null) {
         usedUnitsByProduct
-          .putIfAbsent(other.productId!, () => {})
-          .add(other.unit!);
+            .putIfAbsent(other.productId!, () => {})
+            .add(other.unit!);
       }
     }
-    final selectableProducts = <ProductEntry>[
-      for (final product in MockCatalog.products)
+    final selectableProducts = <Product>[
+      for (final product in products)
         if (product.id == selectedProduct?.id ||
             _hasAvailableUnit(product, usedUnitsByProduct[product.id]))
           product,
     ];
 
-    final linePrice =
-        item.isComplete ? item.quantity * item.unitPrice : null;
+    final linePrice = item.isComplete ? item.quantity * item.unitPrice : null;
 
     return Material(
       color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
@@ -135,14 +131,19 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: DropdownButtonFormField<ProductEntry>(
+                  child: DropdownButtonFormField<Product>(
                     key: ValueKey('product-${item.rowId}-${item.productId}'),
                     initialValue: selectedProduct,
                     isExpanded: true,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Producto',
-                      prefixIcon: Icon(Icons.inventory_2_outlined),
+                      prefixIcon: const Icon(Icons.inventory_2_outlined),
                       isDense: true,
+                      helperText: productsAsync.isLoading
+                          ? 'Cargando productos…'
+                          : productsAsync.hasError
+                          ? 'No se pudieron cargar los productos'
+                          : null,
                     ),
                     items: [
                       for (final product in selectableProducts)
@@ -154,11 +155,13 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
                           ),
                         ),
                     ],
-                    onChanged: (product) {
-                      if (product != null) {
-                        controller.changeLineProduct(item.rowId, product);
-                      }
-                    },
+                    onChanged: productsAsync.hasValue
+                        ? (product) {
+                            if (product != null) {
+                              controller.changeLineProduct(item.rowId, product);
+                            }
+                          }
+                        : null,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -178,7 +181,7 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: DropdownButtonFormField<UnitOfMeasure>(
+                  child: DropdownButtonFormField<ProductUnitOfMeasure>(
                     key: ValueKey('unit-${item.rowId}-${item.unit}'),
                     initialValue: item.unit,
                     isExpanded: true,

@@ -10,7 +10,7 @@ part of 'create_client_form_provider.dart';
 // ignore_for_file: type=lint, type=warning
 /// `CreateClientFormState.copyWith` borra los mensajes de error que no recibe,
 /// para poder limpiarlos pasando `null`. Por eso cada método de aquí declara
-/// los tres errores: así se ve en el sitio qué queda y qué se limpia, sin
+/// los cuatro errores: así se ve en el sitio qué queda y qué se limpia, sin
 /// depender de un valor por defecto escondido.
 
 @ProviderFor(CreateClientForm)
@@ -18,13 +18,13 @@ final createClientFormProvider = CreateClientFormProvider._();
 
 /// `CreateClientFormState.copyWith` borra los mensajes de error que no recibe,
 /// para poder limpiarlos pasando `null`. Por eso cada método de aquí declara
-/// los tres errores: así se ve en el sitio qué queda y qué se limpia, sin
+/// los cuatro errores: así se ve en el sitio qué queda y qué se limpia, sin
 /// depender de un valor por defecto escondido.
 final class CreateClientFormProvider
     extends $NotifierProvider<CreateClientForm, CreateClientFormState> {
   /// `CreateClientFormState.copyWith` borra los mensajes de error que no recibe,
   /// para poder limpiarlos pasando `null`. Por eso cada método de aquí declara
-  /// los tres errores: así se ve en el sitio qué queda y qué se limpia, sin
+  /// los cuatro errores: así se ve en el sitio qué queda y qué se limpia, sin
   /// depender de un valor por defecto escondido.
   CreateClientFormProvider._()
     : super(
@@ -53,11 +53,11 @@ final class CreateClientFormProvider
   }
 }
 
-String _$createClientFormHash() => r'8420769d12f37ba5adfde4f9797174c5596abe44';
+String _$createClientFormHash() => r'471e839a164dcef943882f4ba96006ce3f673274';
 
 /// `CreateClientFormState.copyWith` borra los mensajes de error que no recibe,
 /// para poder limpiarlos pasando `null`. Por eso cada método de aquí declara
-/// los tres errores: así se ve en el sitio qué queda y qué se limpia, sin
+/// los cuatro errores: así se ve en el sitio qué queda y qué se limpia, sin
 /// depender de un valor por defecto escondido.
 
 abstract class _$CreateClientForm extends $Notifier<CreateClientFormState> {

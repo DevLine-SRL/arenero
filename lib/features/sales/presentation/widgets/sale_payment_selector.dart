@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/mock_sales_data.dart';
+import '../../domain/entities/sale.dart';
 import '../providers/register_sale_controller_provider.dart';
 
 class SalePaymentSelector extends ConsumerWidget {
@@ -14,7 +14,7 @@ class SalePaymentSelector extends ConsumerWidget {
     );
     final controller = ref.read(registerSaleControllerProvider.notifier);
 
-    return DropdownButtonFormField<PaymentMethod>(
+    return DropdownButtonFormField<SalePaymentMethod>(
       key: ValueKey(method),
       initialValue: method,
       isExpanded: true,
@@ -24,13 +24,10 @@ class SalePaymentSelector extends ConsumerWidget {
         isDense: true,
       ),
       items: [
-        for (final option in PaymentMethod.values)
+        for (final option in SalePaymentMethod.values)
           DropdownMenuItem(
             value: option,
-            child: Text(
-              option.label,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: Text(option.label, overflow: TextOverflow.ellipsis),
           ),
       ],
       onChanged: (option) {

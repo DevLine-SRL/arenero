@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../providers/mock_sales_data.dart';
+import '../../domain/entities/sale.dart';
 import '../providers/register_sale_controller_provider.dart';
 
 class SaleDeliverySelector extends ConsumerWidget {
@@ -14,7 +14,7 @@ class SaleDeliverySelector extends ConsumerWidget {
     );
     final controller = ref.read(registerSaleControllerProvider.notifier);
 
-    return DropdownButtonFormField<DeliveryMode>(
+    return DropdownButtonFormField<SaleDeliveryMode>(
       key: ValueKey(mode),
       initialValue: mode,
       isExpanded: true,
@@ -24,13 +24,10 @@ class SaleDeliverySelector extends ConsumerWidget {
         isDense: true,
       ),
       items: [
-        for (final option in DeliveryMode.values)
+        for (final option in SaleDeliveryMode.values)
           DropdownMenuItem(
             value: option,
-            child: Text(
-              option.label,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: Text(option.label, overflow: TextOverflow.ellipsis),
           ),
       ],
       onChanged: (option) {

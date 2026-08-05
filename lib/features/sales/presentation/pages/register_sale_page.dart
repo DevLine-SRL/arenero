@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../products/domain/entities/product.dart';
+import '../../../products/presentation/providers/products_controller_provider.dart';
 import '../widgets/sale_cart_section.dart';
 import '../widgets/sale_client_selector.dart';
 import '../widgets/sale_delivery_fields.dart';
@@ -14,14 +16,40 @@ import '../widgets/sale_section_card.dart';
 class RegisterSalePage extends ConsumerWidget {
   const RegisterSalePage({super.key});
 
+  bool _hasProductWithAvailableUnit(
+    Product product,
+    Map<String, Set<ProductUnitOfMeasure>> usedUnitsByProduct,
+  ) {
+    final used =
+        usedUnitsByProduct[product.id] ?? const <ProductUnitOfMeasure>{};
+    return product.units.any(
+      (unit) => unit.active && !used.contains(unit.unit),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final canAddProduct = ref.watch(
-      registerSaleControllerProvider.select(
-        (s) => s.items.every((item) => item.isComplete),
-      ),
+    final items = ref.watch(
+      registerSaleControllerProvider.select((s) => s.items),
     );
+    final products =
+        ref.watch(productsControllerProvider).value ?? const <Product>[];
+
+    final usedUnitsByProduct = <String, Set<ProductUnitOfMeasure>>{};
+    for (final item in items) {
+      if (item.isComplete && item.productId != null && item.unit != null) {
+        usedUnitsByProduct
+            .putIfAbsent(item.productId!, () => {})
+            .add(item.unit!);
+      }
+    }
+
+    final allItemsComplete = items.every((item) => item.isComplete);
+    final hasProductsToAdd = products.any(
+      (product) => _hasProductWithAvailableUnit(product, usedUnitsByProduct),
+    );
+    final canAddProduct = allItemsComplete && hasProductsToAdd;
 
     return SafeArea(
       child: ConstrainedBox(
@@ -41,17 +69,17 @@ class RegisterSalePage extends ConsumerWidget {
               const SaleSectionCard(
                 title: 'Cliente',
                 required: true,
-                child: SaleClientSelector()
+                child: SaleClientSelector(),
               ),
               SaleSectionCard(
                 title: 'Productos',
                 required: true,
                 trailing: FilledButton.icon(
                   onPressed: canAddProduct
-                    ? () => ref
-                        .read(registerSaleControllerProvider.notifier)
-                        .addLine()
-                    : null,
+                      ? () => ref
+                            .read(registerSaleControllerProvider.notifier)
+                            .addLine()
+                      : null,
                   icon: const Icon(Icons.add_rounded),
                   label: const Text('Agregar producto'),
                 ),
@@ -78,10 +106,7 @@ class RegisterSalePage extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SaleSectionCard(
-                title: 'Notas',
-                child: SaleNotesField(),
-              ),
+              const SaleSectionCard(title: 'Notas', child: SaleNotesField()),
               Material(
                 color: theme.colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(12),

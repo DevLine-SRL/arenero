@@ -9,11 +9,13 @@ class SaleOrderSummary extends ConsumerWidget {
 
   Future<void> _submit(BuildContext context, WidgetRef ref) async {
     final controller = ref.read(registerSaleControllerProvider.notifier);
-    await controller.submit();
+    final failure = await controller.submit();
 
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Venta registrada (demo)')),
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      SnackBar(content: Text(failure?.message ?? 'Venta registrada')),
     );
   }
 
@@ -53,9 +55,7 @@ class SaleOrderSummary extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         FilledButton.icon(
-          onPressed: state.canSubmit
-              ? () => _submit(context, ref)
-              : null,
+          onPressed: state.canSubmit ? () => _submit(context, ref) : null,
           icon: state.isSubmitting
               ? const SizedBox(
                   height: 18,

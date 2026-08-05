@@ -1,7 +1,14 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'mock_sales_data.dart';
+import '../../../../core/errors/failures.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../clients/domain/entities/client.dart';
+import '../../../products/domain/entities/product.dart';
+import '../../domain/entities/sale.dart';
+import '../../domain/entities/sale_detail.dart';
+import '../../domain/entities/sale_delivery.dart';
 import 'register_sale_state.dart';
+import 'sales_providers.dart';
 
 part 'register_sale_controller_provider.g.dart';
 
@@ -21,7 +28,7 @@ class RegisterSaleController extends _$RegisterSaleController {
     );
   }
 
-  void onClientSelected(ClientEntry client) {
+  void onClientSelected(Client client) {
     state = state.copyWith(client: client);
   }
 
@@ -29,7 +36,7 @@ class RegisterSaleController extends _$RegisterSaleController {
     state = state.copyWith(clearClient: true);
   }
 
-  void onDeliveryModeChanged(DeliveryMode mode) {
+  void onDeliveryModeChanged(SaleDeliveryMode mode) {
     state = state.copyWith(deliveryMode: mode);
   }
 
@@ -42,13 +49,10 @@ class RegisterSaleController extends _$RegisterSaleController {
   }
 
   void onDeliveryDateChanged(DateTime? date) {
-    state = state.copyWith(
-      deliveryDate: date,
-      clearDeliveryDate: date == null,
-    );
+    state = state.copyWith(deliveryDate: date, clearDeliveryDate: date == null);
   }
 
-  void onPaymentMethodChanged(PaymentMethod method) {
+  void onPaymentMethodChanged(SalePaymentMethod method) {
     state = state.copyWith(paymentMethod: method);
   }
 
@@ -58,52 +62,58 @@ class RegisterSaleController extends _$RegisterSaleController {
 
   void addLine() {
     state = state.copyWith(
-      items: [...state.items, SaleLineItem(rowId: _nextRowId++)],
+      items: [
+        ...state.items,
+        SaleLineItem(rowId: _nextRowId++),
+      ],
     );
   }
 
-  void changeLineProduct(int rowId, ProductEntry product) {
+  void changeLineProduct(int rowId, Product product) {
     final usedUnits = _unitsInUse(product.id, excludeRowId: rowId);
     final available = [
       for (final entry in product.units)
-        if (!usedUnits.contains(entry.unit)) entry,
+        if (entry.active && !usedUnits.contains(entry.unit)) entry,
     ];
-    final firstUnit = available.isNotEmpty ? available.first.unit : null;
-    final firstPrice = available.isNotEmpty ? available.first.unitPrice : 0.0;
+    final firstUnit = available.isNotEmpty ? available.first : null;
 
     _replaceItem(
       rowId,
       (item) => item.copyWith(
         productId: product.id,
         productName: product.name,
-        unit: firstUnit,
-        unitPrice: firstPrice,
+        unit: firstUnit?.unit,
+        productUnitId: firstUnit?.id,
+        unitPrice: firstUnit?.unitPrice ?? 0,
         availableUnits: available,
       ),
     );
   }
 
-  Set<UnitOfMeasure> _unitsInUse(String productId, {int? excludeRowId}) {
-    final used = <UnitOfMeasure>{};
+  Set<ProductUnitOfMeasure> _unitsInUse(String productId, {int? excludeRowId}) {
+    final used = <ProductUnitOfMeasure>{};
     for (final item in state.items) {
       if (item.rowId == excludeRowId) continue;
-      if (item.isComplete &&
-          item.productId == productId &&
-          item.unit != null) {
+      if (item.isComplete && item.productId == productId && item.unit != null) {
         used.add(item.unit!);
       }
     }
     return used;
   }
 
-  void changeLineUnit(int rowId, UnitOfMeasure unit) {
-    _replaceItem(
-      rowId,
-      (item) {
-        final price = lookupPrice(item.availableUnits, unit);
-        return item.copyWith(unit: unit, unitPrice: price ?? item.unitPrice);
-      },
-    );
+  void changeLineUnit(int rowId, ProductUnitOfMeasure unit) {
+    _replaceItem(rowId, (item) {
+      for (final entry in item.availableUnits) {
+        if (entry.unit == unit) {
+          return item.copyWith(
+            unit: unit,
+            productUnitId: entry.id,
+            unitPrice: entry.unitPrice,
+          );
+        }
+      }
+      return item;
+    });
   }
 
   void changeLineQuantity(int rowId, double quantity) {
@@ -126,21 +136,63 @@ class RegisterSaleController extends _$RegisterSaleController {
     );
   }
 
-  Future<void> submit() async {
-    if (!state.canSubmit) return;
+  Future<Failure?> submit() async {
+    if (!state.canSubmit) return null;
 
-    state = state.copyWith(isSubmitting: true);
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    state = const RegisterSaleState();
-  }
+    state = state.copyWith(isSubmitting: true, submitError: null);
 
-  static double? lookupPrice(
-    List<ProductUnitEntry> units,
-    UnitOfMeasure unit,
-  ) {
-    for (final entry in units) {
-      if (entry.unit == unit) return entry.unitPrice;
+    final user = await ref.read(getCurrentUserUseCaseProvider)();
+    if (user == null) {
+      const failure = UnauthorizedFailure(
+        message: 'No se pudo identificar al vendedor.',
+      );
+      state = state.copyWith(isSubmitting: false, submitError: failure.message);
+      return failure;
     }
-    return null;
+
+    final details = <SaleDetail>[
+      for (final item in state.completedItems)
+        SaleDetail(
+          productUnitId: item.productUnitId!,
+          unit: item.unit!,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          discount: item.discount,
+        ),
+    ];
+
+    final delivery = state.deliveryMode == SaleDeliveryMode.companyDelivery
+        ? SaleDelivery(
+            deliveryAddress: state.deliveryAddress.trim(),
+            vehiclePlate: state.vehiclePlate.trim().isEmpty
+                ? null
+                : state.vehiclePlate.trim(),
+            deliveryDate: state.deliveryDate,
+          )
+        : null;
+
+    final result = await ref.read(registerSaleUseCaseProvider)(
+      client: state.client!,
+      sellerId: user.id,
+      deliveryMode: state.deliveryMode,
+      paymentMethod: state.paymentMethod,
+      notes: state.notes.trim().isEmpty ? null : state.notes.trim(),
+      delivery: delivery,
+      details: details,
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isSubmitting: false,
+          submitError: failure.message,
+        );
+        return failure;
+      },
+      (_) {
+        state = const RegisterSaleState();
+        return null;
+      },
+    );
   }
 }
