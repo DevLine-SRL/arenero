@@ -56,6 +56,7 @@ enum SaleStatus {
 
 class Sale {
   final String? id;
+  final int? number;
   final Client client;
   final String sellerId;
   final DateTime saleDate;
@@ -69,6 +70,7 @@ class Sale {
 
   const Sale({
     this.id,
+    this.number,
     required this.client,
     required this.sellerId,
     required this.saleDate,
@@ -88,6 +90,7 @@ class Sale {
   Sale copyWith({
     String? id,
     bool clearId = false,
+    int? number,
     Client? client,
     String? sellerId,
     DateTime? saleDate,
@@ -103,6 +106,7 @@ class Sale {
   }) {
     return Sale(
       id: clearId ? null : (id ?? this.id),
+      number: number ?? this.number,
       client: client ?? this.client,
       sellerId: sellerId ?? this.sellerId,
       saleDate: saleDate ?? this.saleDate,
