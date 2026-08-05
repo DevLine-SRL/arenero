@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'login_form_provider.dart';
+part of 'last_seen_sync_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,51 +9,50 @@ part of 'login_form_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(LoginForm)
-final loginFormProvider = LoginFormProvider._();
+@ProviderFor(LastSeenSync)
+final lastSeenSyncProvider = LastSeenSyncProvider._();
 
-final class LoginFormProvider
-    extends $NotifierProvider<LoginForm, LoginFormState> {
-  LoginFormProvider._()
+final class LastSeenSyncProvider extends $NotifierProvider<LastSeenSync, void> {
+  LastSeenSyncProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'loginFormProvider',
-        isAutoDispose: true,
+        name: r'lastSeenSyncProvider',
+        isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$loginFormHash();
+  String debugGetCreateSourceHash() => _$lastSeenSyncHash();
 
   @$internal
   @override
-  LoginForm create() => LoginForm();
+  LastSeenSync create() => LastSeenSync();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(LoginFormState value) {
+  Override overrideWithValue(void value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<LoginFormState>(value),
+      providerOverride: $SyncValueProvider<void>(value),
     );
   }
 }
 
-String _$loginFormHash() => r'5228a80a8c0e19c96ed7a64e589db24a2e9b0b52';
+String _$lastSeenSyncHash() => r'1658479d90d16689afee2adc847408146a67bb0c';
 
-abstract class _$LoginForm extends $Notifier<LoginFormState> {
-  LoginFormState build();
+abstract class _$LastSeenSync extends $Notifier<void> {
+  void build();
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
-    final ref = this.ref as $Ref<LoginFormState, LoginFormState>;
+    final ref = this.ref as $Ref<void, void>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<LoginFormState, LoginFormState>,
-              LoginFormState,
+              AnyNotifier<void, void>,
+              void,
               Object?,
               Object?
             >;

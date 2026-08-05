@@ -7,6 +7,10 @@ abstract class AuthRemoteDataSource {
   Future<void> logout();
   Stream<UserModel?> watchAuthState();
   Future<UserModel?> currentUser();
+  Future<DateTime?> touchLastSeen();
+  Future<Map<String, dynamic>> getLoginLock({required String email});
+  Future<Map<String, dynamic>> registerFailedLogin({required String email});
+  Future<void> resetLoginAttempts({required String email});
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -15,7 +19,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   const AuthRemoteDataSourceImpl(this.client);
 
   @override
-  Future<UserModel> login({required String email, required String password}) async {
+  Future<UserModel> login({
+    required String email,
+    required String password,
+  }) async {
     final response = await client.auth.signInWithPassword(
       email: email,
       password: password,
@@ -31,7 +38,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await client.auth.signOut();
       throw const supabase.AuthException('Credenciales inválidas.');
     }
-    return UserModel.fromProfile(user, profile);
+
+    await client.rpc('touch_last_seen');
+    final freshProfile = await _fetchProfile(user.id);
+
+    return UserModel.fromProfile(user, freshProfile ?? profile);
   }
 
   @override
@@ -64,7 +75,54 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     return UserModel.fromProfile(user, profile);
   }
 
+  @override
+  Future<DateTime?> touchLastSeen() async {
+    final result = await client.rpc('touch_last_seen');
+    if (result is! String) return null;
+    return DateTime.tryParse(result);
+  }
+
+  @override
+  Future<Map<String, dynamic>> getLoginLock({required String email}) async {
+    final result = await client.rpc(
+      'get_login_lock',
+      params: {'p_email': email},
+    );
+    return _asLockMap(result);
+  }
+
+  @override
+  Future<Map<String, dynamic>> registerFailedLogin({
+    required String email,
+  }) async {
+    final result = await client.rpc(
+      'register_failed_login',
+      params: {'p_email': email},
+    );
+    return _asLockMap(result);
+  }
+
+  @override
+  Future<void> resetLoginAttempts({required String email}) async {
+    await client.rpc('reset_login_attempts', params: {'p_email': email});
+  }
+
+  Map<String, dynamic> _asLockMap(dynamic result) {
+    if (result is Map) return Map<String, dynamic>.from(result);
+    return const {
+      'locked': false,
+      'remaining_seconds': 0,
+      'attempts_left': 5,
+      'max_attempts': 5,
+      'lock_minutes': 15,
+    };
+  }
+
   Future<Map<String, dynamic>?> _fetchProfile(String userId) async {
-    return client.from('profiles').select('role, active').eq('id', userId).maybeSingle();
+    return client
+        .from('profiles')
+        .select('role, active, last_seen_at')
+        .eq('id', userId)
+        .maybeSingle();
   }
 }
