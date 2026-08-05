@@ -8,18 +8,9 @@ part of 'clients_picker_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Resultados de la búsqueda de clientes dentro del selector de venta.
-///
-/// Independiente de [clientsSearchProvider] para no tocar el texto de búsqueda
-/// compartido con la pantalla de clientes.
 
 @ProviderFor(clientsPickerResults)
 final clientsPickerResultsProvider = ClientsPickerResultsFamily._();
-
-/// Resultados de la búsqueda de clientes dentro del selector de venta.
-///
-/// Independiente de [clientsSearchProvider] para no tocar el texto de búsqueda
-/// compartido con la pantalla de clientes.
 
 final class ClientsPickerResultsProvider
     extends
@@ -29,10 +20,6 @@ final class ClientsPickerResultsProvider
           FutureOr<List<Client>>
         >
     with $FutureModifier<List<Client>>, $FutureProvider<List<Client>> {
-  /// Resultados de la búsqueda de clientes dentro del selector de venta.
-  ///
-  /// Independiente de [clientsSearchProvider] para no tocar el texto de búsqueda
-  /// compartido con la pantalla de clientes.
   ClientsPickerResultsProvider._({
     required ClientsPickerResultsFamily super.from,
     required String super.argument,
@@ -80,11 +67,6 @@ final class ClientsPickerResultsProvider
 String _$clientsPickerResultsHash() =>
     r'4ff4edc9c96d8c8230040b17bf7c2e652fab8a27';
 
-/// Resultados de la búsqueda de clientes dentro del selector de venta.
-///
-/// Independiente de [clientsSearchProvider] para no tocar el texto de búsqueda
-/// compartido con la pantalla de clientes.
-
 final class ClientsPickerResultsFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Client>>, String> {
   ClientsPickerResultsFamily._()
@@ -95,11 +77,6 @@ final class ClientsPickerResultsFamily extends $Family
         $allTransitiveDependencies: null,
         isAutoDispose: true,
       );
-
-  /// Resultados de la búsqueda de clientes dentro del selector de venta.
-  ///
-  /// Independiente de [clientsSearchProvider] para no tocar el texto de búsqueda
-  /// compartido con la pantalla de clientes.
 
   ClientsPickerResultsProvider call(String query) =>
       ClientsPickerResultsProvider._(argument: query, from: this);
