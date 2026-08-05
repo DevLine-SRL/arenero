@@ -124,10 +124,13 @@ class RegisterSaleController extends _$RegisterSaleController {
   }
 
   void changeLineDiscount(int rowId, double discount) {
-    _replaceItem(
-      rowId,
-      (item) => item.copyWith(discount: discount < 0 ? 0 : discount),
-    );
+    _replaceItem(rowId, (item) {
+      final maxDiscount = item.quantity * item.unitPrice;
+      final clamped = discount < 0
+          ? 0.0
+          : (discount > maxDiscount ? maxDiscount : discount);
+      return item.copyWith(discount: clamped);
+    });
   }
 
   void removeLine(int rowId) {

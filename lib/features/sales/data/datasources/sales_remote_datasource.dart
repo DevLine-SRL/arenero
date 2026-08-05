@@ -49,41 +49,20 @@ class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
     SaleDeliveryModel? delivery,
     required List<SaleDetailModel> details,
   }) async {
-    final total = details.fold<double>(
-      0,
-      (sum, detail) => sum + detail.subtotal,
+    final saleId = await client.rpc(
+      'register_sale',
+      params: {
+        'p_client_id': clientId,
+        'p_seller_id': sellerId,
+        'p_delivery_mode': deliveryMode.dbValue,
+        'p_payment_method': paymentMethod.dbValue,
+        'p_notes': notes,
+        'p_delivery': delivery?.toJson(),
+        'p_details': [for (final detail in details) detail.toJson()],
+      },
     );
 
-    final row = await client
-        .from('sales')
-        .insert({
-          'client_id': clientId,
-          'seller_id': sellerId,
-          'sale_date': DateTime.now().toIso8601String(),
-          'delivery_mode': deliveryMode.dbValue,
-          'payment_method': paymentMethod.dbValue,
-          'total': total,
-          'notes': notes,
-        })
-        .select('id')
-        .single();
-
-    final saleId = row['id'] as String;
-
-    if (details.isNotEmpty) {
-      await client.from('sale_details').insert([
-        for (final detail in details) {'sale_id': saleId, ...detail.toJson()},
-      ]);
-    }
-
-    if (delivery != null) {
-      await client.from('sale_deliveries').insert({
-        'sale_id': saleId,
-        ...delivery.toJson(),
-      });
-    }
-
-    return _fetchSale(saleId);
+    return _fetchSale(saleId as String);
   }
 
   @override

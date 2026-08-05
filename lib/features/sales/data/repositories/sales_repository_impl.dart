@@ -69,6 +69,10 @@ class SalesRepositoryImpl implements SalesRepository {
       '23503' || '23502' => const ValidationFailure(
         message: 'Alguno de los datos de la venta no es válido.',
       ),
+      '23514' || 'P0001' => const ValidationFailure(
+        message:
+            'No se pudo registrar la venta: revisa las cantidades y descuentos.',
+      ),
       '42501' => const UnauthorizedFailure(
         message: 'No tienes permisos para registrar la venta.',
       ),
