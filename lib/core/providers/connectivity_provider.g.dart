@@ -46,4 +46,4 @@ final class ConnectionStatusProvider
   }
 }
 
-String _$connectionStatusHash() => r'4e5b4418ab46c61a8229a7be7401aed49ebaa275';
+String _$connectionStatusHash() => r'609beb56e9955b7e354b20520f8fd5c6c9af08f6';

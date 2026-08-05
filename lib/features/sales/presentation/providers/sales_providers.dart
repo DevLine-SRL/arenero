@@ -1,0 +1,36 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+import '../../../../core/providers/supabase_client_provider.dart';
+import '../../data/datasources/sales_remote_datasource.dart';
+import '../../data/repositories/sales_repository_impl.dart';
+import '../../domain/repositories/sales_repository.dart';
+import '../../domain/usecases/get_sales_usecase.dart';
+import '../../domain/usecases/register_sale_usecase.dart';
+import '../../domain/usecases/void_sale_usecase.dart';
+
+part 'sales_providers.g.dart';
+
+@riverpod
+SalesRemoteDataSource salesRemoteDataSource(Ref ref) {
+  return SalesRemoteDataSourceImpl(ref.watch(supabaseClientProvider));
+}
+
+@riverpod
+SalesRepository salesRepository(Ref ref) {
+  return SalesRepositoryImpl(ref.watch(salesRemoteDataSourceProvider));
+}
+
+@riverpod
+RegisterSaleUseCase registerSaleUseCase(Ref ref) {
+  return RegisterSaleUseCase(ref.watch(salesRepositoryProvider));
+}
+
+@riverpod
+GetSalesUseCase getSalesUseCase(Ref ref) {
+  return GetSalesUseCase(ref.watch(salesRepositoryProvider));
+}
+
+@riverpod
+VoidSaleUseCase voidSaleUseCase(Ref ref) {
+  return VoidSaleUseCase(ref.watch(salesRepositoryProvider));
+}
