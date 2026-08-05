@@ -46,14 +46,14 @@ class MainLayout extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         leading: isAdmin
-          ? Builder(
-              builder: (context) => IconButton(
-                icon: const Icon(Icons.menu_rounded),
-                tooltip: 'Menú',
-                onPressed: () => Scaffold.of(context).openDrawer(),
-              ),
-            )
-          : null,
+            ? Builder(
+                builder: (context) => IconButton(
+                  icon: const Icon(Icons.menu_rounded),
+                  tooltip: 'Menú',
+                  onPressed: () => Scaffold.of(context).openDrawer(),
+                ),
+              )
+            : null,
         title: Text(title),
         actions: [
           const Padding(
@@ -72,6 +72,7 @@ class MainLayout extends ConsumerWidget {
       bottomNavigationBar: MainBottomNavBar(
         currentIndex: currentIndex,
         isAdminBranch: isAdminBranch,
+        isAdmin: isAdmin,
         onDestinationSelected: (index) => navigationShell.goBranch(index),
       ),
     );

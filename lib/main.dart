@@ -9,9 +9,13 @@ import 'core/theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  final supabaseUrl = AppConfig.supabaseUrl;
+  final supabasePublishableKey = AppConfig.supabasePublishableKey;
+
   await Supabase.initialize(
-    url: AppConfig.supabaseUrl,
-    publishableKey: AppConfig.supabasePublishableKey,
+    url: supabaseUrl,
+    publishableKey: supabasePublishableKey,
+    headers: {'apikey': supabasePublishableKey},
   );
 
   runApp(const ProviderScope(child: App()));
