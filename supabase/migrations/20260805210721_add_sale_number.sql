@@ -1,17 +1,14 @@
--- Migración: correlativo estable por venta, con secuencia atómica en `sales.number`.
+DROP VIEW IF EXISTS public.v_sales;
 
--- La numeración es una secuencia de Postgres: `nextval` es atómico, así que
--- dos ventas concurrentes nunca chocan. El número se asigna al registrar la
--- venta y no cambia ni se reaprovecha (aunque anules la venta, conserva su
--- número; los únicos huecos son por transacciones que se revierten).
+ALTER TABLE public.sales DROP COLUMN IF EXISTS number;
+
+DROP SEQUENCE IF EXISTS public.sale_number_seq;
 
 CREATE SEQUENCE public.sale_number_seq;
 
 ALTER TABLE public.sales
   ADD COLUMN number bigint;
 
--- Backfill de datos de prueba: numerar en orden cronológico para no dejar
--- filas históricas sin correlativo.
 UPDATE public.sales s
 SET number = seq.rn
 FROM (
@@ -26,10 +23,11 @@ ALTER TABLE public.sales
 
 ALTER SEQUENCE public.sale_number_seq OWNED BY public.sales.number;
 
--- Arranca la secuencia una posición por encima del máximo existente (si no
--- hay filas, empieza en 1).
-SELECT setval('public.sale_number_seq', COALESCE((SELECT max(number) FROM public.sales), 0), true);
+SELECT setval(
+  'public.sale_number_seq',
+  COALESCE((SELECT max(number) FROM public.sales), 0) + 1,
+  false
+);
 
--- Índice único: garantiza que ningún correlativo se repita y acelera la búsqueda.
 ALTER TABLE public.sales
   ADD CONSTRAINT sales_number_unique UNIQUE (number);
