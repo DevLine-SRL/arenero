@@ -13,8 +13,15 @@ part of 'sales_history_provider.dart';
 final salesHistoryProvider = SalesHistoryProvider._();
 
 final class SalesHistoryProvider
-    extends $FunctionalProvider<List<Sale>, List<Sale>, List<Sale>>
-    with $Provider<List<Sale>> {
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<SaleHistoryItem>>,
+          List<SaleHistoryItem>,
+          FutureOr<List<SaleHistoryItem>>
+        >
+    with
+        $FutureModifier<List<SaleHistoryItem>>,
+        $FutureProvider<List<SaleHistoryItem>> {
   SalesHistoryProvider._()
     : super(
         from: null,
@@ -31,21 +38,14 @@ final class SalesHistoryProvider
 
   @$internal
   @override
-  $ProviderElement<List<Sale>> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $FutureProviderElement<List<SaleHistoryItem>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
-  List<Sale> create(Ref ref) {
+  FutureOr<List<SaleHistoryItem>> create(Ref ref) {
     return salesHistory(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<Sale> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<List<Sale>>(value),
-    );
   }
 }
 
-String _$salesHistoryHash() => r'3e0c9423b7022474b05429d1b96762e858e62089';
+String _$salesHistoryHash() => r'13e6592c55775dbf953356f00ccc88034733b9c4';

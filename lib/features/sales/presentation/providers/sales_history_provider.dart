@@ -1,30 +1,28 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../domain/entities/sale.dart';
+import '../../domain/entities/sale_history_item.dart';
 import '../utils/sale_formatters.dart';
 import 'sales_history_date_range_provider.dart';
-import 'sales_history_mock_provider.dart';
 import 'sales_history_search_query_provider.dart';
+import 'sales_providers.dart';
 
 part 'sales_history_provider.g.dart';
 
 @riverpod
-List<Sale> salesHistory(Ref ref) {
+Future<List<SaleHistoryItem>> salesHistory(Ref ref) async {
   final query = ref.watch(salesHistorySearchQueryProvider);
   final range = ref.watch(salesHistoryDateRangeProvider);
-  final sales = ref.watch(salesHistoryMockDataProvider);
+  final useCase = ref.watch(getSalesHistoryUseCaseProvider);
 
-  return sales.where((sale) {
-    if (!range.includes(sale.saleDate)) return false;
+  final result = await useCase(from: range.startDate, to: range.endDate);
+  final items = result.fold((failure) => throw failure, (items) => items);
 
-    final needle = normalizeSearchText(query.trim());
-    if (needle.isEmpty) return true;
+  final needle = normalizeSearchText(query.trim());
+  if (needle.isEmpty) return items;
 
-    final client = normalizeSearchText(sale.client.name);
-    final ci = normalizeSearchText(sale.client.ci);
-    final nit = normalizeSearchText(sale.client.nit ?? '');
-    return client.contains(needle) ||
-        ci.contains(needle) ||
-        nit.contains(needle);
+  return items.where((item) {
+    final client = normalizeSearchText(item.clientName);
+    final ci = normalizeSearchText(item.clientCi);
+    return client.contains(needle) || ci.contains(needle);
   }).toList();
 }

@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/entities/sale.dart';
+import '../../domain/entities/sale_history_item.dart';
 import '../utils/sale_formatters.dart';
 
 class SalesHistoryListItem extends StatelessWidget {
   static const numberColumnWidth = 96.0;
-  static const clientColumnWidth = 180.0;
+  static const minClientWidth = 50.0;
   static const totalColumnWidth = 120.0;
   static const horizontalPadding = 16.0;
   static const borderWidth = 2.0;
-  static const contentWidth =
+
+  static const minContentWidth =
       numberColumnWidth +
-      clientColumnWidth +
+      minClientWidth +
       totalColumnWidth +
       horizontalPadding +
       borderWidth;
-  final Sale sale;
+  final SaleHistoryItem sale;
 
   const SalesHistoryListItem({super.key, required this.sale});
 
@@ -24,7 +25,7 @@ class SalesHistoryListItem extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      width: contentWidth,
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -56,19 +57,18 @@ class SalesHistoryListItem extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(
-            width: clientColumnWidth,
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  sale.client.name,
+                  sale.clientName,
                   style: theme.textTheme.bodyLarge,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'CI ${sale.client.ci}',
+                  'CI ${sale.clientCi}',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),

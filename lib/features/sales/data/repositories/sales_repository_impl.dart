@@ -5,6 +5,7 @@ import '../../../../core/errors/failures.dart';
 import '../../domain/entities/sale.dart';
 import '../../domain/entities/sale_detail.dart';
 import '../../domain/entities/sale_delivery.dart';
+import '../../domain/entities/sale_history_item.dart';
 import '../../domain/repositories/sales_repository.dart';
 import '../datasources/sales_remote_datasource.dart';
 import '../models/sale_detail_model.dart';
@@ -108,6 +109,37 @@ class SalesRepositoryImpl implements SalesRepository {
         UnexpectedFailure(message: 'No se pudieron obtener las ventas.'),
       );
     }
+  }
+
+  @override
+  Future<dartz.Either<Failure, List<SaleHistoryItem>>> getSalesHistory({
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    try {
+      final items = await remoteDataSource.getSalesHistory(from: from, to: to);
+      return dartz.Right(items);
+    } on supabase.PostgrestException catch (e) {
+      return dartz.Left(_mapHistoryError(e));
+    } catch (_) {
+      return const dartz.Left(
+        UnexpectedFailure(
+          message: 'No se pudo obtener el historial de ventas.',
+        ),
+      );
+    }
+  }
+
+  Failure _mapHistoryError(supabase.PostgrestException e) {
+    return switch (e.code) {
+      '42501' => const UnauthorizedFailure(
+        message: 'No tienes permisos para ver el historial de ventas.',
+      ),
+      _ => UnexpectedFailure(
+        message: 'No se pudo obtener el historial de ventas.',
+        code: e.code,
+      ),
+    };
   }
 
   @override
