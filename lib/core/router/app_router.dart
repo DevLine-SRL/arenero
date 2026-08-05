@@ -29,7 +29,11 @@ GoRouter appRouter(Ref ref) {
       final isLoggingIn = state.matchedLocation == RoutePaths.login;
 
       if (!isLoggedIn && !isLoggingIn) return RoutePaths.login;
-      if (isLoggedIn && isLoggingIn) return RoutePaths.dashboard;
+      if (isLoggedIn && isLoggingIn) {
+        return user.role == 'admin'
+            ? RoutePaths.dashboard
+            : RoutePaths.salesHistory;
+      }
 
       final isAdminRoute = adminOnlyRoutes.contains(state.matchedLocation);
       if (isLoggedIn && isAdminRoute && user.role != 'admin') {
@@ -38,6 +42,7 @@ GoRouter appRouter(Ref ref) {
       return null;
     },
     routes: routes,
-    errorBuilder: (BuildContext context, GoRouterState state) => const NotFoundPage(),
+    errorBuilder: (BuildContext context, GoRouterState state) =>
+        const NotFoundPage(),
   );
 }

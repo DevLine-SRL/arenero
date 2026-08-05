@@ -30,17 +30,11 @@ class MainLayout extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    const titles = [
-      'Panel',
-      'Registrar Venta',
-      'Clientes',
-      'Productos',
-      'Gestión de Vendedores',
-    ];
+    final path = GoRouter.of(context).state.uri.path;
+    final title = branchTitles[path] ?? 'Arenero';
 
     final currentIndex = navigationShell.currentIndex;
-    final title = titles[currentIndex];
-    final isAdminBranch = currentIndex >= adminBranchIndex;
+    final isAdminBranch = currentIndex >= adminBranchStart;
     final isAdmin = ref.watch(authSessionProvider).value?.role == 'admin';
 
     return Scaffold(
@@ -72,7 +66,6 @@ class MainLayout extends ConsumerWidget {
       bottomNavigationBar: MainBottomNavBar(
         currentIndex: currentIndex,
         isAdminBranch: isAdminBranch,
-        isAdmin: isAdmin,
         onDestinationSelected: (index) => navigationShell.goBranch(index),
       ),
     );

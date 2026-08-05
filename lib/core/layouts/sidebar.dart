@@ -8,16 +8,21 @@ class Sidebar extends StatelessWidget {
 
   const Sidebar({super.key, required this.navigationShell});
 
+  int? _selectedIndex() {
+    final index = navigationShell.currentIndex;
+    if (index < adminBranchStart) return null;
+    return index - adminBranchStart;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final onAdminBranch = navigationShell.currentIndex == adminBranchIndex;
 
     return NavigationDrawer(
-      selectedIndex: onAdminBranch ? 0 : -1,
+      selectedIndex: _selectedIndex(),
       onDestinationSelected: (index) {
         Navigator.pop(context);
-        navigationShell.goBranch(adminBranchIndex);
+        navigationShell.goBranch(adminBranchStart + index);
       },
       children: [
         Padding(
@@ -38,8 +43,16 @@ class Sidebar extends StatelessWidget {
         const Divider(),
         const SizedBox(height: 16),
         const NavigationDrawerDestination(
+          icon: Icon(Icons.dashboard_rounded),
+          label: Text('Panel'),
+        ),
+        const NavigationDrawerDestination(
           icon: Icon(Icons.groups_rounded),
           label: Text('Gestión de vendedores'),
+        ),
+        const NavigationDrawerDestination(
+          icon: Icon(Icons.inventory_2_rounded),
+          label: Text('Gestión de productos'),
         ),
       ],
     );
