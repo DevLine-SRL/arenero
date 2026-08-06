@@ -7,10 +7,7 @@ import 'password_recovery_dialog.dart';
 class PasswordRecoveryButton extends ConsumerWidget {
   final String? redirectTo;
 
-  const PasswordRecoveryButton({
-    super.key,
-    this.redirectTo,
-  });
+  const PasswordRecoveryButton({super.key, this.redirectTo});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,17 +21,15 @@ class PasswordRecoveryButton extends ConsumerWidget {
             context: context,
             barrierDismissible: false,
             builder: (_) {
-              return PasswordRecoveryDialog(
-                redirectTo: redirectTo,
-              );
+              return PasswordRecoveryDialog(redirectTo: redirectTo);
             },
           );
 
-          ref.invalidate(passwordRecoveryProvider);
+          if (context.mounted) {
+            ref.invalidate(passwordRecoveryProvider);
+          }
         },
-        child: const Text(
-          '¿Olvidaste tu contraseña?',
-        ),
+        child: const Text('¿Olvidaste tu contraseña?'),
       ),
     );
   }

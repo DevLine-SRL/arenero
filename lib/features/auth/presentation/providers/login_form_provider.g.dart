@@ -41,17 +41,14 @@ final class LoginFormProvider
   }
 }
 
-String _$loginFormHash() =>
-    r'5425d082dae1c83cb2ba2e4f2d10c8bbc49a2505';
+String _$loginFormHash() => r'ff8c35e84943febc3e1c9a596515ba138014cfc5';
 
 abstract class _$LoginForm extends $Notifier<LoginFormState> {
   LoginFormState build();
-
   @$mustCallSuper
   @override
   WhenComplete runBuild() {
     final ref = this.ref as $Ref<LoginFormState, LoginFormState>;
-
     final element =
         ref.element
             as $ClassProviderElement<
@@ -60,7 +57,6 @@ abstract class _$LoginForm extends $Notifier<LoginFormState> {
               Object?,
               Object?
             >;
-
     return element.handleCreate(ref, build);
   }
 }
