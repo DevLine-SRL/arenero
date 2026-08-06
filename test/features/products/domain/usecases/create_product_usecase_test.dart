@@ -98,4 +98,18 @@ class _ProductsRepositoryFake implements ProductsRepository {
   ) async {
     return const dartz.Right(dartz.unit);
   }
+
+  @override
+  Future<dartz.Either<Failure, dartz.Unit>> updateProductName({
+    required String id,
+    required String name,
+  }) async {
+    return const dartz.Right(dartz.unit);
+  }
+
+  @override
+  Future<dartz.Either<Failure, dartz.Unit>> updateUnitPrice({
+    required String unitId,
+    required double unitPrice,
+  }) async => const dartz.Right(dartz.unit);
 }

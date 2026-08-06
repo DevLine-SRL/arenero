@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/product.dart';
+import '../../domain/services/product_duplicate_guard.dart';
 import 'products_providers.dart';
 
 final productsControllerProvider =
@@ -69,5 +70,65 @@ class ProductsController extends AsyncNotifier<List<Product>> {
       if (previous != null) state = AsyncData(previous);
       return failure;
     }, (_) => null);
+  }
+
+  Future<Failure?> updateProductName(Product product, String name) async {
+    final previous = state.value;
+    final currentProducts = previous ?? const <Product>[];
+    final result = await ref.read(updateProductNameUseCaseProvider)(
+      id: product.id,
+      name: name,
+      existingProducts: currentProducts,
+    );
+
+    return result.fold((failure) => failure, (_) {
+      final normalizedName = normalizeProductName(name);
+      final displayName = normalizedName
+          .split(' ')
+          .map((word) => '${word[0].toUpperCase()}${word.substring(1)}')
+          .join(' ');
+      state = state.whenData(
+        (products) => [
+          for (final current in products)
+            if (current.id == product.id)
+              current.copyWith(name: displayName)
+            else
+              current,
+        ],
+      );
+      return null;
+    });
+  }
+
+  Future<Failure?> updateProductPrice(
+    Product product,
+    ProductUnitPrice unit,
+    double unitPrice,
+  ) async {
+    final result = await ref.read(updateProductPriceUseCaseProvider)(
+      product: product,
+      unit: unit,
+      unitPrice: unitPrice,
+    );
+    return result.fold((failure) => failure, (_) {
+      state = state.whenData(
+        (products) => [
+          for (final current in products)
+            if (current.id == product.id)
+              current.copyWith(
+                units: [
+                  for (final currentUnit in current.units)
+                    if (currentUnit.id == unit.id)
+                      currentUnit.copyWith(unitPrice: unitPrice)
+                    else
+                      currentUnit,
+                ],
+              )
+            else
+              current,
+        ],
+      );
+      return null;
+    });
   }
 }

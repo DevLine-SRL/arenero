@@ -70,6 +70,8 @@ class RegisterSaleController extends _$RegisterSaleController {
   }
 
   void changeLineProduct(int rowId, Product product) {
+    if (!product.active) return;
+
     final usedUnits = _unitsInUse(product.id, excludeRowId: rowId);
     final available = [
       for (final entry in product.units)
