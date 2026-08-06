@@ -10,7 +10,9 @@ class CheckLoginLockUseCase {
 
   const CheckLoginLockUseCase(this.repository);
 
-  Future<Either<Failure, LoginLockStatus>> call({required Email email}) {
+  Future<Either<Failure, LoginLockStatus>> call({
+    required Email email,
+  }) {
     return repository.getLoginLock(email: email);
   }
 }

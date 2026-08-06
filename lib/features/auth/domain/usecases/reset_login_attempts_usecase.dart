@@ -9,7 +9,9 @@ class ResetLoginAttemptsUseCase {
 
   const ResetLoginAttemptsUseCase(this.repository);
 
-  Future<Either<Failure, Unit>> call({required Email email}) {
+  Future<Either<Failure, Unit>> call({
+    required Email email,
+  }) {
     return repository.resetLoginAttempts(email: email);
   }
 }

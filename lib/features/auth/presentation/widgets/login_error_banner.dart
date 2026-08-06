@@ -9,50 +9,72 @@ class LoginErrorBanner extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final submitError = ref.watch(
-      loginFormProvider.select((state) => state.submitError),
+      loginFormProvider.select(
+        (state) => state.submitError,
+      ),
     );
 
-    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(
+        milliseconds: 300,
+      ),
       switchInCurve: Curves.easeOut,
       switchOutCurve: Curves.easeIn,
       transitionBuilder: (child, animation) {
         return SizeTransition(
           sizeFactor: animation,
-          child: FadeTransition(opacity: animation, child: child),
+          child: FadeTransition(
+            opacity: animation,
+            child: child,
+          ),
         );
       },
       child: submitError == null
-          ? const SizedBox.shrink(key: ValueKey('no-error'))
-          : Container(
-              key: const ValueKey('error'),
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.onErrorContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.error_outline_rounded,
-                    color: theme.colorScheme.errorContainer,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      submitError,
-                      style: TextStyle(
-                        color: theme.colorScheme.errorContainer,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
+          ? const SizedBox.shrink(
+              key: ValueKey('no-login-error'),
+            )
+          : Semantics(
+              key: const ValueKey('login-error'),
+              liveRegion: true,
+              label: submitError,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.errorContainer,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: colorScheme.error.withValues(
+                      alpha: 0.35,
                     ),
                   ),
-                ],
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.error_outline_rounded,
+                      color: colorScheme.onErrorContainer,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        submitError,
+                        style: TextStyle(
+                          color: colorScheme.onErrorContainer,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
     );

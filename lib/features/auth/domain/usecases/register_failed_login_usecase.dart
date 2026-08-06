@@ -10,7 +10,9 @@ class RegisterFailedLoginUseCase {
 
   const RegisterFailedLoginUseCase(this.repository);
 
-  Future<Either<Failure, LoginLockStatus>> call({required Email email}) {
+  Future<Either<Failure, LoginLockStatus>> call({
+    required Email email,
+  }) {
     return repository.registerFailedLogin(email: email);
   }
 }

@@ -12,14 +12,22 @@ part 'login_form_provider.g.dart';
 @riverpod
 class LoginForm extends _$LoginForm {
   @override
-  LoginFormState build() => const LoginFormState();
+  LoginFormState build() {
+    return const LoginFormState();
+  }
 
   void onEmailChanged(String value) {
-    final result = Email.create(value);
+    final normalizedEmail = value.trim();
+    final result = Email.create(normalizedEmail);
 
     state = state.copyWith(
       email: value,
-      emailError: result.fold((failure) => failure.message, (_) => null),
+      emailError: normalizedEmail.isEmpty
+          ? null
+          : result.fold(
+              (failure) => failure.message,
+              (_) => null,
+            ),
       submitError: null,
     );
   }
@@ -35,16 +43,33 @@ class LoginForm extends _$LoginForm {
   }
 
   Future<void> submit() async {
-    if (!state.isValid || state.isSubmitting || state.isLocked) return;
+    if (!state.isValid || state.isSubmitting || state.isLocked) {
+      return;
+    }
 
-    final email = Email.create(state.email).fold((_) => null, (email) => email);
-    if (email == null) return;
+    final normalizedEmail = state.email.trim().toLowerCase();
 
-    state = state.copyWith(isSubmitting: true, submitError: null);
+    final email = Email.create(normalizedEmail).fold(
+      (_) => null,
+      (validEmail) => validEmail,
+    );
 
-    final lockCheck = await ref.read(checkLoginLockUseCaseProvider)(
+    if (email == null) {
+      return;
+    }
+
+    state = state.copyWith(
+      email: normalizedEmail,
+      isSubmitting: true,
+      submitError: null,
+    );
+
+    final lockCheck = await ref.read(
+      checkLoginLockUseCaseProvider,
+    )(
       email: email,
     );
+
     final locked = lockCheck.getOrElse(
       () => const LoginLockStatus(
         locked: false,
@@ -64,36 +89,51 @@ class LoginForm extends _$LoginForm {
         maxAttempts: locked.maxAttempts,
         submitError: _lockMessage(locked),
       );
+
       return;
     }
 
-    final result = await ref.read(loginUseCaseProvider)(
-      rawEmail: state.email,
+    final result = await ref.read(
+      loginUseCaseProvider,
+    )(
+      rawEmail: normalizedEmail,
       rawPassword: state.password,
     );
 
     await result.fold(
       (failure) async {
         if (failure is InvalidCredentialsFailure) {
-          final lockResult = await ref.read(registerFailedLoginUseCaseProvider)(
+          final lockResult = await ref.read(
+            registerFailedLoginUseCaseProvider,
+          )(
             email: email,
           );
 
           lockResult.fold(
-            (_) => state = state.copyWith(
-              isSubmitting: false,
-              submitError: failure.message,
-            ),
-            (status) => state = state.copyWith(
-              isSubmitting: false,
-              isLocked: status.locked,
-              lockRemaining: status.locked ? status.remaining : null,
-              attemptsLeft: status.locked ? null : status.attemptsLeft,
-              maxAttempts: status.locked ? null : status.maxAttempts,
-              submitError: status.locked
-                  ? _lockMessage(status)
-                  : _attemptsMessage(),
-            ),
+            (_) {
+              state = state.copyWith(
+                isSubmitting: false,
+                submitError: failure.message,
+              );
+            },
+            (status) {
+              state = state.copyWith(
+                isSubmitting: false,
+                isLocked: status.locked,
+                lockRemaining: status.locked
+                    ? status.remaining
+                    : null,
+                attemptsLeft: status.locked
+                    ? null
+                    : status.attemptsLeft,
+                maxAttempts: status.locked
+                    ? null
+                    : status.maxAttempts,
+                submitError: status.locked
+                    ? _lockMessage(status)
+                    : _attemptsMessage(),
+              );
+            },
           );
         } else {
           state = state.copyWith(
@@ -103,7 +143,12 @@ class LoginForm extends _$LoginForm {
         }
       },
       (_) async {
-        await ref.read(resetLoginAttemptsUseCaseProvider)(email: email);
+        await ref.read(
+          resetLoginAttemptsUseCaseProvider,
+        )(
+          email: email,
+        );
+
         state = state.copyWith(
           isSubmitting: false,
           isLocked: false,
@@ -118,8 +163,11 @@ class LoginForm extends _$LoginForm {
 
   String _lockMessage(LoginLockStatus status) {
     final minutes = status.remaining.inMinutes;
-    final label = minutes >= 1 ? '$minutes minuto(s)' : 'unos segundos';
-    return 'Demasiados intentos fallidos.'
+    final label = minutes >= 1
+        ? '$minutes minuto(s)'
+        : 'unos segundos';
+
+    return 'Demasiados intentos fallidos. '
         'Inténtalo de nuevo en $label.';
   }
 

@@ -14,14 +14,32 @@ class LoginLockStatus {
   });
 
   factory LoginLockStatus.fromMap(Map<String, dynamic> map) {
+    final remainingSeconds =
+        (map['remaining_seconds'] as num?)?.toInt() ?? 0;
+
+    final attemptsLeft =
+        (map['attempts_left'] as num?)?.toInt() ?? 0;
+
+    final maxAttempts =
+        (map['max_attempts'] as num?)?.toInt() ?? 5;
+
+    final lockMinutes =
+        (map['lock_minutes'] as num?)?.toInt() ?? 15;
+
     return LoginLockStatus(
       locked: map['locked'] == true,
       remaining: Duration(
-        seconds: (map['remaining_seconds'] as num?)?.toInt() ?? 0,
+        seconds: remainingSeconds < 0 ? 0 : remainingSeconds,
       ),
-      attemptsLeft: (map['attempts_left'] as num?)?.toInt() ?? 0,
-      maxAttempts: (map['max_attempts'] as num?)?.toInt() ?? 5,
-      lockMinutes: (map['lock_minutes'] as num?)?.toInt() ?? 15,
+      attemptsLeft: attemptsLeft < 0 ? 0 : attemptsLeft,
+      maxAttempts: maxAttempts < 1 ? 5 : maxAttempts,
+      lockMinutes: lockMinutes < 1 ? 15 : lockMinutes,
     );
   }
+
+  bool get isNotLocked => !locked;
+
+  bool get hasRemainingTime => remaining.inSeconds > 0;
+
+  bool get hasAttemptsAvailable => attemptsLeft > 0;
 }

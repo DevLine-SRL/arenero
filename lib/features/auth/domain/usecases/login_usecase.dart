@@ -2,8 +2,8 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../shared/value_objects/email.dart';
-import '../../domain/entities/user.dart';
-import '../../domain/repositories/auth_repository.dart';
+import '../entities/user.dart';
+import '../repositories/auth_repository.dart';
 
 class LoginUseCase {
   final AuthRepository repository;
@@ -14,11 +14,15 @@ class LoginUseCase {
     required String rawEmail,
     required String rawPassword,
   }) async {
-    final emailResult = Email.create(rawEmail);
+    final normalizedEmail = rawEmail.trim().toLowerCase();
+    final emailResult = Email.create(normalizedEmail);
 
     return emailResult.fold(
-      (failure) => Left(failure),
-      (email) => repository.login(email: email, password: rawPassword),
+      Left.new,
+      (email) => repository.login(
+        email: email,
+        password: rawPassword,
+      ),
     );
   }
 }

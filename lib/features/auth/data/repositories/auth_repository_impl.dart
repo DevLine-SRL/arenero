@@ -23,12 +23,13 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email.value,
         password: password,
       );
+
       return Right(user);
     } on supabase.AuthRetryableFetchException {
       return const Left(NetworkFailure());
-    } on supabase.AuthException catch (e) {
-      return Left(_mapAuthException(e));
-    } catch (e) {
+    } on supabase.AuthException catch (exception) {
+      return Left(_mapLoginAuthException(exception));
+    } catch (_) {
       return const Left(
         UnexpectedFailure(
           message: 'Error inesperado al iniciar sesión. Inténtalo de nuevo.',
@@ -38,26 +39,40 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> logout() => remoteDataSource.logout();
+  Future<void> logout() {
+    return remoteDataSource.logout();
+  }
 
   @override
-  Stream<User?> watchAuthState() => remoteDataSource.watchAuthState();
+  Stream<User?> watchAuthState() {
+    return remoteDataSource.watchAuthState();
+  }
 
   @override
-  Future<User?> currentUser() => remoteDataSource.currentUser();
+  Future<User?> currentUser() {
+    return remoteDataSource.currentUser();
+  }
 
   @override
   Future<Either<Failure, DateTime?>> touchLastSeen() async {
     try {
       final lastSeenAt = await remoteDataSource.touchLastSeen();
+
       return Right(lastSeenAt);
-    } on supabase.PostgrestException catch (e) {
+    } on supabase.AuthRetryableFetchException {
+      return const Left(NetworkFailure());
+    } on supabase.PostgrestException catch (exception) {
       return Left(
-        _mapPostgrestException(e, 'Error inesperado al registrar actividad.'),
+        _mapPostgrestException(
+          exception,
+          'Error inesperado al registrar actividad.',
+        ),
       );
     } catch (_) {
       return const Left(
-        UnexpectedFailure(message: 'Error inesperado al registrar actividad.'),
+        UnexpectedFailure(
+          message: 'Error inesperado al registrar actividad.',
+        ),
       );
     }
   }
@@ -66,7 +81,11 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Either<Failure, LoginLockStatus>> getLoginLock({
     required Email email,
   }) async {
-    return _rpcLock(() => remoteDataSource.getLoginLock(email: email.value));
+    return _rpcLock(
+      () => remoteDataSource.getLoginLock(
+        email: email.value,
+      ),
+    );
   }
 
   @override
@@ -74,7 +93,9 @@ class AuthRepositoryImpl implements AuthRepository {
     required Email email,
   }) async {
     return _rpcLock(
-      () => remoteDataSource.registerFailedLogin(email: email.value),
+      () => remoteDataSource.registerFailedLogin(
+        email: email.value,
+      ),
     );
   }
 
@@ -83,15 +104,51 @@ class AuthRepositoryImpl implements AuthRepository {
     required Email email,
   }) async {
     try {
-      await remoteDataSource.resetLoginAttempts(email: email.value);
+      await remoteDataSource.resetLoginAttempts(
+        email: email.value,
+      );
+
       return const Right(unit);
-    } on supabase.PostgrestException catch (e) {
+    } on supabase.AuthRetryableFetchException {
+      return const Left(NetworkFailure());
+    } on supabase.PostgrestException catch (exception) {
       return Left(
-        _mapPostgrestException(e, 'Error inesperado al registrar intentos.'),
+        _mapPostgrestException(
+          exception,
+          'Error inesperado al registrar intentos.',
+        ),
       );
     } catch (_) {
       return const Left(
-        UnexpectedFailure(message: 'Error inesperado al registrar intentos.'),
+        UnexpectedFailure(
+          message: 'Error inesperado al registrar intentos.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> requestPasswordReset({
+    required Email email,
+    String? redirectTo,
+  }) async {
+    try {
+      await remoteDataSource.requestPasswordReset(
+        email: email.value,
+        redirectTo: redirectTo,
+      );
+
+      return const Right(unit);
+    } on supabase.AuthRetryableFetchException {
+      return const Left(NetworkFailure());
+    } on supabase.AuthException catch (exception) {
+      return Left(_mapPasswordResetAuthException(exception));
+    } catch (_) {
+      return const Left(
+        UnexpectedFailure(
+          message:
+              'No fue posible procesar la solicitud. Inténtalo nuevamente.',
+        ),
       );
     }
   }
@@ -101,40 +158,78 @@ class AuthRepositoryImpl implements AuthRepository {
   ) async {
     try {
       final map = await call();
+
       return Right(LoginLockStatus.fromMap(map));
-    } on supabase.PostgrestException catch (e) {
+    } on supabase.AuthRetryableFetchException {
+      return const Left(NetworkFailure());
+    } on supabase.PostgrestException catch (exception) {
       return Left(
-        _mapPostgrestException(e, 'Error inesperado al consultar el bloqueo.'),
+        _mapPostgrestException(
+          exception,
+          'Error inesperado al consultar el bloqueo.',
+        ),
       );
     } catch (_) {
       return const Left(
-        UnexpectedFailure(message: 'Error inesperado al consultar el bloqueo.'),
+        UnexpectedFailure(
+          message: 'Error inesperado al consultar el bloqueo.',
+        ),
       );
     }
   }
 
-  Failure _mapAuthException(supabase.AuthException e) {
-    return switch (e.statusCode) {
-      '400' => InvalidCredentialsFailure(),
-      '422' => ValidationFailure(),
-      _ => InvalidCredentialsFailure(),
+  Failure _mapLoginAuthException(
+    supabase.AuthException exception,
+  ) {
+    return switch (exception.statusCode) {
+      '400' => const InvalidCredentialsFailure(),
+      '422' => const ValidationFailure(),
+      '429' => const UnexpectedFailure(
+        message:
+            'Se realizaron demasiados intentos. Espera un momento e inténtalo nuevamente.',
+        code: '429',
+      ),
+      _ => const InvalidCredentialsFailure(),
+    };
+  }
+
+  Failure _mapPasswordResetAuthException(
+    supabase.AuthException exception,
+  ) {
+    return switch (exception.statusCode) {
+      '400' || '422' => const ValidationFailure(
+        message: 'Ingrese un correo electrónico válido.',
+      ),
+      '429' => const UnexpectedFailure(
+        message:
+            'Se realizaron demasiadas solicitudes. Espera un momento e inténtalo nuevamente.',
+        code: '429',
+      ),
+      _ => UnexpectedFailure(
+        message:
+            'No fue posible procesar la solicitud. Inténtalo nuevamente.',
+        code: exception.statusCode,
+      ),
     };
   }
 
   Failure _mapPostgrestException(
-    supabase.PostgrestException e,
+    supabase.PostgrestException exception,
     String fallback,
   ) {
-    return switch (e.code) {
+    return switch (exception.code) {
       '42501' => const UnauthorizedFailure(
         message: 'No tienes permisos para realizar esta acción.',
         code: '42501',
       ),
       'PGRST116' => const NotFoundFailure(
-        message: 'El usuario no existe.',
+        message: 'El recurso solicitado no existe.',
         code: 'PGRST116',
       ),
-      _ => UnexpectedFailure(message: fallback, code: e.code),
+      _ => UnexpectedFailure(
+        message: fallback,
+        code: exception.code,
+      ),
     };
   }
 }

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../widgets/login_button.dart';
-import '../widgets/login_form.dart';
 import '../widgets/login_error_banner.dart';
+import '../widgets/login_form.dart';
 import '../widgets/login_header.dart';
+import '../widgets/password_recovery_button.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -14,9 +15,14 @@ class LoginPage extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
+            constraints: const BoxConstraints(
+              maxWidth: 600,
+            ),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 24,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -37,6 +43,11 @@ class LoginPage extends StatelessWidget {
                       spacing: 16,
                       children: [
                         LoginFormWidget(),
+                        PasswordRecoveryButton(
+                          // Configura aquí el deep link autorizado en Supabase.
+                          // Ejemplo:
+                          // redirectTo: 'io.supabase.arenero://reset-password',
+                        ),
                         LoginErrorBanner(),
                         LoginButton(),
                       ],
