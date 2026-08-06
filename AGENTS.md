@@ -20,7 +20,11 @@ dartz, Supabase (nube). Backend versionado en `supabase/`.
   `package:flutter`.
 - `data/` no importa `presentation/`.
 - Un widget por archivo.
-- Un provider por archivo.
+- **Providers de wiring** (datasource, repositorio, usecases): un único
+  `*_providers.dart` por feature que agrupa todos los providers de inyección
+  de dependencias.
+- **Providers de estado** (controllers, formularios, queries de búsqueda): un
+  provider por archivo.
 - Prohibidos los barrel files dentro de `lib/features/`. Usa imports
   directos. `lib/shared/` sí puede tener barrels; los existentes se quedan.
 - Código compartido entre features va en `lib/shared/`. Infraestructura de la

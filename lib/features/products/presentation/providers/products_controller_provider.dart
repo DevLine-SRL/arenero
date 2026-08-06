@@ -1,16 +1,14 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/services/product_duplicate_guard.dart';
 import 'products_providers.dart';
 
-final productsControllerProvider =
-    AsyncNotifierProvider<ProductsController, List<Product>>(
-      ProductsController.new,
-    );
+part 'products_controller_provider.g.dart';
 
-class ProductsController extends AsyncNotifier<List<Product>> {
+@riverpod
+class ProductsController extends _$ProductsController {
   @override
   Future<List<Product>> build() {
     return _fetchProducts();
