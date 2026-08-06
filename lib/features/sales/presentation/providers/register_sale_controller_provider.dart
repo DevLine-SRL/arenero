@@ -8,6 +8,7 @@ import '../../domain/entities/sale.dart';
 import '../../domain/entities/sale_detail.dart';
 import '../../domain/entities/sale_delivery.dart';
 import 'register_sale_state.dart';
+import 'sales_history_provider.dart';
 import 'sales_providers.dart';
 
 part 'register_sale_controller_provider.g.dart';
@@ -195,6 +196,7 @@ class RegisterSaleController extends _$RegisterSaleController {
         return failure;
       },
       (_) {
+        ref.invalidate(salesHistoryProvider);
         state = const RegisterSaleState();
         return null;
       },
