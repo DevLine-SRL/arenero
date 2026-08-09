@@ -52,6 +52,8 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
     Product product,
     Set<ProductUnitOfMeasure>? usedUnits,
   ) {
+    if (!product.active) return false;
+
     final used = usedUnits ?? const <ProductUnitOfMeasure>{};
     for (final entry in product.units) {
       if (entry.active && !used.contains(entry.unit)) return true;

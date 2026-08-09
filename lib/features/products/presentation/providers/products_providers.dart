@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/providers/supabase_client_provider.dart';
 import '../../data/datasources/products_remote_datasource.dart';
@@ -7,23 +7,42 @@ import '../../domain/repositories/products_repository.dart';
 import '../../domain/usecases/create_product_usecase.dart';
 import '../../domain/usecases/get_products_usecase.dart';
 import '../../domain/usecases/set_product_active_usecase.dart';
+import '../../domain/usecases/update_product_name_usecase.dart';
+import '../../domain/usecases/update_product_price_usecase.dart';
 
-final productsRemoteDataSourceProvider = Provider<ProductsRemoteDataSource>(
-  (ref) => ProductsRemoteDataSourceImpl(ref.watch(supabaseClientProvider)),
-);
+part 'products_providers.g.dart';
 
-final productsRepositoryProvider = Provider<ProductsRepository>(
-  (ref) => ProductsRepositoryImpl(ref.watch(productsRemoteDataSourceProvider)),
-);
+@riverpod
+ProductsRemoteDataSource productsRemoteDataSource(Ref ref) {
+  return ProductsRemoteDataSourceImpl(ref.watch(supabaseClientProvider));
+}
 
-final getProductsUseCaseProvider = Provider<GetProductsUseCase>(
-  (ref) => GetProductsUseCase(ref.watch(productsRepositoryProvider)),
-);
+@riverpod
+ProductsRepository productsRepository(Ref ref) {
+  return ProductsRepositoryImpl(ref.watch(productsRemoteDataSourceProvider));
+}
 
-final createProductUseCaseProvider = Provider<CreateProductUseCase>(
-  (ref) => CreateProductUseCase(ref.watch(productsRepositoryProvider)),
-);
+@riverpod
+GetProductsUseCase getProductsUseCase(Ref ref) {
+  return GetProductsUseCase(ref.watch(productsRepositoryProvider));
+}
 
-final setProductActiveUseCaseProvider = Provider<SetProductActiveUseCase>(
-  (ref) => SetProductActiveUseCase(ref.watch(productsRepositoryProvider)),
-);
+@riverpod
+CreateProductUseCase createProductUseCase(Ref ref) {
+  return CreateProductUseCase(ref.watch(productsRepositoryProvider));
+}
+
+@riverpod
+SetProductActiveUseCase setProductActiveUseCase(Ref ref) {
+  return SetProductActiveUseCase(ref.watch(productsRepositoryProvider));
+}
+
+@riverpod
+UpdateProductNameUseCase updateProductNameUseCase(Ref ref) {
+  return UpdateProductNameUseCase(ref.watch(productsRepositoryProvider));
+}
+
+@riverpod
+UpdateProductPriceUseCase updateProductPriceUseCase(Ref ref) {
+  return UpdateProductPriceUseCase(ref.watch(productsRepositoryProvider));
+}

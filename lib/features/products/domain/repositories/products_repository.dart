@@ -12,5 +12,15 @@ abstract class ProductsRepository {
     required double unitPrice,
   });
 
+  Future<Either<Failure, Unit>> updateProductName({
+    required String id,
+    required String name,
+  });
+
+  Future<Either<Failure, Unit>> updateUnitPrice({
+    required String unitId,
+    required double unitPrice,
+  });
+
   Future<Either<Failure, Unit>> setActive(String id, bool active);
 }

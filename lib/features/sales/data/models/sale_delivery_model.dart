@@ -17,7 +17,6 @@ class SaleDeliveryModel extends SaleDelivery {
     );
   }
 
-  /// Solo las columnas que la aplicación escribe.
   Map<String, dynamic> toJson() {
     return {
       if (deliveryAddress != null) 'delivery_address': deliveryAddress,
