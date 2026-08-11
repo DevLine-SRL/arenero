@@ -1,4 +1,5 @@
 abstract final class RoutePaths {
+  static const home = '/';
   static const login = '/login';
   static const dashboard = '/panel';
   static const registerSale = '/ventas/registrar';

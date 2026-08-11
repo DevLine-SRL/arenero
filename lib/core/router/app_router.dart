@@ -34,10 +34,24 @@ GoRouter appRouter(Ref ref) {
             ? RoutePaths.dashboard
             : RoutePaths.salesHistory;
       }
+      if (isLoggedIn && state.matchedLocation == RoutePaths.home) {
+        return user.role == 'admin'
+            ? RoutePaths.dashboard
+            : RoutePaths.salesHistory;
+      }
 
       final isAdminRoute = adminOnlyRoutes.contains(state.matchedLocation);
       if (isLoggedIn && isAdminRoute && user.role != 'admin') {
-        return RoutePaths.forbidden;
+        final currentConfiguration = GoRouter.of(
+          context,
+        ).routerDelegate.currentConfiguration;
+        final from = currentConfiguration.isNotEmpty
+            ? currentConfiguration.uri.path
+            : null;
+        return Uri(
+          path: RoutePaths.forbidden,
+          queryParameters: {if (from != null && from.isNotEmpty) 'from': from},
+        ).toString();
       }
       return null;
     },
