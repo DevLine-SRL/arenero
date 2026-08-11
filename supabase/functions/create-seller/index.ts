@@ -63,7 +63,7 @@ Deno.serve(async (req: Request) => {
   const password = typeof body?.password === 'string' ? body.password : ''
   const name = typeof body?.name === 'string' ? collapseSpaces(body.name) : ''
 
-  if (!emailRegex.test(email)) {
+  if (email.length > 254 || email.indexOf('@') > 64 || !emailRegex.test(email)) {
     return errorResponse('INVALID_EMAIL', 400)
   }
   if (!passwordRegex.test(password)) {
