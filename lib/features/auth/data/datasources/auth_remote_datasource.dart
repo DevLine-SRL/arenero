@@ -12,7 +12,10 @@ abstract class AuthRemoteDataSource {
   Future<Map<String, dynamic>> registerFailedLogin({required String email});
   Future<void> resetLoginAttempts({required String email});
   Future<void> sendPasswordResetCode({required String email});
-  Future<void> verifyPasswordResetCode({required String email, required String code});
+  Future<void> verifyPasswordResetCode({
+    required String email,
+    required String code,
+  });
   Future<void> changePassword({required String password});
 }
 

@@ -17,13 +17,20 @@ final class UnexpectedFailure extends Failure {
 }
 
 final class InvalidCredentialsFailure extends Failure {
-  const InvalidCredentialsFailure({super.message = 'Credenciales inválidas', super.code});
+  const InvalidCredentialsFailure({
+    super.message = 'Credenciales inválidas',
+    super.code,
+  });
 }
 
 final class ValidationFailure extends Failure {
   final Map<String, String>? errors;
 
-  const ValidationFailure({super.message = 'Datos inválidos', this.errors, super.code});
+  const ValidationFailure({
+    super.message = 'Datos inválidos',
+    this.errors,
+    super.code,
+  });
 }
 
 final class CacheFailure extends Failure {

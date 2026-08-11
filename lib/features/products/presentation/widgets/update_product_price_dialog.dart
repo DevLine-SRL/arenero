@@ -23,7 +23,8 @@ class UpdateProductPriceDialog extends ConsumerStatefulWidget {
   }) {
     return showDialog<bool>(
       context: context,
-      builder: (context) => UpdateProductPriceDialog(product: product, unit: unit),
+      builder: (context) =>
+          UpdateProductPriceDialog(product: product, unit: unit),
     );
   }
 
@@ -97,7 +98,9 @@ class _UpdateProductPriceDialogState
           errorText: _priceError ?? _submitError,
         ),
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]'))],
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+        ],
         textInputAction: TextInputAction.done,
         onChanged: (_) {
           if (_priceError != null || _submitError != null) _validate();

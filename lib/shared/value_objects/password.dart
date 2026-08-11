@@ -12,7 +12,8 @@ class Password {
     if (!regex.hasMatch(input)) {
       return const Left(
         ValidationFailure(
-          message: 'La contraseña debe tener al menos 8 caracteres, incluir letras y números',
+          message:
+              'La contraseña debe tener al menos 8 caracteres, incluir letras y números',
         ),
       );
     }

@@ -18,10 +18,10 @@ class ChangePasswordFormState {
   });
 
   bool get isValid =>
-    passwordError == null &&
-    confirmationError == null &&
-    password != '' &&
-    confirmation != '';
+      passwordError == null &&
+      confirmationError == null &&
+      password != '' &&
+      confirmation != '';
 
   ChangePasswordFormState copyWith({
     String? password,

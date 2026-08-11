@@ -9,9 +9,7 @@ class SellerStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active
-        ? AppColors.success
-        : AppColors.warning;
+    final color = active ? AppColors.success : AppColors.warning;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -30,7 +28,9 @@ class SellerStatusBadge extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             active ? 'Activo' : 'Inactivo',
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(color: color),
+            style: Theme.of(
+              context,
+            ).textTheme.labelMedium?.copyWith(color: color),
           ),
         ],
       ),

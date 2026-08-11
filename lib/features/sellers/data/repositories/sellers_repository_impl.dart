@@ -57,7 +57,8 @@ class SellersRepositoryImpl implements SellersRepository {
       'UNAUTHORIZED' => 'Tu sesión expiró, inicia sesión de nuevo.',
       'FORBIDDEN' => 'No tienes permisos de administrador.',
       'INVALID_EMAIL' => 'El correo electrónico no es válido.',
-      'WEAK_PASSWORD' => 'La contraseña debe tener al menos 8 caracteres, incluir letras y números.',
+      'WEAK_PASSWORD' =>
+        'La contraseña debe tener al menos 8 caracteres, incluir letras y números.',
       'NAME_REQUIRED' => 'El nombre es obligatorio.',
       'EMAIL_TAKEN' => 'Ya existe una cuenta con ese correo electrónico.',
       'INVALID_REQUEST' => 'Datos inválidos.',

@@ -17,7 +17,7 @@ class ForbiddenPage extends StatelessWidget {
             Icon(
               Icons.lock_outline,
               size: 64,
-              color: Theme.of(context).colorScheme.errorContainer
+              color: Theme.of(context).colorScheme.errorContainer,
             ),
             const SizedBox(height: 16),
             const Text('Acceso denegado'),

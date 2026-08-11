@@ -18,7 +18,7 @@ abstract class AuthRepository {
 
   Future<User?> currentUser();
 
-Future<Either<Failure, DateTime?>> touchLastSeen();
+  Future<Either<Failure, DateTime?>> touchLastSeen();
 
   Future<Either<Failure, LoginLockStatus>> getLoginLock({required Email email});
 
