@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../../../core/errors/failures.dart';
 import '../../../../shared/value_objects/email.dart';
+import '../../../../shared/value_objects/password.dart';
 import '../../domain/entities/login_lock_status.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -90,7 +91,27 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  Future<Either<Failure, LoginLockStatus>> _rpcLock(
+  @override
+  Future<Either<Failure, Unit>> sendPasswordResetCode({
+    required Email email,
+  }) async {
+    try {
+      await remoteDataSource.sendPasswordResetCode(email: email.value);
+      return const Right(unit);
+    } on supabase.AuthRetryableFetchException {
+      return const Left(NetworkFailure());
+    } on supabase.AuthException catch (e) {
+      return Left(_mapAuthException(e));
+    } catch (e) {
+      return const Left(
+        UnexpectedFailure(
+          message: 'No pudimos enviar el código. Inténtalo de nuevo.',
+        ),
+      );
+    }
+  }
+
+Future<Either<Failure, LoginLockStatus>> _rpcLock(
     Future<Map<String, dynamic>> Function() call,
   ) async {
     try {
@@ -103,6 +124,50 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (_) {
       return const Left(
         UnexpectedFailure(message: 'Error inesperado al consultar el bloqueo.'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> verifyPasswordResetCode({
+    required Email email,
+    required String code,
+  }) async {
+    try {
+      await remoteDataSource.verifyPasswordResetCode(
+        email: email.value,
+        code: code,
+      );
+      return const Right(unit);
+    } on supabase.AuthRetryableFetchException {
+      return const Left(NetworkFailure());
+    } on supabase.AuthException catch (e) {
+      return Left(_mapAuthException(e));
+    } catch (e) {
+      return const Left(
+        UnexpectedFailure(
+          message: 'Código inválido o vencido. Inténtalo de nuevo.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> changePassword({
+    required Password password,
+  }) async {
+    try {
+      await remoteDataSource.changePassword(password: password.value);
+      return const Right(unit);
+    } on supabase.AuthRetryableFetchException {
+      return const Left(NetworkFailure());
+    } on supabase.AuthException catch (e) {
+      return Left(_mapAuthException(e));
+    } catch (e) {
+      return const Left(
+        UnexpectedFailure(
+          message: 'No se pudo cambiar la contraseña. Inténtalo de nuevo.',
+        ),
       );
     }
   }

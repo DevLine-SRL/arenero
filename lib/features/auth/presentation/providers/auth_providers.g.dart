@@ -276,198 +276,155 @@ final class GetCurrentUserUseCaseProvider
 String _$getCurrentUserUseCaseHash() =>
     r'4a27d130940e444424e46ed4afad7c5a5c8cf5b2';
 
-@ProviderFor(touchLastSeenUseCase)
-final touchLastSeenUseCaseProvider = TouchLastSeenUseCaseProvider._();
+@ProviderFor(sendForgotPasswordCodeUseCase)
+final sendForgotPasswordCodeUseCaseProvider =
+    SendForgotPasswordCodeUseCaseProvider._();
 
-final class TouchLastSeenUseCaseProvider
+final class SendForgotPasswordCodeUseCaseProvider
     extends
         $FunctionalProvider<
-          TouchLastSeenUseCase,
-          TouchLastSeenUseCase,
-          TouchLastSeenUseCase
+          SendForgotPasswordCodeUseCase,
+          SendForgotPasswordCodeUseCase,
+          SendForgotPasswordCodeUseCase
         >
-    with $Provider<TouchLastSeenUseCase> {
-  TouchLastSeenUseCaseProvider._()
+    with $Provider<SendForgotPasswordCodeUseCase> {
+  SendForgotPasswordCodeUseCaseProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'touchLastSeenUseCaseProvider',
+        name: r'sendForgotPasswordCodeUseCaseProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$touchLastSeenUseCaseHash();
+  String debugGetCreateSourceHash() => _$sendForgotPasswordCodeUseCaseHash();
 
   @$internal
   @override
-  $ProviderElement<TouchLastSeenUseCase> $createElement(
+  $ProviderElement<SendForgotPasswordCodeUseCase> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  TouchLastSeenUseCase create(Ref ref) {
-    return touchLastSeenUseCase(ref);
+  SendForgotPasswordCodeUseCase create(Ref ref) {
+    return sendForgotPasswordCodeUseCase(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(TouchLastSeenUseCase value) {
+  Override overrideWithValue(SendForgotPasswordCodeUseCase value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<TouchLastSeenUseCase>(value),
+      providerOverride: $SyncValueProvider<SendForgotPasswordCodeUseCase>(
+        value,
+      ),
     );
   }
 }
 
-String _$touchLastSeenUseCaseHash() =>
-    r'a445261a6d7e2a6397319ebc4f9ccd9388adda48';
+String _$sendForgotPasswordCodeUseCaseHash() =>
+    r'fdb5b5b786e6db67bd661f13adf22c662478926e';
 
-@ProviderFor(checkLoginLockUseCase)
-final checkLoginLockUseCaseProvider = CheckLoginLockUseCaseProvider._();
+@ProviderFor(verifyForgotPasswordCodeUseCase)
+final verifyForgotPasswordCodeUseCaseProvider =
+    VerifyForgotPasswordCodeUseCaseProvider._();
 
-final class CheckLoginLockUseCaseProvider
+final class VerifyForgotPasswordCodeUseCaseProvider
     extends
         $FunctionalProvider<
-          CheckLoginLockUseCase,
-          CheckLoginLockUseCase,
-          CheckLoginLockUseCase
+          VerifyForgotPasswordCodeUseCase,
+          VerifyForgotPasswordCodeUseCase,
+          VerifyForgotPasswordCodeUseCase
         >
-    with $Provider<CheckLoginLockUseCase> {
-  CheckLoginLockUseCaseProvider._()
+    with $Provider<VerifyForgotPasswordCodeUseCase> {
+  VerifyForgotPasswordCodeUseCaseProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'checkLoginLockUseCaseProvider',
+        name: r'verifyForgotPasswordCodeUseCaseProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$checkLoginLockUseCaseHash();
+  String debugGetCreateSourceHash() => _$verifyForgotPasswordCodeUseCaseHash();
 
   @$internal
   @override
-  $ProviderElement<CheckLoginLockUseCase> $createElement(
+  $ProviderElement<VerifyForgotPasswordCodeUseCase> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  CheckLoginLockUseCase create(Ref ref) {
-    return checkLoginLockUseCase(ref);
+  VerifyForgotPasswordCodeUseCase create(Ref ref) {
+    return verifyForgotPasswordCodeUseCase(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(CheckLoginLockUseCase value) {
+  Override overrideWithValue(VerifyForgotPasswordCodeUseCase value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<CheckLoginLockUseCase>(value),
+      providerOverride: $SyncValueProvider<VerifyForgotPasswordCodeUseCase>(
+        value,
+      ),
     );
   }
 }
 
-String _$checkLoginLockUseCaseHash() =>
-    r'bca82264501c75a53017f01debea67981b3c4911';
+String _$verifyForgotPasswordCodeUseCaseHash() =>
+    r'ad7a074fe2074a57f4d1cf481ec735789b42df2f';
 
-@ProviderFor(registerFailedLoginUseCase)
-final registerFailedLoginUseCaseProvider =
-    RegisterFailedLoginUseCaseProvider._();
+@ProviderFor(changePasswordUseCase)
+final changePasswordUseCaseProvider = ChangePasswordUseCaseProvider._();
 
-final class RegisterFailedLoginUseCaseProvider
+final class ChangePasswordUseCaseProvider
     extends
         $FunctionalProvider<
-          RegisterFailedLoginUseCase,
-          RegisterFailedLoginUseCase,
-          RegisterFailedLoginUseCase
+          ChangePasswordUseCase,
+          ChangePasswordUseCase,
+          ChangePasswordUseCase
         >
-    with $Provider<RegisterFailedLoginUseCase> {
-  RegisterFailedLoginUseCaseProvider._()
+    with $Provider<ChangePasswordUseCase> {
+  ChangePasswordUseCaseProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'registerFailedLoginUseCaseProvider',
+        name: r'changePasswordUseCaseProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$registerFailedLoginUseCaseHash();
+  String debugGetCreateSourceHash() => _$changePasswordUseCaseHash();
 
   @$internal
   @override
-  $ProviderElement<RegisterFailedLoginUseCase> $createElement(
+  $ProviderElement<ChangePasswordUseCase> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  RegisterFailedLoginUseCase create(Ref ref) {
-    return registerFailedLoginUseCase(ref);
+  ChangePasswordUseCase create(Ref ref) {
+    return changePasswordUseCase(ref);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(RegisterFailedLoginUseCase value) {
+  Override overrideWithValue(ChangePasswordUseCase value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<RegisterFailedLoginUseCase>(value),
+      providerOverride: $SyncValueProvider<ChangePasswordUseCase>(value),
     );
   }
 }
 
-String _$registerFailedLoginUseCaseHash() =>
-    r'826e4e39e576b5f3ef43770a0861ac829a60c063';
-
-@ProviderFor(resetLoginAttemptsUseCase)
-final resetLoginAttemptsUseCaseProvider = ResetLoginAttemptsUseCaseProvider._();
-
-final class ResetLoginAttemptsUseCaseProvider
-    extends
-        $FunctionalProvider<
-          ResetLoginAttemptsUseCase,
-          ResetLoginAttemptsUseCase,
-          ResetLoginAttemptsUseCase
-        >
-    with $Provider<ResetLoginAttemptsUseCase> {
-  ResetLoginAttemptsUseCaseProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'resetLoginAttemptsUseCaseProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$resetLoginAttemptsUseCaseHash();
-
-  @$internal
-  @override
-  $ProviderElement<ResetLoginAttemptsUseCase> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
-
-  @override
-  ResetLoginAttemptsUseCase create(Ref ref) {
-    return resetLoginAttemptsUseCase(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(ResetLoginAttemptsUseCase value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<ResetLoginAttemptsUseCase>(value),
-    );
-  }
-}
-
-String _$resetLoginAttemptsUseCaseHash() =>
-    r'c84fcad664472d278526c592f39c92230af376e7';
+String _$changePasswordUseCaseHash() =>
+    r'9fc17cf46dc8f8024d7920160308f91cf6e71379';
 
 @ProviderFor(authSession)
 final authSessionProvider = AuthSessionProvider._();
