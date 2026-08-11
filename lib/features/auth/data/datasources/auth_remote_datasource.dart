@@ -11,6 +11,9 @@ abstract class AuthRemoteDataSource {
   Future<Map<String, dynamic>> getLoginLock({required String email});
   Future<Map<String, dynamic>> registerFailedLogin({required String email});
   Future<void> resetLoginAttempts({required String email});
+  Future<void> sendPasswordResetCode({required String email});
+  Future<void> verifyPasswordResetCode({required String email, required String code});
+  Future<void> changePassword({required String password});
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -116,6 +119,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       'max_attempts': 5,
       'lock_minutes': 15,
     };
+  }
+
+  @override
+  Future<void> sendPasswordResetCode({required String email}) async {
+    await client.auth.resetPasswordForEmail(email);
+  }
+
+  @override
+  Future<void> verifyPasswordResetCode({
+    required String email,
+    required String code,
+  }) async {
+    await client.auth.verifyOTP(
+      email: email,
+      token: code,
+      type: supabase.OtpType.recovery,
+    );
+  }
+
+  @override
+  Future<void> changePassword({required String password}) async {
+    await client.auth.updateUser(supabase.UserAttributes(password: password));
   }
 
   Future<Map<String, dynamic>?> _fetchProfile(String userId) async {
