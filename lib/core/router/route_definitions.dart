@@ -1,6 +1,8 @@
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/forgot_password_page.dart';
+import '../../features/auth/presentation/pages/change_password_page.dart';
 import '../../features/clients/presentation/pages/clients_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/products/presentation/pages/products_page.dart';
@@ -34,6 +36,11 @@ final publicRoutes = <RouteBase>[
     path: RoutePaths.login,
     name: RouteNames.login,
     builder: (context, state) => const LoginPage(),
+  ),
+  GoRoute(
+    path: RoutePaths.forgotPassword,
+    name: RouteNames.forgotPassword,
+    builder: (context, state) => const ForgotPasswordPage(),
   ),
 ];
 
@@ -108,6 +115,11 @@ final protectedRoutes = StatefulShellRoute.indexedStack(
 
 final routes = <RouteBase>[
   ...publicRoutes,
+  GoRoute(
+    path: RoutePaths.changePassword,
+    name: RouteNames.changePassword,
+    builder: (context, state) => const ChangePasswordPage(),
+  ),
   GoRoute(
     path: RoutePaths.forbidden,
     name: RouteNames.forbidden,
