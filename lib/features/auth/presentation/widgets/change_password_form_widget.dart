@@ -27,17 +27,20 @@ class _ChangePasswordFormWidget extends ConsumerState<ChangePasswordFormWidget> 
             label: const RequiredLabel('Nueva contraseña'),
             prefixIcon: const Icon(Icons.lock_outlined),
             errorText: state.passwordError,
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
+            suffixIcon: Focus(
+              canRequestFocus: false,
+              child: IconButton(
+                icon: Icon(
+                  _obscurePassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
               ),
-              onPressed: () {
-                setState(() {
-                  _obscurePassword = !_obscurePassword;
-                });
-              },
             ),
           ),
           obscureText: _obscurePassword,
@@ -52,17 +55,20 @@ class _ChangePasswordFormWidget extends ConsumerState<ChangePasswordFormWidget> 
             label: const RequiredLabel('Confirmar contraseña'),
             prefixIcon: const Icon(Icons.lock_outlined),
             errorText: state.confirmationError,
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscureConfirmation
-                    ? Icons.visibility_off_outlined
-                    : Icons.visibility_outlined,
+            suffixIcon: Focus(
+              canRequestFocus: false,
+              child: IconButton(
+                icon: Icon(
+                  _obscureConfirmation
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _obscureConfirmation = !_obscureConfirmation;
+                  });
+                },
               ),
-              onPressed: () {
-                setState(() {
-                  _obscureConfirmation = !_obscureConfirmation;
-                });
-              },
             ),
           ),
           obscureText: _obscureConfirmation,
