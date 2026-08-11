@@ -23,3 +23,7 @@ abstract final class RouteNames {
   static const sellersManagement = 'sellersManagement';
   static const forbidden = 'forbidden';
 }
+
+String landingRouteNameFor(String? role) {
+  return role == 'admin' ? RouteNames.dashboard : RouteNames.salesHistory;
+}
