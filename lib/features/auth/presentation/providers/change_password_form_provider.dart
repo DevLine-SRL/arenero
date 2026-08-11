@@ -50,11 +50,7 @@ class ChangePasswordForm extends _$ChangePasswordForm {
         isSubmitting: false,
         submitError: failure.message,
       ),
-      (_) async {
-        await ref.read(logoutUseCaseProvider)();
-        if (!ref.mounted) return;
-        state = state.copyWith(isSubmitting: false, isSuccess: true);
-      },
+      (_) => state = state.copyWith(isSubmitting: false, isSuccess: true),
     );
   }
 }
