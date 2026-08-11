@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/
+const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[^A-Za-z0-9]).{8,}$/
 
 type ErrorCode =
   | 'METHOD_NOT_ALLOWED'
