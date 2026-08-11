@@ -14,8 +14,8 @@ class CreateSellerForm extends _$CreateSellerForm {
 
   void onNameChanged(String value) {
     state = state.copyWith(
-      name: value,
-      nameError: required(value),
+      name: collapseSpaces(value),
+      nameError: fullName(value),
       submitError: null,
     );
   }
@@ -71,7 +71,7 @@ class CreateSellerForm extends _$CreateSellerForm {
   }
 
   bool _validateAll() {
-    final nameError = required(state.name);
+    final nameError = fullName(state.name);
     final emailError = Email.create(
       state.email,
     ).fold((failure) => failure.message, (_) => null);

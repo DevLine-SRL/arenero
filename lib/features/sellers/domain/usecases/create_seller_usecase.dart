@@ -14,14 +14,17 @@ class CreateSellerUseCase {
     required String rawEmail,
     required String rawPassword,
   }) async {
-    return Email.create(rawEmail).fold(
+    return FullName.create(name).fold(
       (failure) => Left<Failure, Unit>(failure),
-      (email) => Password.create(rawPassword).fold(
+      (fullName) => Email.create(rawEmail).fold(
         (failure) => Left<Failure, Unit>(failure),
-        (password) => repository.createSeller(
-          name: name,
-          email: email,
-          password: password,
+        (email) => Password.create(rawPassword).fold(
+          (failure) => Left<Failure, Unit>(failure),
+          (password) => repository.createSeller(
+            name: fullName,
+            email: email,
+            password: password,
+          ),
         ),
       ),
     );

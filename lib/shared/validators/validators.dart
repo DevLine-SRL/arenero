@@ -1,5 +1,6 @@
 export 'ci.dart';
 export 'email.dart';
+export 'full_name.dart';
 export 'has_length.dart';
 export 'is_number.dart';
 export 'matches.dart';

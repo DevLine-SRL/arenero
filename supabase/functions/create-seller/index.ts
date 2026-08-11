@@ -11,6 +11,8 @@ const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[^A-Za-z0-9]).{8,}$/
 const emailRegex =
   /^[a-zA-Z0-9]+(?:[._%+-][a-zA-Z0-9]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}$/
 
+const nameRegex = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?:[ ' -][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*$/
+
 type ErrorCode =
   | 'METHOD_NOT_ALLOWED'
   | 'UNAUTHORIZED'
@@ -19,6 +21,7 @@ type ErrorCode =
   | 'INVALID_EMAIL'
   | 'WEAK_PASSWORD'
   | 'NAME_REQUIRED'
+  | 'INVALID_NAME'
   | 'EMAIL_TAKEN'
   | 'INTERNAL'
 
@@ -30,6 +33,7 @@ const errorMessages: Record<ErrorCode, string> = {
   INVALID_EMAIL: 'Invalid email address',
   WEAK_PASSWORD: 'Password does not meet the requirements',
   NAME_REQUIRED: 'Name is required',
+  INVALID_NAME: 'Name is not valid',
   EMAIL_TAKEN: 'Email is already in use',
   INTERNAL: 'Internal server error',
 }
@@ -57,7 +61,7 @@ Deno.serve(async (req: Request) => {
 
   const email = typeof body?.email === 'string' ? body.email.trim() : ''
   const password = typeof body?.password === 'string' ? body.password : ''
-  const name = typeof body?.name === 'string' ? body.name.trim() : ''
+  const name = typeof body?.name === 'string' ? collapseSpaces(body.name) : ''
 
   if (!emailRegex.test(email)) {
     return errorResponse('INVALID_EMAIL', 400)
@@ -67,6 +71,9 @@ Deno.serve(async (req: Request) => {
   }
   if (!name) {
     return errorResponse('NAME_REQUIRED', 400)
+  }
+  if (name.length < 2 || name.length > 60 || !nameRegex.test(name)) {
+    return errorResponse('INVALID_NAME', 400)
   }
 
   const token = req.headers.get('Authorization')?.replace('Bearer ', '')
@@ -170,4 +177,8 @@ function jsonResponse(body: unknown, status: number) {
     status,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
   })
+}
+
+function collapseSpaces(value: string) {
+  return value.trim().replace(/\s+/g, ' ')
 }

@@ -10,7 +10,7 @@ abstract class SellersRepository {
   Future<Either<Failure, Unit>> setActive(String id, bool active);
 
   Future<Either<Failure, Unit>> createSeller({
-    required String name,
+    required FullName name,
     required Email email,
     required Password password,
   });

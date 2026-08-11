@@ -41,7 +41,7 @@ final class CreateSellerFormProvider
   }
 }
 
-String _$createSellerFormHash() => r'b38a48e247aeddd25c4423499f33892e072ddafd';
+String _$createSellerFormHash() => r'1ef006556a1da6d8c29c07037b89e66e1d43b88d';
 
 abstract class _$CreateSellerForm extends $Notifier<CreateSellerFormState> {
   CreateSellerFormState build();

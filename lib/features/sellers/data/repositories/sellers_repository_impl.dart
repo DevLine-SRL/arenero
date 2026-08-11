@@ -32,13 +32,13 @@ class SellersRepositoryImpl implements SellersRepository {
 
   @override
   Future<Either<Failure, Unit>> createSeller({
-    required String name,
+    required FullName name,
     required Email email,
     required Password password,
   }) async {
     try {
       await remoteDataSource.createSeller(
-        name: name,
+        name: name.value,
         email: email.value,
         password: password.value,
       );
@@ -57,8 +57,11 @@ class SellersRepositoryImpl implements SellersRepository {
       'UNAUTHORIZED' => 'Tu sesión expiró, inicia sesión de nuevo.',
       'FORBIDDEN' => 'No tienes permisos de administrador.',
       'INVALID_EMAIL' => 'El correo electrónico no es válido.',
-      'WEAK_PASSWORD' => 'La contraseña debe tener al menos 8 caracteres, incluir letras y números.',
+      'WEAK_PASSWORD' =>
+        'La contraseña debe tener al menos 8 caracteres, incluir mayúscula, minúscula y un carácter especial.',
       'NAME_REQUIRED' => 'El nombre es obligatorio.',
+      'INVALID_NAME' =>
+        'El nombre solo puede contener letras, espacios y guiones.',
       'EMAIL_TAKEN' => 'Ya existe una cuenta con ese correo electrónico.',
       'INVALID_REQUEST' => 'Datos inválidos.',
       _ => 'No se pudo crear el vendedor.',
