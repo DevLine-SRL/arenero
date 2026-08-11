@@ -34,9 +34,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     final profile = await _fetchProfile(user.id);
-    if (profile == null || profile['active'] == false) {
+    if (profile == null) {
       await client.auth.signOut();
-      throw const supabase.AuthException('Credenciales inválidas.');
+      throw const AccountDisabledRemoteException();
     }
 
     await client.rpc('touch_last_seen');
@@ -125,4 +125,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         .eq('id', userId)
         .maybeSingle();
   }
+}
+
+class AccountDisabledRemoteException implements Exception {
+  const AccountDisabledRemoteException();
+
+  @override
+  String toString() => 'AccountDisabledRemoteException';
 }

@@ -26,6 +26,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return Right(user);
     } on supabase.AuthRetryableFetchException {
       return const Left(NetworkFailure());
+    } on AccountDisabledRemoteException {
+      return const Left(AccountDisabledFailure());
     } on supabase.AuthException catch (e) {
       return Left(_mapAuthException(e));
     } catch (e) {
