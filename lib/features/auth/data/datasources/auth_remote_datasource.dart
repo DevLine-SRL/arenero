@@ -8,9 +8,9 @@ abstract class AuthRemoteDataSource {
   Stream<UserModel?> watchAuthState();
   Future<UserModel?> currentUser();
   Future<DateTime?> touchLastSeen();
-  Future<Map<String, dynamic>> getLoginLock({required String email});
-  Future<Map<String, dynamic>> registerFailedLogin({required String email});
-  Future<void> resetLoginAttempts({required String email});
+  Future<Map<String, dynamic>> getLoginLock();
+  Future<Map<String, dynamic>> registerFailedLogin();
+  Future<void> resetLoginAttempts();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -83,28 +83,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> getLoginLock({required String email}) async {
-    final result = await client.rpc(
-      'get_login_lock',
-      params: {'p_email': email},
-    );
+  Future<Map<String, dynamic>> getLoginLock() async {
+    final result = await client.rpc('get_login_lock');
     return _asLockMap(result);
   }
 
   @override
-  Future<Map<String, dynamic>> registerFailedLogin({
-    required String email,
-  }) async {
-    final result = await client.rpc(
-      'register_failed_login',
-      params: {'p_email': email},
-    );
+  Future<Map<String, dynamic>> registerFailedLogin() async {
+    final result = await client.rpc('register_failed_login');
     return _asLockMap(result);
   }
 
   @override
-  Future<void> resetLoginAttempts({required String email}) async {
-    await client.rpc('reset_login_attempts', params: {'p_email': email});
+  Future<void> resetLoginAttempts() async {
+    await client.rpc('reset_login_attempts');
   }
 
   Map<String, dynamic> _asLockMap(dynamic result) {

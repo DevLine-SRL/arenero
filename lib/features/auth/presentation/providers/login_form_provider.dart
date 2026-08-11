@@ -37,14 +37,9 @@ class LoginForm extends _$LoginForm {
   Future<void> submit() async {
     if (!state.isValid || state.isSubmitting || state.isLocked) return;
 
-    final email = Email.create(state.email).fold((_) => null, (email) => email);
-    if (email == null) return;
-
     state = state.copyWith(isSubmitting: true, submitError: null);
 
-    final lockCheck = await ref.read(checkLoginLockUseCaseProvider)(
-      email: email,
-    );
+    final lockCheck = await ref.read(checkLoginLockUseCaseProvider)();
     final locked = lockCheck.getOrElse(
       () => const LoginLockStatus(
         locked: false,
@@ -75,9 +70,9 @@ class LoginForm extends _$LoginForm {
     await result.fold(
       (failure) async {
         if (failure is InvalidCredentialsFailure) {
-          final lockResult = await ref.read(registerFailedLoginUseCaseProvider)(
-            email: email,
-          );
+          final lockResult = await ref.read(
+            registerFailedLoginUseCaseProvider,
+          )();
 
           lockResult.fold(
             (_) => state = state.copyWith(
@@ -92,7 +87,7 @@ class LoginForm extends _$LoginForm {
               maxAttempts: status.locked ? null : status.maxAttempts,
               submitError: status.locked
                   ? _lockMessage(status)
-                  : _attemptsMessage(),
+                  : _attemptsMessage(status),
             ),
           );
         } else {
@@ -103,7 +98,7 @@ class LoginForm extends _$LoginForm {
         }
       },
       (_) async {
-        await ref.read(resetLoginAttemptsUseCaseProvider)(email: email);
+        await ref.read(resetLoginAttemptsUseCaseProvider)();
         state = state.copyWith(
           isSubmitting: false,
           isLocked: false,
@@ -119,11 +114,11 @@ class LoginForm extends _$LoginForm {
   String _lockMessage(LoginLockStatus status) {
     final minutes = status.remaining.inMinutes;
     final label = minutes >= 1 ? '$minutes minuto(s)' : 'unos segundos';
-    return 'Demasiados intentos fallidos.'
+    return 'Demasiados intentos fallidos. '
         'Inténtalo de nuevo en $label.';
   }
 
-  String _attemptsMessage() {
+  String _attemptsMessage(LoginLockStatus status) {
     return 'Credenciales inválidas.';
   }
 }
