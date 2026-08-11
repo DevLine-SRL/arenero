@@ -7,6 +7,7 @@ import '../widgets/login_header.dart';
 import '../widgets/change_password_form_widget.dart';
 import '../widgets/change_password_button.dart';
 import '../widgets/skip_change_password_button.dart';
+import '../providers/auth_providers.dart';
 import '../providers/change_password_form_provider.dart';
 
 class ChangePasswordPage extends ConsumerWidget {
@@ -20,7 +21,8 @@ class ChangePasswordPage extends ConsumerWidget {
 
     ref.listen(changePasswordFormProvider, (previous, next) {
       if (next.isSuccess && !(previous?.isSuccess ?? false)) {
-        context.goNamed(RouteNames.dashboard);
+        final role = ref.read(authSessionProvider).value?.role;
+        context.goNamed(landingRouteNameFor(role));
       }
     });
 
