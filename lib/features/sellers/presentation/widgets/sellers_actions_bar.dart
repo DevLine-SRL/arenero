@@ -22,11 +22,10 @@ class SellersActionsBar extends StatelessWidget {
     final hasSelection = selectedCount > 0;
 
     final showEnable =
-      filter == SellerStatusFilter.inactive ||
-      filter == SellerStatusFilter.all;
+        filter == SellerStatusFilter.inactive ||
+        filter == SellerStatusFilter.all;
     final showDisable =
-      filter == SellerStatusFilter.active ||
-      filter == SellerStatusFilter.all;
+        filter == SellerStatusFilter.active || filter == SellerStatusFilter.all;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

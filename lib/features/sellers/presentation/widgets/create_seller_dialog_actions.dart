@@ -17,20 +17,20 @@ class CreateSellerDialogActions extends ConsumerWidget {
       children: [
         TextButton(
           onPressed: state.isSubmitting
-            ? null
-            : () => Navigator.of(context).pop(false),
+              ? null
+              : () => Navigator.of(context).pop(false),
           child: const Text('Cancelar'),
         ),
         const SizedBox(width: 8),
         FilledButton(
           onPressed: state.isValid && !state.isSubmitting ? onSubmit : null,
           child: state.isSubmitting
-            ? const SizedBox(
-                height: 18,
-                width: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : const Text('Crear vendedor'),
+              ? const SizedBox(
+                  height: 18,
+                  width: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Crear vendedor'),
         ),
       ],
     );

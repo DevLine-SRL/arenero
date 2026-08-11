@@ -21,16 +21,13 @@ class ConnectionStatusIndicator extends ConsumerWidget {
         Colors.orange,
         'Conectado a una red, pero sin acceso a internet',
       ),
-      ConnectionStatus.offline || null => (
-        Icons.wifi_off_rounded,
-        Colors.red,
-        'Sin red WiFi ni datos',
-      ),
+      ConnectionStatus.offline ||
+      null => (Icons.wifi_off_rounded, Colors.red, 'Sin red WiFi ni datos'),
     };
 
     return Tooltip(
       message: tooltip,
-      child:  Icon(icon, size: 22, color: color),
+      child: Icon(icon, size: 22, color: color),
     );
   }
 }

@@ -115,7 +115,7 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-Future<Either<Failure, LoginLockStatus>> _rpcLock(
+  Future<Either<Failure, LoginLockStatus>> _rpcLock(
     Future<Map<String, dynamic>> Function() call,
   ) async {
     try {

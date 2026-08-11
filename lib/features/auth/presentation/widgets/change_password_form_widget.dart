@@ -12,7 +12,8 @@ class ChangePasswordFormWidget extends ConsumerStatefulWidget {
       _ChangePasswordFormWidget();
 }
 
-class _ChangePasswordFormWidget extends ConsumerState<ChangePasswordFormWidget> {
+class _ChangePasswordFormWidget
+    extends ConsumerState<ChangePasswordFormWidget> {
   bool _obscurePassword = true;
   bool _obscureConfirmation = true;
 
@@ -46,7 +47,9 @@ class _ChangePasswordFormWidget extends ConsumerState<ChangePasswordFormWidget> 
           obscureText: _obscurePassword,
           textInputAction: TextInputAction.next,
           onChanged: (value) {
-            ref.read(changePasswordFormProvider.notifier).onPasswordChanged(value);
+            ref
+                .read(changePasswordFormProvider.notifier)
+                .onPasswordChanged(value);
           },
         ),
         const SizedBox(height: 16),

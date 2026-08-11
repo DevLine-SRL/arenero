@@ -74,11 +74,7 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
   }
 
   Future<void> _openEditDialog(Product product, List<Product> products) async {
-    await EditProductDialog.show(
-      context,
-      product: product,
-      products: products,
-    );
+    await EditProductDialog.show(context, product: product, products: products);
   }
 
   Future<void> _openUpdatePriceDialog(Product product) async {
@@ -195,7 +191,8 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                       : SingleChildScrollView(
                           child: ProductsTable(
                             products: visibleProducts,
-                            onEdit: (product) => _openEditDialog(product, products),
+                            onEdit: (product) =>
+                                _openEditDialog(product, products),
                             onUpdatePrice: _openUpdatePriceDialog,
                             onActiveChanged: (change) =>
                                 _setActive(change.product, change.active),

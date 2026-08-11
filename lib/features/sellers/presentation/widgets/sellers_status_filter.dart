@@ -30,19 +30,19 @@ class SellersStatusFilter extends StatelessWidget {
           visualDensity: VisualDensity.compact,
           backgroundColor: WidgetStateProperty.resolveWith(
             (states) => states.contains(WidgetState.selected)
-              ? colorScheme.primary
-              : colorScheme.surface,
+                ? colorScheme.primary
+                : colorScheme.surface,
           ),
           foregroundColor: WidgetStateProperty.resolveWith(
             (states) => states.contains(WidgetState.selected)
-              ? colorScheme.onPrimary
-              : colorScheme.onSurfaceVariant,
+                ? colorScheme.onPrimary
+                : colorScheme.onSurfaceVariant,
           ),
           side: WidgetStateProperty.resolveWith(
             (states) => BorderSide(
               color: states.contains(WidgetState.selected)
-                ? colorScheme.primary
-                : colorScheme.outline,
+                  ? colorScheme.primary
+                  : colorScheme.outline,
             ),
           ),
         ),
