@@ -10,10 +10,12 @@ class CreateSellerFormFields extends ConsumerStatefulWidget {
   const CreateSellerFormFields({super.key, this.onSubmitted});
 
   @override
-  ConsumerState<CreateSellerFormFields> createState() => _CreateSellerFormFieldsState();
+  ConsumerState<CreateSellerFormFields> createState() =>
+      _CreateSellerFormFieldsState();
 }
 
-class _CreateSellerFormFieldsState extends ConsumerState<CreateSellerFormFields> {
+class _CreateSellerFormFieldsState
+    extends ConsumerState<CreateSellerFormFields> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -59,8 +61,8 @@ class _CreateSellerFormFieldsState extends ConsumerState<CreateSellerFormFields>
             suffixIcon: IconButton(
               icon: Icon(
                 _obscurePassword
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
               ),
               onPressed: () {
                 setState(() {
@@ -72,7 +74,9 @@ class _CreateSellerFormFieldsState extends ConsumerState<CreateSellerFormFields>
           obscureText: _obscurePassword,
           textInputAction: TextInputAction.next,
           onChanged: (value) {
-            ref.read(createSellerFormProvider.notifier).onPasswordChanged(value);
+            ref
+                .read(createSellerFormProvider.notifier)
+                .onPasswordChanged(value);
           },
         ),
         const SizedBox(height: 16),
@@ -84,8 +88,8 @@ class _CreateSellerFormFieldsState extends ConsumerState<CreateSellerFormFields>
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureConfirmPassword
-                  ? Icons.visibility_off_outlined
-                  : Icons.visibility_outlined,
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
               ),
               onPressed: () {
                 setState(() {
@@ -97,7 +101,9 @@ class _CreateSellerFormFieldsState extends ConsumerState<CreateSellerFormFields>
           obscureText: _obscureConfirmPassword,
           textInputAction: TextInputAction.done,
           onChanged: (value) {
-            ref.read(createSellerFormProvider.notifier).onConfirmPasswordChanged(value);
+            ref
+                .read(createSellerFormProvider.notifier)
+                .onConfirmPasswordChanged(value);
           },
           onSubmitted: (_) => widget.onSubmitted?.call(),
         ),

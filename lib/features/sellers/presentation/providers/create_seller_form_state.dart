@@ -24,14 +24,14 @@ class CreateSellerFormState {
   });
 
   bool get isValid =>
-    nameError == null &&
-    emailError == null &&
-    passwordError == null &&
-    confirmPasswordError == null &&
-    name != '' &&
-    email != '' &&
-    password != '' &&
-    confirmPassword != '';
+      nameError == null &&
+      emailError == null &&
+      passwordError == null &&
+      confirmPasswordError == null &&
+      name != '' &&
+      email != '' &&
+      password != '' &&
+      confirmPassword != '';
 
   CreateSellerFormState copyWith({
     String? name,

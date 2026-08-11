@@ -8,12 +8,7 @@ class Seller extends User {
     required super.active,
   }) : super(role: 'seller');
 
-  Seller copyWith({
-    String? id,
-    String? email,
-    String? name,
-    bool? active,
-  }) {
+  Seller copyWith({String? id, String? email, String? name, bool? active}) {
     return Seller(
       id: id ?? this.id,
       email: email ?? this.email,
