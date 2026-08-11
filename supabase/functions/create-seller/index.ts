@@ -8,6 +8,9 @@ const corsHeaders = {
 
 const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[^A-Za-z0-9]).{8,}$/
 
+const emailRegex =
+  /^[a-zA-Z0-9]+(?:[._%+-][a-zA-Z0-9]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}$/
+
 type ErrorCode =
   | 'METHOD_NOT_ALLOWED'
   | 'UNAUTHORIZED'
@@ -56,7 +59,7 @@ Deno.serve(async (req: Request) => {
   const password = typeof body?.password === 'string' ? body.password : ''
   const name = typeof body?.name === 'string' ? body.name.trim() : ''
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!emailRegex.test(email)) {
     return errorResponse('INVALID_EMAIL', 400)
   }
   if (!passwordRegex.test(password)) {
