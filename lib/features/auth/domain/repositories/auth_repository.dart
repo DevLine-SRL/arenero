@@ -19,11 +19,9 @@ abstract class AuthRepository {
 
   Future<Either<Failure, DateTime?>> touchLastSeen();
 
-  Future<Either<Failure, LoginLockStatus>> getLoginLock({required Email email});
+  Future<Either<Failure, LoginLockStatus>> getLoginLock();
 
-  Future<Either<Failure, LoginLockStatus>> registerFailedLogin({
-    required Email email,
-  });
+  Future<Either<Failure, LoginLockStatus>> registerFailedLogin();
 
-  Future<Either<Failure, Unit>> resetLoginAttempts({required Email email});
+  Future<Either<Failure, Unit>> resetLoginAttempts();
 }

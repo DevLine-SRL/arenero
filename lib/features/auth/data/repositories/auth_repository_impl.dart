@@ -63,27 +63,19 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, LoginLockStatus>> getLoginLock({
-    required Email email,
-  }) async {
-    return _rpcLock(() => remoteDataSource.getLoginLock(email: email.value));
+  Future<Either<Failure, LoginLockStatus>> getLoginLock() async {
+    return _rpcLock(() => remoteDataSource.getLoginLock());
   }
 
   @override
-  Future<Either<Failure, LoginLockStatus>> registerFailedLogin({
-    required Email email,
-  }) async {
-    return _rpcLock(
-      () => remoteDataSource.registerFailedLogin(email: email.value),
-    );
+  Future<Either<Failure, LoginLockStatus>> registerFailedLogin() async {
+    return _rpcLock(() => remoteDataSource.registerFailedLogin());
   }
 
   @override
-  Future<Either<Failure, Unit>> resetLoginAttempts({
-    required Email email,
-  }) async {
+  Future<Either<Failure, Unit>> resetLoginAttempts() async {
     try {
-      await remoteDataSource.resetLoginAttempts(email: email.value);
+      await remoteDataSource.resetLoginAttempts();
       return const Right(unit);
     } on supabase.PostgrestException catch (e) {
       return Left(
