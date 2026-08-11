@@ -6,6 +6,7 @@ import '../../../../core/router/route_paths.dart';
 import '../widgets/login_header.dart';
 import '../widgets/change_password_form_widget.dart';
 import '../widgets/change_password_button.dart';
+import '../widgets/skip_change_password_button.dart';
 import '../providers/change_password_form_provider.dart';
 
 class ChangePasswordPage extends ConsumerWidget {
@@ -13,11 +14,13 @@ class ChangePasswordPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(changePasswordFormProvider);
+    final submitError = ref.watch(
+      changePasswordFormProvider.select((state) => state.submitError),
+    );
 
     ref.listen(changePasswordFormProvider, (previous, next) {
       if (next.isSuccess && !(previous?.isSuccess ?? false)) {
-        context.goNamed(RouteNames.login);
+        context.goNamed(RouteNames.dashboard);
       }
     });
 
@@ -48,16 +51,18 @@ class ChangePasswordPage extends ConsumerWidget {
                       spacing: 16,
                       children: [
                         const Text(
-                          'Ingresa tu nueva contraseña.',
+                          'Crea una nueva contraseña para mantener tu cuenta segura. ',
                         ),
                         const ChangePasswordFormWidget(),
-                        if (state.submitError != null)
+                        if (submitError != null)
                           Text(
-                            state.submitError!,
-                            style:
-                                TextStyle(color: Theme.of(context).colorScheme.error),
+                            submitError,
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
                           ),
                         const ChangePasswordButton(),
+                        const SkipChangePasswordButton(),
                       ],
                     ),
                   ),
