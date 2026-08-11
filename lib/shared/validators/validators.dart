@@ -8,3 +8,4 @@ export 'nit.dart';
 export 'phone.dart';
 export 'required.dart';
 export 'validator_type.dart';
+export 'verification_code.dart';
