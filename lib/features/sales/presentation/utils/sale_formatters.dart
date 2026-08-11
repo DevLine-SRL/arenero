@@ -16,7 +16,7 @@ const _esMonths = [
 String formatAmount(double value) {
   final negative = value < 0;
   final abs = value.abs().toStringAsFixed(2);
-  return '${negative ? '-' : ''}\$${_addThousandsSeparator(abs)}';
+  return '${negative ? '-' : ''}Bs. ${_addThousandsSeparator(abs)}';
 }
 
 String _addThousandsSeparator(String amount) {

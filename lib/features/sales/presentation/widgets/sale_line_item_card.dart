@@ -271,7 +271,7 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
                           decimal: true,
                         ),
                         decoration: const InputDecoration(
-                          prefixText: '\$ ',
+                          prefixText: 'Bs. ',
                           isDense: true,
                         ),
                         onChanged: _changeDiscount,
