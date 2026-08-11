@@ -42,7 +42,7 @@ final class ChangePasswordFormProvider
 }
 
 String _$changePasswordFormHash() =>
-    r'3ff769b040a158d6892210bf5186c8f6176ebd74';
+    r'82b162e256bad05073c5736a454eaa4ebae6423e';
 
 abstract class _$ChangePasswordForm extends $Notifier<ChangePasswordFormState> {
   ChangePasswordFormState build();

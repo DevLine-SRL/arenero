@@ -23,7 +23,8 @@ class EditProductDialog extends ConsumerStatefulWidget {
   }) {
     return showDialog<bool>(
       context: context,
-      builder: (context) => EditProductDialog(product: product, products: products),
+      builder: (context) =>
+          EditProductDialog(product: product, products: products),
     );
   }
 
@@ -53,11 +54,12 @@ class _EditProductDialogState extends ConsumerState<EditProductDialog> {
     final name = _nameController.text;
     final error = switch (normalizeProductName(name)) {
       '' => 'El nombre del producto es obligatorio.',
-      _ when isDuplicateProductName(
-        products: widget.products,
-        name: name,
-        ignoringProductId: widget.product.id,
-      ) =>
+      _
+          when isDuplicateProductName(
+            products: widget.products,
+            name: name,
+            ignoringProductId: widget.product.id,
+          ) =>
         'Ya existe un producto registrado con ese nombre.',
       _ => null,
     };

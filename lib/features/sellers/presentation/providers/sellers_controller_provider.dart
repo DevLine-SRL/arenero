@@ -12,10 +12,7 @@ class SellersController extends _$SellersController {
     final useCase = ref.watch(getSellersUseCaseProvider);
     final result = await useCase();
 
-    return result.fold(
-      (failure) => throw failure,
-      (sellers) => sellers,
-    );
+    return result.fold((failure) => throw failure, (sellers) => sellers);
   }
 
   Future<void> setActive(Set<String> ids, bool active) async {

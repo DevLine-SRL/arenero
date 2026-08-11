@@ -33,7 +33,10 @@ class UpdateProductNameUseCase {
       );
     }
 
-    return repository.updateProductName(id: id, name: _displayName(normalizedName));
+    return repository.updateProductName(
+      id: id,
+      name: _displayName(normalizedName),
+    );
   }
 
   String _displayName(String normalizedName) {
