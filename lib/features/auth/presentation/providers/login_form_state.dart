@@ -23,11 +23,7 @@ class LoginFormState {
     this.maxAttempts,
   });
 
-  bool get isValid =>
-      emailError == null &&
-      passwordError == null &&
-      email != '' &&
-      password != '';
+  bool get isValid => emailError == null && passwordError == null;
 
   LoginFormState copyWith({
     String? email,

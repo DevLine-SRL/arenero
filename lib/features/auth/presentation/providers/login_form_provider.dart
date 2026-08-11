@@ -42,7 +42,7 @@ class LoginForm extends _$LoginForm {
   }
 
   Future<void> submit() async {
-    if (!state.isValid || state.isSubmitting || state.isLocked) return;
+    if (!_validateAll() || state.isSubmitting || state.isLocked) return;
 
     state = state.copyWith(isSubmitting: true, submitError: null);
 
@@ -167,6 +167,20 @@ class LoginForm extends _$LoginForm {
     final label = minutes >= 1 ? '$minutes minuto(s)' : 'unos segundos';
     return 'Demasiados intentos fallidos. '
         'Inténtalo de nuevo en $label.';
+  }
+
+  bool _validateAll() {
+    final emailError = Email.create(
+      state.email,
+    ).fold((failure) => failure.message, (_) => null);
+    final passwordError = required(state.password);
+
+    state = state.copyWith(
+      emailError: emailError,
+      passwordError: passwordError,
+    );
+
+    return emailError == null && passwordError == null;
   }
 
   String _attemptsMessage() {
