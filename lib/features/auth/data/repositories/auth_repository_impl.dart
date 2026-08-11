@@ -100,8 +100,12 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Right(unit);
     } on supabase.AuthRetryableFetchException {
       return const Left(NetworkFailure());
-    } on supabase.AuthException catch (e) {
-      return Left(_mapAuthException(e));
+    } on supabase.AuthException {
+      return const Left(
+        NotFoundFailure(
+          message: 'Si el correo está registrado, recibirás el código',
+        ),
+      );
     } catch (e) {
       return const Left(
         UnexpectedFailure(
