@@ -57,6 +57,54 @@ final class ProductsRemoteDataSourceProvider
 String _$productsRemoteDataSourceHash() =>
     r'9e399aa686dcddce317429190305021b5f046e3c';
 
+@ProviderFor(productsLocalDataSource)
+final productsLocalDataSourceProvider = ProductsLocalDataSourceProvider._();
+
+final class ProductsLocalDataSourceProvider
+    extends
+        $FunctionalProvider<
+          ProductsLocalDataSource,
+          ProductsLocalDataSource,
+          ProductsLocalDataSource
+        >
+    with $Provider<ProductsLocalDataSource> {
+  ProductsLocalDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'productsLocalDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$productsLocalDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<ProductsLocalDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  ProductsLocalDataSource create(Ref ref) {
+    return productsLocalDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(ProductsLocalDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<ProductsLocalDataSource>(value),
+    );
+  }
+}
+
+String _$productsLocalDataSourceHash() =>
+    r'1f24de1a9be59e58ac7668de3bfc4bb42b4f67cd';
+
 @ProviderFor(productsRepository)
 final productsRepositoryProvider = ProductsRepositoryProvider._();
 
@@ -103,7 +151,7 @@ final class ProductsRepositoryProvider
 }
 
 String _$productsRepositoryHash() =>
-    r'ad728c296832017458f9677a0e5595a421f6c2dd';
+    r'b426f43dcb1196029821d251cc12c08dbd86db1b';
 
 @ProviderFor(getProductsUseCase)
 final getProductsUseCaseProvider = GetProductsUseCaseProvider._();

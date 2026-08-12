@@ -1,6 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/providers/app_database_provider.dart';
 import '../../../../core/providers/supabase_client_provider.dart';
+import '../../data/datasources/products_local_datasource.dart';
 import '../../data/datasources/products_remote_datasource.dart';
 import '../../data/repositories/products_repository_impl.dart';
 import '../../domain/repositories/products_repository.dart';
@@ -18,8 +20,16 @@ ProductsRemoteDataSource productsRemoteDataSource(Ref ref) {
 }
 
 @riverpod
+ProductsLocalDataSource productsLocalDataSource(Ref ref) {
+  return ProductsLocalDataSourceImpl(ref.watch(appDatabaseProvider));
+}
+
+@riverpod
 ProductsRepository productsRepository(Ref ref) {
-  return ProductsRepositoryImpl(ref.watch(productsRemoteDataSourceProvider));
+  return ProductsRepositoryImpl(
+    ref.watch(productsRemoteDataSourceProvider),
+    ref.watch(productsLocalDataSourceProvider),
+  );
 }
 
 @riverpod

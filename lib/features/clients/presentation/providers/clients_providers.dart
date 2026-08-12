@@ -1,6 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/providers/app_database_provider.dart';
 import '../../../../core/providers/supabase_client_provider.dart';
+import '../../data/datasources/clients_local_datasource.dart';
 import '../../data/datasources/clients_remote_datasource.dart';
 import '../../data/repositories/clients_repository_impl.dart';
 import '../../domain/repositories/clients_repository.dart';
@@ -16,8 +18,16 @@ ClientsRemoteDataSource clientsRemoteDataSource(Ref ref) {
 }
 
 @riverpod
+ClientsLocalDataSource clientsLocalDataSource(Ref ref) {
+  return ClientsLocalDataSourceImpl(ref.watch(appDatabaseProvider));
+}
+
+@riverpod
 ClientsRepository clientsRepository(Ref ref) {
-  return ClientsRepositoryImpl(ref.watch(clientsRemoteDataSourceProvider));
+  return ClientsRepositoryImpl(
+    ref.watch(clientsRemoteDataSourceProvider),
+    ref.watch(clientsLocalDataSourceProvider),
+  );
 }
 
 @riverpod

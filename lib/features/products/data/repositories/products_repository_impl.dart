@@ -2,29 +2,48 @@ import 'package:dartz/dartz.dart' as dartz;
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/network_errors.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/repositories/products_repository.dart';
+import '../datasources/products_local_datasource.dart';
 import '../datasources/products_remote_datasource.dart';
 
 class ProductsRepositoryImpl implements ProductsRepository {
   final ProductsRemoteDataSource remoteDataSource;
+  final ProductsLocalDataSource localDataSource;
 
-  const ProductsRepositoryImpl(this.remoteDataSource);
+  const ProductsRepositoryImpl(this.remoteDataSource, this.localDataSource);
 
   @override
   Future<dartz.Either<Failure, List<Product>>> getProducts() async {
     try {
       final products = await remoteDataSource.getProducts();
+      await localDataSource.replaceCatalog(products);
       return dartz.Right(products);
-    } on supabase.PostgrestException {
-      return const dartz.Left(
-        UnexpectedFailure(message: 'No se pudieron obtener los productos.'),
-      );
-    } catch (_) {
+    } on supabase.PostgrestException catch (e) {
+      return dartz.Left(_mapGetProductsError(e));
+    } catch (e) {
+      if (isNetworkError(e)) {
+        return _cachedProducts();
+      }
       return const dartz.Left(
         UnexpectedFailure(
           message: 'Error inesperado al obtener los productos.',
         ),
+      );
+    }
+  }
+
+  Future<dartz.Either<Failure, List<Product>>> _cachedProducts() async {
+    try {
+      final cached = await localDataSource.getCachedProducts();
+      if (cached.isEmpty) {
+        return const dartz.Left(NetworkFailure());
+      }
+      return dartz.Right(cached);
+    } catch (_) {
+      return const dartz.Left(
+        CacheFailure(message: 'No se pudo leer el catálogo local.'),
       );
     }
   }
@@ -44,7 +63,10 @@ class ProductsRepositoryImpl implements ProductsRepository {
       return const dartz.Right(dartz.unit);
     } on supabase.PostgrestException catch (e) {
       return dartz.Left(_mapCreateProductError(e));
-    } catch (_) {
+    } catch (e) {
+      if (isNetworkError(e)) {
+        return const dartz.Left(NetworkFailure());
+      }
       return const dartz.Left(
         UnexpectedFailure(message: 'No se pudo registrar el producto.'),
       );
@@ -76,6 +98,9 @@ class ProductsRepositoryImpl implements ProductsRepository {
   }) async {
     try {
       await remoteDataSource.updateProductName(id: id, name: name);
+      await _syncLocal(
+        () => localDataSource.updateProductName(id: id, name: name),
+      );
       return const dartz.Right(dartz.unit);
     } on supabase.PostgrestException catch (e) {
       if (e.code == '23505') {
@@ -99,7 +124,10 @@ class ProductsRepositoryImpl implements ProductsRepository {
           code: e.code,
         ),
       );
-    } catch (_) {
+    } catch (e) {
+      if (isNetworkError(e)) {
+        return const dartz.Left(NetworkFailure());
+      }
       return const dartz.Left(
         UnexpectedFailure(
           message: 'Error inesperado al modificar el producto.',
@@ -118,6 +146,12 @@ class ProductsRepositoryImpl implements ProductsRepository {
         unitId: unitId,
         unitPrice: unitPrice,
       );
+      await _syncLocal(
+        () => localDataSource.updateUnitPrice(
+          unitId: unitId,
+          unitPrice: unitPrice,
+        ),
+      );
       return const dartz.Right(dartz.unit);
     } on supabase.PostgrestException catch (e) {
       if (e.code == '42501') {
@@ -133,7 +167,10 @@ class ProductsRepositoryImpl implements ProductsRepository {
           code: e.code,
         ),
       );
-    } catch (_) {
+    } catch (e) {
+      if (isNetworkError(e)) {
+        return const dartz.Left(NetworkFailure());
+      }
       return const dartz.Left(
         UnexpectedFailure(message: 'Error inesperado al actualizar el precio.'),
       );
@@ -147,6 +184,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
   ) async {
     try {
       await remoteDataSource.setActive(id, active);
+      await _syncLocal(() => localDataSource.setActive(id, active));
       return const dartz.Right(dartz.unit);
     } on supabase.PostgrestException catch (e) {
       if (e.code == '42501') {
@@ -161,12 +199,28 @@ class ProductsRepositoryImpl implements ProductsRepository {
           message: 'No se pudo actualizar el estado del producto.',
         ),
       );
-    } catch (_) {
+    } catch (e) {
+      if (isNetworkError(e)) {
+        return const dartz.Left(NetworkFailure());
+      }
       return const dartz.Left(
         UnexpectedFailure(
           message: 'Error inesperado al actualizar el estado del producto.',
         ),
       );
     }
+  }
+
+  Future<void> _syncLocal(Future<void> Function() write) async {
+    try {
+      await write();
+    } catch (_) {}
+  }
+
+  Failure _mapGetProductsError(supabase.PostgrestException e) {
+    return UnexpectedFailure(
+      message: 'No se pudieron obtener los productos.',
+      code: e.code,
+    );
   }
 }
