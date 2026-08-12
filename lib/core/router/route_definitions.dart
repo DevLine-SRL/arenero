@@ -5,6 +5,7 @@ import '../../features/clients/presentation/pages/clients_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/products/presentation/pages/products_page.dart';
 import '../../features/sales/presentation/pages/register_sale_page.dart';
+import '../../features/sales/presentation/pages/sale_detail_page.dart';
 import '../../features/sales/presentation/pages/sales_history_page.dart';
 import '../../features/sellers/presentation/pages/sellers_management_page.dart';
 import '../../shared/widgets/forbidden_page.dart';
@@ -46,6 +47,14 @@ final protectedRoutes = StatefulShellRoute.indexedStack(
           path: RoutePaths.salesHistory,
           name: RouteNames.salesHistory,
           builder: (context, state) => const SalesHistoryPage(),
+          routes: [
+            GoRoute(
+              path: ':id',
+              name: RouteNames.saleDetail,
+              builder: (context, state) =>
+                  SaleDetailPage(saleId: state.pathParameters['id']!),
+            ),
+          ],
         ),
       ],
     ),

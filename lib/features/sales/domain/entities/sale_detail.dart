@@ -5,8 +5,15 @@ class SaleDetail {
   final String productUnitId;
   final ProductUnitOfMeasure unit;
   final double quantity;
+
+  /// Precio al que se vendió la unidad, congelado al registrar la venta. No es
+  /// el precio actual del catálogo.
   final double unitPrice;
   final double discount;
+
+  /// Nombre del producto. Solo viene en la consulta de detalle; el flujo de
+  /// registro no lo necesita.
+  final String? productName;
 
   const SaleDetail({
     this.id,
@@ -15,6 +22,7 @@ class SaleDetail {
     required this.quantity,
     required this.unitPrice,
     this.discount = 0,
+    this.productName,
   });
 
   double get subtotal => (quantity * unitPrice) - discount;
@@ -27,6 +35,7 @@ class SaleDetail {
     double? quantity,
     double? unitPrice,
     double? discount,
+    String? productName,
   }) {
     return SaleDetail(
       id: clearId ? null : (id ?? this.id),
@@ -35,6 +44,7 @@ class SaleDetail {
       quantity: quantity ?? this.quantity,
       unitPrice: unitPrice ?? this.unitPrice,
       discount: discount ?? this.discount,
+      productName: productName ?? this.productName,
     );
   }
 }

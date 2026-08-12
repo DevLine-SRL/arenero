@@ -9,6 +9,7 @@ class SaleDetailModel extends SaleDetail {
     required super.quantity,
     required super.unitPrice,
     super.discount,
+    super.productName,
   });
 
   factory SaleDetailModel.fromJson(Map<String, dynamic> json) {
@@ -20,9 +21,19 @@ class SaleDetailModel extends SaleDetail {
           ? ProductUnitOfMeasure.fromDatabase(productUnit['unit'] as String)
           : ProductUnitOfMeasure.unit,
       quantity: _toDouble(json['quantity']),
+      // El precio sale de sale_details, nunca de product_units: es el precio
+      // al que se vendió, no el vigente en el catálogo.
       unitPrice: _toDouble(json['unit_price']),
       discount: _toDouble(json['discount']),
+      productName: _productNameFromJson(productUnit),
     );
+  }
+
+  static String? _productNameFromJson(Object? productUnit) {
+    if (productUnit is! Map) return null;
+    final product = productUnit['product'];
+    if (product is! Map) return null;
+    return product['name'] as String?;
   }
 
   Map<String, dynamic> toJson() {

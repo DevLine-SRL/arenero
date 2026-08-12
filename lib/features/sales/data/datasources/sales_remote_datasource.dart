@@ -6,12 +6,17 @@ import '../models/sale_delivery_model.dart';
 import '../models/sale_history_item_model.dart';
 import '../models/sale_model.dart';
 
+// El precio de cada línea se lee de sale_details.unit_price, que es el precio
+// congelado al registrar la venta. Este select no pide product_units.unit_price
+// a propósito: hacerlo mostraría el precio actual del catálogo en ventas
+// pasadas.
 const String _saleSelect = '''
-  id, client_id, seller_id, sale_date, delivery_mode, payment_method,
+  id, number, client_id, seller_id, sale_date, delivery_mode, payment_method,
   status, total, notes,
   client:clients(id, name, phone, ci, nit, active),
+  seller:profiles(id, name, email),
   sale_details(id, sale_id, product_unit_id, quantity, unit_price, discount,
-    product_unit:product_units(unit)),
+    product_unit:product_units(unit, product:products(name))),
   sale_deliveries(id, sale_id, delivery_address, vehicle_plate, delivery_date)
 ''';
 
@@ -36,6 +41,8 @@ abstract class SalesRemoteDataSource {
     DateTime? from,
     DateTime? to,
   });
+
+  Future<SaleModel> getSaleById(String saleId);
 
   Future<void> voidSale(String saleId);
 }
@@ -68,7 +75,7 @@ class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
       },
     );
 
-    return _fetchSale(saleId as String);
+    return getSaleById(saleId as String);
   }
 
   @override
@@ -111,7 +118,8 @@ class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
     await client.rpc('void_sale', params: {'p_sale_id': saleId});
   }
 
-  Future<SaleModel> _fetchSale(String saleId) async {
+  @override
+  Future<SaleModel> getSaleById(String saleId) async {
     final rows = await client
         .from('sales')
         .select(_saleSelect)
