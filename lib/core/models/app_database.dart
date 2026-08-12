@@ -27,4 +27,19 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   int get schemaVersion => 1;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    beforeOpen: (details) async {
+      if (!details.wasCreated) {
+        final hasProductUnits = await customSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table' "
+          "AND name = 'local_product_units'",
+        ).getSingleOrNull();
+        if (hasProductUnits == null) {
+          await createMigrator().createAll();
+        }
+      }
+    },
+  );
 }
