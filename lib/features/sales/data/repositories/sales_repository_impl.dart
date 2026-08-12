@@ -2,20 +2,28 @@ import 'package:dartz/dartz.dart' as dartz;
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/network_errors.dart';
 import '../../domain/entities/sale.dart';
 import '../../domain/entities/sale_detail.dart';
 import '../../domain/entities/sale_delivery.dart';
 import '../../domain/entities/sale_history_item.dart';
 import '../../domain/repositories/sales_repository.dart';
+import '../datasources/sales_local_datasource.dart';
 import '../datasources/sales_remote_datasource.dart';
 import '../models/sale_detail_model.dart';
 import '../models/sale_delivery_model.dart';
+import '../models/sale_model.dart';
 
 class SalesRepositoryImpl implements SalesRepository {
   final SalesRemoteDataSource remoteDataSource;
+  final SalesLocalDataSource localDataSource;
   final bool Function() isOnline;
 
-  const SalesRepositoryImpl(this.remoteDataSource, {required this.isOnline});
+  const SalesRepositoryImpl(
+    this.remoteDataSource,
+    this.localDataSource, {
+    required this.isOnline,
+  });
 
   @override
   Future<dartz.Either<Failure, Sale>> registerSale({
@@ -55,6 +63,7 @@ class SalesRepositoryImpl implements SalesRepository {
             ),
         ],
       );
+      await _syncLocal(() => localDataSource.upsertSale(sale));
       return dartz.Right(sale);
     } on supabase.PostgrestException catch (e) {
       return dartz.Left(_mapRegisterError(e));
@@ -95,7 +104,7 @@ class SalesRepositoryImpl implements SalesRepository {
     DateTime? to,
   }) async {
     if (!isOnline()) {
-      return const dartz.Left(NetworkFailure());
+      return _cachedSales(status: status, from: from, to: to);
     }
     try {
       final sales = await remoteDataSource.getSales(
@@ -103,6 +112,7 @@ class SalesRepositoryImpl implements SalesRepository {
         from: from,
         to: to,
       );
+      await _syncSales(sales);
       return dartz.Right(sales);
     } on supabase.PostgrestException catch (e) {
       return dartz.Left(
@@ -111,7 +121,10 @@ class SalesRepositoryImpl implements SalesRepository {
           code: e.code,
         ),
       );
-    } catch (_) {
+    } catch (e) {
+      if (isNetworkError(e)) {
+        return _cachedSales(status: status, from: from, to: to);
+      }
       return const dartz.Left(
         UnexpectedFailure(message: 'No se pudieron obtener las ventas.'),
       );
@@ -124,14 +137,18 @@ class SalesRepositoryImpl implements SalesRepository {
     DateTime? to,
   }) async {
     if (!isOnline()) {
-      return const dartz.Left(NetworkFailure());
+      return _cachedHistory(from: from, to: to);
     }
     try {
       final items = await remoteDataSource.getSalesHistory(from: from, to: to);
+      await _syncLocal(() => localDataSource.upsertHistory(items));
       return dartz.Right(items);
     } on supabase.PostgrestException catch (e) {
       return dartz.Left(_mapHistoryError(e));
-    } catch (_) {
+    } catch (e) {
+      if (isNetworkError(e)) {
+        return _cachedHistory(from: from, to: to);
+      }
       return const dartz.Left(
         UnexpectedFailure(
           message: 'No se pudo obtener el historial de ventas.',
@@ -155,14 +172,18 @@ class SalesRepositoryImpl implements SalesRepository {
   @override
   Future<dartz.Either<Failure, Sale>> getSaleById(String saleId) async {
     if (!isOnline()) {
-      return const dartz.Left(NetworkFailure());
+      return _cachedSale(saleId);
     }
     try {
       final sale = await remoteDataSource.getSaleById(saleId);
+      await _syncLocal(() => localDataSource.upsertSale(sale));
       return dartz.Right(sale);
     } on supabase.PostgrestException catch (e) {
       return dartz.Left(_mapDetailError(e));
-    } catch (_) {
+    } catch (e) {
+      if (isNetworkError(e)) {
+        return _cachedSale(saleId);
+      }
       return const dartz.Left(
         UnexpectedFailure(
           message: 'No se pudo obtener el detalle de la venta.',
@@ -191,6 +212,7 @@ class SalesRepositoryImpl implements SalesRepository {
     }
     try {
       await remoteDataSource.voidSale(saleId);
+      await _syncLocal(() => localDataSource.markVoided(saleId));
       return const dartz.Right(dartz.unit);
     } on supabase.PostgrestException catch (e) {
       return dartz.Left(_mapVoidError(e));
@@ -199,6 +221,71 @@ class SalesRepositoryImpl implements SalesRepository {
         UnexpectedFailure(message: 'No se pudo anular la venta.'),
       );
     }
+  }
+
+  Future<dartz.Either<Failure, List<SaleHistoryItem>>> _cachedHistory({
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    try {
+      final cached = await localDataSource.getSaleHistory(from: from, to: to);
+      if (cached.isEmpty) {
+        return const dartz.Left(NetworkFailure());
+      }
+      return dartz.Right(cached);
+    } catch (_) {
+      return const dartz.Left(
+        CacheFailure(message: 'No se pudo leer el historial local.'),
+      );
+    }
+  }
+
+  Future<dartz.Either<Failure, Sale>> _cachedSale(String saleId) async {
+    try {
+      final cached = await localDataSource.getSaleById(saleId);
+      if (cached == null) {
+        return const dartz.Left(NetworkFailure());
+      }
+      return dartz.Right(cached);
+    } catch (_) {
+      return const dartz.Left(
+        CacheFailure(message: 'No se pudo leer la venta local.'),
+      );
+    }
+  }
+
+  Future<dartz.Either<Failure, List<Sale>>> _cachedSales({
+    SaleStatus? status,
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    try {
+      final cached = await localDataSource.getSales(
+        status: status,
+        from: from,
+        to: to,
+      );
+      if (cached.isEmpty) {
+        return const dartz.Left(NetworkFailure());
+      }
+      return dartz.Right(cached);
+    } catch (_) {
+      return const dartz.Left(
+        CacheFailure(message: 'No se pudo leer las ventas locales.'),
+      );
+    }
+  }
+
+  Future<void> _syncSales(List<SaleModel> sales) async {
+    for (final sale in sales) {
+      await _syncLocal(() => localDataSource.upsertSale(sale));
+    }
+  }
+
+  Future<void> _syncLocal(Future<void> Function() write) async {
+    try {
+      await write();
+    } catch (_) {}
   }
 
   Failure _mapVoidError(supabase.PostgrestException e) {

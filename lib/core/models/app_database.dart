@@ -18,6 +18,7 @@ part 'app_database.g.dart';
     LocalSales,
     LocalSaleDetails,
     LocalSaleDeliveries,
+    LocalSaleHistory,
     OutboxOperations,
     SyncMeta,
   ],
@@ -32,14 +33,30 @@ class AppDatabase extends _$AppDatabase {
   MigrationStrategy get migration => MigrationStrategy(
     beforeOpen: (details) async {
       if (!details.wasCreated) {
-        final hasProductUnits = await customSelect(
-          "SELECT name FROM sqlite_master WHERE type = 'table' "
-          "AND name = 'local_product_units'",
-        ).getSingleOrNull();
-        if (hasProductUnits == null) {
-          await createMigrator().createAll();
-        }
+        await _createMissingTables();
       }
     },
   );
+
+  Future<void> _createMissingTables() async {
+    final rows = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table'",
+    ).get();
+    final present = {for (final row in rows) row.read<String>('name')};
+    final complete = {
+      'local_clients',
+      'local_products',
+      'local_product_units',
+      'local_profiles',
+      'local_sales',
+      'local_sale_details',
+      'local_sale_deliveries',
+      'local_sale_history',
+      'outbox_operations',
+      'sync_meta',
+    };
+    if (!complete.every(present.contains)) {
+      await createMigrator().createAll();
+    }
+  }
 }

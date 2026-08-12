@@ -47,3 +47,17 @@ class LocalSaleDeliveries extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+class LocalSaleHistory extends Table {
+  TextColumn get id => text()();
+  IntColumn get number => integer()();
+  TextColumn get clientName => text()();
+  TextColumn get clientCi => text()();
+  DateTimeColumn get saleDate => dateTime()();
+  RealColumn get total => real()();
+  TextColumn get paymentMethod => text()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

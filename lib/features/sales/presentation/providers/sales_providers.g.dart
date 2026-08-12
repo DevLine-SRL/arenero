@@ -57,6 +57,54 @@ final class SalesRemoteDataSourceProvider
 String _$salesRemoteDataSourceHash() =>
     r'2de43d70db4f8015378eb8bb4c42cb0d2504f140';
 
+@ProviderFor(salesLocalDataSource)
+final salesLocalDataSourceProvider = SalesLocalDataSourceProvider._();
+
+final class SalesLocalDataSourceProvider
+    extends
+        $FunctionalProvider<
+          SalesLocalDataSource,
+          SalesLocalDataSource,
+          SalesLocalDataSource
+        >
+    with $Provider<SalesLocalDataSource> {
+  SalesLocalDataSourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'salesLocalDataSourceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$salesLocalDataSourceHash();
+
+  @$internal
+  @override
+  $ProviderElement<SalesLocalDataSource> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SalesLocalDataSource create(Ref ref) {
+    return salesLocalDataSource(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SalesLocalDataSource value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SalesLocalDataSource>(value),
+    );
+  }
+}
+
+String _$salesLocalDataSourceHash() =>
+    r'ed80e5486d36ebad98d30e25ee26bcda097e9729';
+
 @ProviderFor(salesRepository)
 final salesRepositoryProvider = SalesRepositoryProvider._();
 
@@ -97,7 +145,7 @@ final class SalesRepositoryProvider
   }
 }
 
-String _$salesRepositoryHash() => r'2167fe3e3915941a58d50690038d7077262c138e';
+String _$salesRepositoryHash() => r'f2e02e406754068b9c12cbecdca9cbe04ab970fe';
 
 @ProviderFor(registerSaleUseCase)
 final registerSaleUseCaseProvider = RegisterSaleUseCaseProvider._();

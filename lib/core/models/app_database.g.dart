@@ -3587,6 +3587,522 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
   }
 }
 
+class $LocalSaleHistoryTable extends LocalSaleHistory
+    with TableInfo<$LocalSaleHistoryTable, LocalSaleHistoryData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalSaleHistoryTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _numberMeta = const VerificationMeta('number');
+  @override
+  late final GeneratedColumn<int> number = GeneratedColumn<int>(
+    'number',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientNameMeta = const VerificationMeta(
+    'clientName',
+  );
+  @override
+  late final GeneratedColumn<String> clientName = GeneratedColumn<String>(
+    'client_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _clientCiMeta = const VerificationMeta(
+    'clientCi',
+  );
+  @override
+  late final GeneratedColumn<String> clientCi = GeneratedColumn<String>(
+    'client_ci',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _saleDateMeta = const VerificationMeta(
+    'saleDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> saleDate = GeneratedColumn<DateTime>(
+    'sale_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _totalMeta = const VerificationMeta('total');
+  @override
+  late final GeneratedColumn<double> total = GeneratedColumn<double>(
+    'total',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _paymentMethodMeta = const VerificationMeta(
+    'paymentMethod',
+  );
+  @override
+  late final GeneratedColumn<String> paymentMethod = GeneratedColumn<String>(
+    'payment_method',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    number,
+    clientName,
+    clientCi,
+    saleDate,
+    total,
+    paymentMethod,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_sale_history';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LocalSaleHistoryData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('number')) {
+      context.handle(
+        _numberMeta,
+        number.isAcceptableOrUnknown(data['number']!, _numberMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_numberMeta);
+    }
+    if (data.containsKey('client_name')) {
+      context.handle(
+        _clientNameMeta,
+        clientName.isAcceptableOrUnknown(data['client_name']!, _clientNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientNameMeta);
+    }
+    if (data.containsKey('client_ci')) {
+      context.handle(
+        _clientCiMeta,
+        clientCi.isAcceptableOrUnknown(data['client_ci']!, _clientCiMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_clientCiMeta);
+    }
+    if (data.containsKey('sale_date')) {
+      context.handle(
+        _saleDateMeta,
+        saleDate.isAcceptableOrUnknown(data['sale_date']!, _saleDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_saleDateMeta);
+    }
+    if (data.containsKey('total')) {
+      context.handle(
+        _totalMeta,
+        total.isAcceptableOrUnknown(data['total']!, _totalMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_totalMeta);
+    }
+    if (data.containsKey('payment_method')) {
+      context.handle(
+        _paymentMethodMeta,
+        paymentMethod.isAcceptableOrUnknown(
+          data['payment_method']!,
+          _paymentMethodMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_paymentMethodMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LocalSaleHistoryData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocalSaleHistoryData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      number: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}number'],
+      )!,
+      clientName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_name'],
+      )!,
+      clientCi: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}client_ci'],
+      )!,
+      saleDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sale_date'],
+      )!,
+      total: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}total'],
+      )!,
+      paymentMethod: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payment_method'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $LocalSaleHistoryTable createAlias(String alias) {
+    return $LocalSaleHistoryTable(attachedDatabase, alias);
+  }
+}
+
+class LocalSaleHistoryData extends DataClass
+    implements Insertable<LocalSaleHistoryData> {
+  final String id;
+  final int number;
+  final String clientName;
+  final String clientCi;
+  final DateTime saleDate;
+  final double total;
+  final String paymentMethod;
+  final DateTime updatedAt;
+  const LocalSaleHistoryData({
+    required this.id,
+    required this.number,
+    required this.clientName,
+    required this.clientCi,
+    required this.saleDate,
+    required this.total,
+    required this.paymentMethod,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['number'] = Variable<int>(number);
+    map['client_name'] = Variable<String>(clientName);
+    map['client_ci'] = Variable<String>(clientCi);
+    map['sale_date'] = Variable<DateTime>(saleDate);
+    map['total'] = Variable<double>(total);
+    map['payment_method'] = Variable<String>(paymentMethod);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  LocalSaleHistoryCompanion toCompanion(bool nullToAbsent) {
+    return LocalSaleHistoryCompanion(
+      id: Value(id),
+      number: Value(number),
+      clientName: Value(clientName),
+      clientCi: Value(clientCi),
+      saleDate: Value(saleDate),
+      total: Value(total),
+      paymentMethod: Value(paymentMethod),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory LocalSaleHistoryData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocalSaleHistoryData(
+      id: serializer.fromJson<String>(json['id']),
+      number: serializer.fromJson<int>(json['number']),
+      clientName: serializer.fromJson<String>(json['clientName']),
+      clientCi: serializer.fromJson<String>(json['clientCi']),
+      saleDate: serializer.fromJson<DateTime>(json['saleDate']),
+      total: serializer.fromJson<double>(json['total']),
+      paymentMethod: serializer.fromJson<String>(json['paymentMethod']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'number': serializer.toJson<int>(number),
+      'clientName': serializer.toJson<String>(clientName),
+      'clientCi': serializer.toJson<String>(clientCi),
+      'saleDate': serializer.toJson<DateTime>(saleDate),
+      'total': serializer.toJson<double>(total),
+      'paymentMethod': serializer.toJson<String>(paymentMethod),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  LocalSaleHistoryData copyWith({
+    String? id,
+    int? number,
+    String? clientName,
+    String? clientCi,
+    DateTime? saleDate,
+    double? total,
+    String? paymentMethod,
+    DateTime? updatedAt,
+  }) => LocalSaleHistoryData(
+    id: id ?? this.id,
+    number: number ?? this.number,
+    clientName: clientName ?? this.clientName,
+    clientCi: clientCi ?? this.clientCi,
+    saleDate: saleDate ?? this.saleDate,
+    total: total ?? this.total,
+    paymentMethod: paymentMethod ?? this.paymentMethod,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  LocalSaleHistoryData copyWithCompanion(LocalSaleHistoryCompanion data) {
+    return LocalSaleHistoryData(
+      id: data.id.present ? data.id.value : this.id,
+      number: data.number.present ? data.number.value : this.number,
+      clientName: data.clientName.present
+          ? data.clientName.value
+          : this.clientName,
+      clientCi: data.clientCi.present ? data.clientCi.value : this.clientCi,
+      saleDate: data.saleDate.present ? data.saleDate.value : this.saleDate,
+      total: data.total.present ? data.total.value : this.total,
+      paymentMethod: data.paymentMethod.present
+          ? data.paymentMethod.value
+          : this.paymentMethod,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalSaleHistoryData(')
+          ..write('id: $id, ')
+          ..write('number: $number, ')
+          ..write('clientName: $clientName, ')
+          ..write('clientCi: $clientCi, ')
+          ..write('saleDate: $saleDate, ')
+          ..write('total: $total, ')
+          ..write('paymentMethod: $paymentMethod, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    number,
+    clientName,
+    clientCi,
+    saleDate,
+    total,
+    paymentMethod,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocalSaleHistoryData &&
+          other.id == this.id &&
+          other.number == this.number &&
+          other.clientName == this.clientName &&
+          other.clientCi == this.clientCi &&
+          other.saleDate == this.saleDate &&
+          other.total == this.total &&
+          other.paymentMethod == this.paymentMethod &&
+          other.updatedAt == this.updatedAt);
+}
+
+class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
+  final Value<String> id;
+  final Value<int> number;
+  final Value<String> clientName;
+  final Value<String> clientCi;
+  final Value<DateTime> saleDate;
+  final Value<double> total;
+  final Value<String> paymentMethod;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const LocalSaleHistoryCompanion({
+    this.id = const Value.absent(),
+    this.number = const Value.absent(),
+    this.clientName = const Value.absent(),
+    this.clientCi = const Value.absent(),
+    this.saleDate = const Value.absent(),
+    this.total = const Value.absent(),
+    this.paymentMethod = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocalSaleHistoryCompanion.insert({
+    required String id,
+    required int number,
+    required String clientName,
+    required String clientCi,
+    required DateTime saleDate,
+    required double total,
+    required String paymentMethod,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       number = Value(number),
+       clientName = Value(clientName),
+       clientCi = Value(clientCi),
+       saleDate = Value(saleDate),
+       total = Value(total),
+       paymentMethod = Value(paymentMethod),
+       updatedAt = Value(updatedAt);
+  static Insertable<LocalSaleHistoryData> custom({
+    Expression<String>? id,
+    Expression<int>? number,
+    Expression<String>? clientName,
+    Expression<String>? clientCi,
+    Expression<DateTime>? saleDate,
+    Expression<double>? total,
+    Expression<String>? paymentMethod,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (number != null) 'number': number,
+      if (clientName != null) 'client_name': clientName,
+      if (clientCi != null) 'client_ci': clientCi,
+      if (saleDate != null) 'sale_date': saleDate,
+      if (total != null) 'total': total,
+      if (paymentMethod != null) 'payment_method': paymentMethod,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocalSaleHistoryCompanion copyWith({
+    Value<String>? id,
+    Value<int>? number,
+    Value<String>? clientName,
+    Value<String>? clientCi,
+    Value<DateTime>? saleDate,
+    Value<double>? total,
+    Value<String>? paymentMethod,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return LocalSaleHistoryCompanion(
+      id: id ?? this.id,
+      number: number ?? this.number,
+      clientName: clientName ?? this.clientName,
+      clientCi: clientCi ?? this.clientCi,
+      saleDate: saleDate ?? this.saleDate,
+      total: total ?? this.total,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (number.present) {
+      map['number'] = Variable<int>(number.value);
+    }
+    if (clientName.present) {
+      map['client_name'] = Variable<String>(clientName.value);
+    }
+    if (clientCi.present) {
+      map['client_ci'] = Variable<String>(clientCi.value);
+    }
+    if (saleDate.present) {
+      map['sale_date'] = Variable<DateTime>(saleDate.value);
+    }
+    if (total.present) {
+      map['total'] = Variable<double>(total.value);
+    }
+    if (paymentMethod.present) {
+      map['payment_method'] = Variable<String>(paymentMethod.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalSaleHistoryCompanion(')
+          ..write('id: $id, ')
+          ..write('number: $number, ')
+          ..write('clientName: $clientName, ')
+          ..write('clientCi: $clientCi, ')
+          ..write('saleDate: $saleDate, ')
+          ..write('total: $total, ')
+          ..write('paymentMethod: $paymentMethod, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $OutboxOperationsTable extends OutboxOperations
     with TableInfo<$OutboxOperationsTable, OutboxOperation> {
   @override
@@ -4304,6 +4820,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $LocalSaleDeliveriesTable localSaleDeliveries =
       $LocalSaleDeliveriesTable(this);
+  late final $LocalSaleHistoryTable localSaleHistory = $LocalSaleHistoryTable(
+    this,
+  );
   late final $OutboxOperationsTable outboxOperations = $OutboxOperationsTable(
     this,
   );
@@ -4320,6 +4839,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     localSales,
     localSaleDetails,
     localSaleDeliveries,
+    localSaleHistory,
     outboxOperations,
     syncMeta,
   ];
@@ -6180,6 +6700,277 @@ typedef $$LocalSaleDeliveriesTableProcessedTableManager =
       LocalSaleDelivery,
       PrefetchHooks Function()
     >;
+typedef $$LocalSaleHistoryTableCreateCompanionBuilder =
+    LocalSaleHistoryCompanion Function({
+      required String id,
+      required int number,
+      required String clientName,
+      required String clientCi,
+      required DateTime saleDate,
+      required double total,
+      required String paymentMethod,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$LocalSaleHistoryTableUpdateCompanionBuilder =
+    LocalSaleHistoryCompanion Function({
+      Value<String> id,
+      Value<int> number,
+      Value<String> clientName,
+      Value<String> clientCi,
+      Value<DateTime> saleDate,
+      Value<double> total,
+      Value<String> paymentMethod,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$LocalSaleHistoryTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalSaleHistoryTable> {
+  $$LocalSaleHistoryTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get number => $composableBuilder(
+    column: $table.number,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientName => $composableBuilder(
+    column: $table.clientName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get clientCi => $composableBuilder(
+    column: $table.clientCi,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get saleDate => $composableBuilder(
+    column: $table.saleDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get total => $composableBuilder(
+    column: $table.total,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get paymentMethod => $composableBuilder(
+    column: $table.paymentMethod,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LocalSaleHistoryTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalSaleHistoryTable> {
+  $$LocalSaleHistoryTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get number => $composableBuilder(
+    column: $table.number,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientName => $composableBuilder(
+    column: $table.clientName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get clientCi => $composableBuilder(
+    column: $table.clientCi,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get saleDate => $composableBuilder(
+    column: $table.saleDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get total => $composableBuilder(
+    column: $table.total,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get paymentMethod => $composableBuilder(
+    column: $table.paymentMethod,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LocalSaleHistoryTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalSaleHistoryTable> {
+  $$LocalSaleHistoryTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get number =>
+      $composableBuilder(column: $table.number, builder: (column) => column);
+
+  GeneratedColumn<String> get clientName => $composableBuilder(
+    column: $table.clientName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get clientCi =>
+      $composableBuilder(column: $table.clientCi, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get saleDate =>
+      $composableBuilder(column: $table.saleDate, builder: (column) => column);
+
+  GeneratedColumn<double> get total =>
+      $composableBuilder(column: $table.total, builder: (column) => column);
+
+  GeneratedColumn<String> get paymentMethod => $composableBuilder(
+    column: $table.paymentMethod,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$LocalSaleHistoryTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LocalSaleHistoryTable,
+          LocalSaleHistoryData,
+          $$LocalSaleHistoryTableFilterComposer,
+          $$LocalSaleHistoryTableOrderingComposer,
+          $$LocalSaleHistoryTableAnnotationComposer,
+          $$LocalSaleHistoryTableCreateCompanionBuilder,
+          $$LocalSaleHistoryTableUpdateCompanionBuilder,
+          (
+            LocalSaleHistoryData,
+            BaseReferences<
+              _$AppDatabase,
+              $LocalSaleHistoryTable,
+              LocalSaleHistoryData
+            >,
+          ),
+          LocalSaleHistoryData,
+          PrefetchHooks Function()
+        > {
+  $$LocalSaleHistoryTableTableManager(
+    _$AppDatabase db,
+    $LocalSaleHistoryTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalSaleHistoryTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocalSaleHistoryTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LocalSaleHistoryTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<int> number = const Value.absent(),
+                Value<String> clientName = const Value.absent(),
+                Value<String> clientCi = const Value.absent(),
+                Value<DateTime> saleDate = const Value.absent(),
+                Value<double> total = const Value.absent(),
+                Value<String> paymentMethod = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalSaleHistoryCompanion(
+                id: id,
+                number: number,
+                clientName: clientName,
+                clientCi: clientCi,
+                saleDate: saleDate,
+                total: total,
+                paymentMethod: paymentMethod,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required int number,
+                required String clientName,
+                required String clientCi,
+                required DateTime saleDate,
+                required double total,
+                required String paymentMethod,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => LocalSaleHistoryCompanion.insert(
+                id: id,
+                number: number,
+                clientName: clientName,
+                clientCi: clientCi,
+                saleDate: saleDate,
+                total: total,
+                paymentMethod: paymentMethod,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LocalSaleHistoryTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LocalSaleHistoryTable,
+      LocalSaleHistoryData,
+      $$LocalSaleHistoryTableFilterComposer,
+      $$LocalSaleHistoryTableOrderingComposer,
+      $$LocalSaleHistoryTableAnnotationComposer,
+      $$LocalSaleHistoryTableCreateCompanionBuilder,
+      $$LocalSaleHistoryTableUpdateCompanionBuilder,
+      (
+        LocalSaleHistoryData,
+        BaseReferences<
+          _$AppDatabase,
+          $LocalSaleHistoryTable,
+          LocalSaleHistoryData
+        >,
+      ),
+      LocalSaleHistoryData,
+      PrefetchHooks Function()
+    >;
 typedef $$OutboxOperationsTableCreateCompanionBuilder =
     OutboxOperationsCompanion Function({
       Value<int> id,
@@ -6594,6 +7385,8 @@ class $AppDatabaseManager {
       $$LocalSaleDetailsTableTableManager(_db, _db.localSaleDetails);
   $$LocalSaleDeliveriesTableTableManager get localSaleDeliveries =>
       $$LocalSaleDeliveriesTableTableManager(_db, _db.localSaleDeliveries);
+  $$LocalSaleHistoryTableTableManager get localSaleHistory =>
+      $$LocalSaleHistoryTableTableManager(_db, _db.localSaleHistory);
   $$OutboxOperationsTableTableManager get outboxOperations =>
       $$OutboxOperationsTableTableManager(_db, _db.outboxOperations);
   $$SyncMetaTableTableManager get syncMeta =>
