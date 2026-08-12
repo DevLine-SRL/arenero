@@ -1,6 +1,7 @@
 import 'sale.dart';
 
 class SaleHistoryItem {
+  final String id;
   final int number;
   final String clientName;
   final String clientCi;
@@ -9,6 +10,7 @@ class SaleHistoryItem {
   final SalePaymentMethod paymentMethod;
 
   const SaleHistoryItem({
+    required this.id,
     required this.number,
     required this.clientName,
     required this.clientCi,
@@ -18,6 +20,7 @@ class SaleHistoryItem {
   });
 
   SaleHistoryItem copyWith({
+    String? id,
     int? number,
     String? clientName,
     String? clientCi,
@@ -26,6 +29,7 @@ class SaleHistoryItem {
     SalePaymentMethod? paymentMethod,
   }) {
     return SaleHistoryItem(
+      id: id ?? this.id,
       number: number ?? this.number,
       clientName: clientName ?? this.clientName,
       clientCi: clientCi ?? this.clientCi,

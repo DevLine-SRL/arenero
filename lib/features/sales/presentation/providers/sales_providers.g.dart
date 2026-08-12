@@ -237,6 +237,54 @@ final class GetSalesHistoryUseCaseProvider
 String _$getSalesHistoryUseCaseHash() =>
     r'bf4cbf673d21e3d893d35cd872e9bb763575df2f';
 
+@ProviderFor(getSaleDetailUseCase)
+final getSaleDetailUseCaseProvider = GetSaleDetailUseCaseProvider._();
+
+final class GetSaleDetailUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GetSaleDetailUseCase,
+          GetSaleDetailUseCase,
+          GetSaleDetailUseCase
+        >
+    with $Provider<GetSaleDetailUseCase> {
+  GetSaleDetailUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getSaleDetailUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$getSaleDetailUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetSaleDetailUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GetSaleDetailUseCase create(Ref ref) {
+    return getSaleDetailUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetSaleDetailUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GetSaleDetailUseCase>(value),
+    );
+  }
+}
+
+String _$getSaleDetailUseCaseHash() =>
+    r'abab35da03e53ae8ddebba395c9232e482074664';
+
 @ProviderFor(voidSaleUseCase)
 final voidSaleUseCaseProvider = VoidSaleUseCaseProvider._();
 
