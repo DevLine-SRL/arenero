@@ -1,6 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/providers/app_database_provider.dart';
+import '../../../../core/providers/is_online_provider.dart';
 import '../../../../core/providers/supabase_client_provider.dart';
+import '../../data/datasources/auth_local_datasource.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user.dart';
@@ -24,9 +27,18 @@ AuthRemoteDataSource authRemoteDataSource(Ref ref) {
   return AuthRemoteDataSourceImpl(ref.watch(supabaseClientProvider));
 }
 
+@riverpod
+AuthLocalDataSource authLocalDataSource(Ref ref) {
+  return AuthLocalDataSourceImpl(ref.watch(appDatabaseProvider));
+}
+
 @Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) {
-  return AuthRepositoryImpl(ref.watch(authRemoteDataSourceProvider));
+  return AuthRepositoryImpl(
+    ref.watch(authRemoteDataSourceProvider),
+    ref.watch(authLocalDataSourceProvider),
+    isOnline: () => ref.read(isOnlineProvider),
+  );
 }
 
 @riverpod

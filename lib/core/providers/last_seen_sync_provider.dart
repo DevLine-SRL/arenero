@@ -7,6 +7,7 @@ import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/providers/logout_provider.dart';
 import '../config/app_config.dart';
 import '../errors/failures.dart';
+import 'is_online_provider.dart';
 
 part 'last_seen_sync_provider.g.dart';
 
@@ -49,6 +50,7 @@ class LastSeenSync extends _$LastSeenSync {
 
   Future<bool> _touch() async {
     if (ref.read(authSessionProvider).value == null) return false;
+    if (!ref.read(isOnlineProvider)) return true;
 
     final result = await ref.read(touchLastSeenUseCaseProvider)();
     if (!ref.mounted) return false;

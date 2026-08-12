@@ -40,7 +40,7 @@ final class LastSeenSyncProvider extends $NotifierProvider<LastSeenSync, void> {
   }
 }
 
-String _$lastSeenSyncHash() => r'1658479d90d16689afee2adc847408146a67bb0c';
+String _$lastSeenSyncHash() => r'1378180a52a65fbe35dc81ff00522ca18be9c6c6';
 
 abstract class _$LastSeenSync extends $Notifier<void> {
   void build();

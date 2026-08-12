@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
@@ -7,12 +9,19 @@ import '../../../../shared/value_objects/password.dart';
 import '../../domain/entities/login_lock_status.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../datasources/auth_local_datasource.dart';
 import '../datasources/auth_remote_datasource.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
+  final AuthLocalDataSource localDataSource;
+  final bool Function() isOnline;
 
-  const AuthRepositoryImpl(this.remoteDataSource);
+  const AuthRepositoryImpl(
+    this.remoteDataSource,
+    this.localDataSource, {
+    required this.isOnline,
+  });
 
   @override
   Future<Either<Failure, User>> login({
@@ -24,6 +33,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email.value,
         password: password,
       );
+      await _persistProfile(user);
       return Right(user);
     } on supabase.AuthRetryableFetchException {
       return const Left(NetworkFailure());
@@ -44,10 +54,36 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> logout() => remoteDataSource.logout();
 
   @override
-  Stream<User?> watchAuthState() => remoteDataSource.watchAuthState();
+  Stream<User?> watchAuthState() async* {
+    try {
+      final stream = remoteDataSource.watchAuthState();
+      await for (final user in stream) {
+        yield user;
+        if (user != null) {
+          unawaited(_persistProfile(user));
+        }
+      }
+    } on ProfileUnavailableException catch (e) {
+      final cached = await _cachedProfile(e.userId);
+      yield cached;
+    } catch (_) {
+      // Un error inesperado del stream remoto no debe derribar la sesión.
+    }
+  }
 
   @override
-  Future<User?> currentUser() => remoteDataSource.currentUser();
+  Future<User?> currentUser() async {
+    if (!isOnline()) {
+      return _cachedProfileForActiveSession();
+    }
+    try {
+      return await remoteDataSource.currentUser();
+    } on ProfileUnavailableException catch (e) {
+      return _cachedProfile(e.userId);
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   Future<Either<Failure, DateTime?>> touchLastSeen() async {
@@ -173,6 +209,30 @@ class AuthRepositoryImpl implements AuthRepository {
           message: 'No se pudo cambiar la contraseña. Inténtalo de nuevo.',
         ),
       );
+    }
+  }
+
+  /// Persiste el perfil en la caché local sin propagar sus errores: una caché
+  /// que falla no debe invalidar una sesión ya confirmada por el remoto.
+  Future<void> _persistProfile(User user) async {
+    try {
+      await localDataSource.upsertProfile(user);
+    } catch (_) {
+      // La caché se rellenará en la próxima lectura con red.
+    }
+  }
+
+  Future<User?> _cachedProfileForActiveSession() async {
+    final userId = remoteDataSource.activeUserId();
+    if (userId == null) return null;
+    return _cachedProfile(userId);
+  }
+
+  Future<User?> _cachedProfile(String userId) async {
+    try {
+      return await localDataSource.getProfile(userId);
+    } catch (_) {
+      return null;
     }
   }
 

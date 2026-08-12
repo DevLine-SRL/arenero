@@ -7,6 +7,7 @@ abstract class AuthRemoteDataSource {
   Future<void> logout();
   Stream<UserModel?> watchAuthState();
   Future<UserModel?> currentUser();
+  String? activeUserId();
   Future<DateTime?> touchLastSeen();
   Future<Map<String, dynamic>> getLoginLock();
   Future<Map<String, dynamic>> registerFailedLogin();
@@ -62,12 +63,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final user = data.session?.user;
       if (user == null) return null;
 
-      final profile = await _fetchProfile(user.id);
-      if (profile == null || profile['active'] == false) {
-        await client.auth.signOut();
-        return null;
+      try {
+        final profile = await _fetchProfile(user.id);
+        if (profile == null || profile['active'] == false) {
+          await client.auth.signOut();
+          return null;
+        }
+        return UserModel.fromProfile(user, profile);
+      } catch (_) {
+        throw ProfileUnavailableException(user.id);
       }
-      return UserModel.fromProfile(user, profile);
     });
   }
 
@@ -76,9 +81,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final user = client.auth.currentUser;
     if (user == null) return null;
 
-    final profile = await _fetchProfile(user.id);
-    if (profile == null || profile['active'] == false) return null;
-    return UserModel.fromProfile(user, profile);
+    try {
+      final profile = await _fetchProfile(user.id);
+      if (profile == null || profile['active'] == false) return null;
+      return UserModel.fromProfile(user, profile);
+    } catch (_) {
+      throw ProfileUnavailableException(user.id);
+    }
+  }
+
+  @override
+  String? activeUserId() {
+    return client.auth.currentUser?.id;
   }
 
   @override
@@ -152,4 +166,13 @@ class AccountDisabledRemoteException implements Exception {
 
   @override
   String toString() => 'AccountDisabledRemoteException';
+}
+
+class ProfileUnavailableException implements Exception {
+  const ProfileUnavailableException(this.userId);
+
+  final String userId;
+
+  @override
+  String toString() => 'ProfileUnavailableException($userId)';
 }
