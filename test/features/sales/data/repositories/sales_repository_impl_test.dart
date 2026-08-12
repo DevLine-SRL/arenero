@@ -1,0 +1,119 @@
+import 'package:arenero/core/errors/failures.dart';
+import 'package:arenero/features/sales/data/models/sale_detail_model.dart';
+import 'package:arenero/features/sales/data/repositories/sales_repository_impl.dart';
+import 'package:arenero/features/products/domain/entities/product.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+
+import '../../../../support/fakes/fake_sales_remote_datasource.dart';
+
+Failure _failureOf(dynamic result) {
+  return result.fold(
+    (failure) => failure as Failure,
+    (_) => fail('expected a Left, got a Right'),
+  );
+}
+
+void main() {
+  late FakeSalesRemoteDataSource dataSource;
+  late SalesRepositoryImpl repository;
+
+  setUp(() {
+    dataSource = FakeSalesRemoteDataSource();
+    repository = SalesRepositoryImpl(dataSource);
+  });
+
+  group('getSaleById', () {
+    test('forwards the sale id to the data source', () async {
+      await repository.getSaleById('sale-42');
+
+      expect(dataSource.lastRequestedSaleId, 'sale-42');
+      expect(dataSource.getSaleByIdCallCount, 1);
+    });
+
+    test('returns the sale on success', () async {
+      final result = await repository.getSaleById('sale-1');
+
+      final sale = result.fold(
+        (failure) => fail('expected a Right, got $failure'),
+        (sale) => sale,
+      );
+      expect(sale.number, 12);
+      expect(sale.details, hasLength(1));
+    });
+
+    test(
+      'keeps the price the line was sold at, not the catalog price',
+      () async {
+        // El producto hoy cuesta 15, pero esta venta se cerró a 10.
+        dataSource.saleToReturn = buildSaleModel(
+          total: 20,
+          details: const [
+            SaleDetailModel(
+              id: 'detail-1',
+              productUnitId: 'product-unit-1',
+              unit: ProductUnitOfMeasure.m3,
+              quantity: 2,
+              unitPrice: 10,
+              productName: 'Arena fina',
+            ),
+          ],
+        );
+
+        final result = await repository.getSaleById('sale-1');
+
+        final sale = result.fold(
+          (failure) => fail('expected a Right, got $failure'),
+          (sale) => sale,
+        );
+        expect(sale.details.single.unitPrice, 10);
+        expect(sale.details.single.subtotal, 20);
+      },
+    );
+
+    test('maps a missing sale to a NotFoundFailure', () async {
+      dataSource.errorToThrow = supabase.PostgrestException(
+        message: 'La venta no existe.',
+        code: 'PGRST116',
+      );
+
+      final failure = _failureOf(await repository.getSaleById('sale-1'));
+
+      expect(failure, isA<NotFoundFailure>());
+      expect(failure.message, 'La venta no existe.');
+    });
+
+    test('maps a denied read to an UnauthorizedFailure', () async {
+      dataSource.errorToThrow = supabase.PostgrestException(
+        message: 'permission denied',
+        code: '42501',
+      );
+
+      final failure = _failureOf(await repository.getSaleById('sale-1'));
+
+      expect(failure, isA<UnauthorizedFailure>());
+      expect(failure.message, contains('No tienes permisos'));
+    });
+
+    test('maps an unknown postgrest code to an UnexpectedFailure', () async {
+      dataSource.errorToThrow = supabase.PostgrestException(
+        message: 'boom',
+        code: '08006',
+      );
+
+      final failure = _failureOf(await repository.getSaleById('sale-1'));
+
+      expect(failure, isA<UnexpectedFailure>());
+      expect(failure.code, '08006');
+    });
+
+    test('maps a non-postgrest error to an UnexpectedFailure', () async {
+      dataSource.errorToThrow = StateError('socket closed');
+
+      final failure = _failureOf(await repository.getSaleById('sale-1'));
+
+      expect(failure, isA<UnexpectedFailure>());
+      expect(failure.message, contains('No se pudo obtener el detalle'));
+    });
+  });
+}
