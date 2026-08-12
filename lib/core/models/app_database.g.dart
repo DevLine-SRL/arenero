@@ -2575,6 +2575,29 @@ class $LocalSaleDetailsTable extends LocalSaleDetails
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('synced'),
+  );
+  static const VerificationMeta _syncErrorMeta = const VerificationMeta(
+    'syncError',
+  );
+  @override
+  late final GeneratedColumn<String> syncError = GeneratedColumn<String>(
+    'sync_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2585,6 +2608,8 @@ class $LocalSaleDetailsTable extends LocalSaleDetails
     unitPrice,
     discount,
     productName,
+    syncStatus,
+    syncError,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2663,6 +2688,18 @@ class $LocalSaleDetailsTable extends LocalSaleDetails
         ),
       );
     }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('sync_error')) {
+      context.handle(
+        _syncErrorMeta,
+        syncError.isAcceptableOrUnknown(data['sync_error']!, _syncErrorMeta),
+      );
+    }
     return context;
   }
 
@@ -2704,6 +2741,14 @@ class $LocalSaleDetailsTable extends LocalSaleDetails
         DriftSqlType.string,
         data['${effectivePrefix}product_name'],
       ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      syncError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_error'],
+      ),
     );
   }
 
@@ -2722,6 +2767,8 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
   final double unitPrice;
   final double discount;
   final String? productName;
+  final String syncStatus;
+  final String? syncError;
   const LocalSaleDetail({
     required this.id,
     required this.saleId,
@@ -2731,6 +2778,8 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
     required this.unitPrice,
     required this.discount,
     this.productName,
+    required this.syncStatus,
+    this.syncError,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2744,6 +2793,10 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
     map['discount'] = Variable<double>(discount);
     if (!nullToAbsent || productName != null) {
       map['product_name'] = Variable<String>(productName);
+    }
+    map['sync_status'] = Variable<String>(syncStatus);
+    if (!nullToAbsent || syncError != null) {
+      map['sync_error'] = Variable<String>(syncError);
     }
     return map;
   }
@@ -2760,6 +2813,10 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
       productName: productName == null && nullToAbsent
           ? const Value.absent()
           : Value(productName),
+      syncStatus: Value(syncStatus),
+      syncError: syncError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncError),
     );
   }
 
@@ -2777,6 +2834,8 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
       unitPrice: serializer.fromJson<double>(json['unitPrice']),
       discount: serializer.fromJson<double>(json['discount']),
       productName: serializer.fromJson<String?>(json['productName']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      syncError: serializer.fromJson<String?>(json['syncError']),
     );
   }
   @override
@@ -2791,6 +2850,8 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
       'unitPrice': serializer.toJson<double>(unitPrice),
       'discount': serializer.toJson<double>(discount),
       'productName': serializer.toJson<String?>(productName),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'syncError': serializer.toJson<String?>(syncError),
     };
   }
 
@@ -2803,6 +2864,8 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
     double? unitPrice,
     double? discount,
     Value<String?> productName = const Value.absent(),
+    String? syncStatus,
+    Value<String?> syncError = const Value.absent(),
   }) => LocalSaleDetail(
     id: id ?? this.id,
     saleId: saleId ?? this.saleId,
@@ -2812,6 +2875,8 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
     unitPrice: unitPrice ?? this.unitPrice,
     discount: discount ?? this.discount,
     productName: productName.present ? productName.value : this.productName,
+    syncStatus: syncStatus ?? this.syncStatus,
+    syncError: syncError.present ? syncError.value : this.syncError,
   );
   LocalSaleDetail copyWithCompanion(LocalSaleDetailsCompanion data) {
     return LocalSaleDetail(
@@ -2827,6 +2892,10 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
       productName: data.productName.present
           ? data.productName.value
           : this.productName,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      syncError: data.syncError.present ? data.syncError.value : this.syncError,
     );
   }
 
@@ -2840,7 +2909,9 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
           ..write('quantity: $quantity, ')
           ..write('unitPrice: $unitPrice, ')
           ..write('discount: $discount, ')
-          ..write('productName: $productName')
+          ..write('productName: $productName, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('syncError: $syncError')
           ..write(')'))
         .toString();
   }
@@ -2855,6 +2926,8 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
     unitPrice,
     discount,
     productName,
+    syncStatus,
+    syncError,
   );
   @override
   bool operator ==(Object other) =>
@@ -2867,7 +2940,9 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
           other.quantity == this.quantity &&
           other.unitPrice == this.unitPrice &&
           other.discount == this.discount &&
-          other.productName == this.productName);
+          other.productName == this.productName &&
+          other.syncStatus == this.syncStatus &&
+          other.syncError == this.syncError);
 }
 
 class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
@@ -2879,6 +2954,8 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
   final Value<double> unitPrice;
   final Value<double> discount;
   final Value<String?> productName;
+  final Value<String> syncStatus;
+  final Value<String?> syncError;
   final Value<int> rowid;
   const LocalSaleDetailsCompanion({
     this.id = const Value.absent(),
@@ -2889,6 +2966,8 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
     this.unitPrice = const Value.absent(),
     this.discount = const Value.absent(),
     this.productName = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.syncError = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   LocalSaleDetailsCompanion.insert({
@@ -2900,6 +2979,8 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
     required double unitPrice,
     required double discount,
     this.productName = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.syncError = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        saleId = Value(saleId),
@@ -2917,6 +2998,8 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
     Expression<double>? unitPrice,
     Expression<double>? discount,
     Expression<String>? productName,
+    Expression<String>? syncStatus,
+    Expression<String>? syncError,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2928,6 +3011,8 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
       if (unitPrice != null) 'unit_price': unitPrice,
       if (discount != null) 'discount': discount,
       if (productName != null) 'product_name': productName,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (syncError != null) 'sync_error': syncError,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2941,6 +3026,8 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
     Value<double>? unitPrice,
     Value<double>? discount,
     Value<String?>? productName,
+    Value<String>? syncStatus,
+    Value<String?>? syncError,
     Value<int>? rowid,
   }) {
     return LocalSaleDetailsCompanion(
@@ -2952,6 +3039,8 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
       unitPrice: unitPrice ?? this.unitPrice,
       discount: discount ?? this.discount,
       productName: productName ?? this.productName,
+      syncStatus: syncStatus ?? this.syncStatus,
+      syncError: syncError ?? this.syncError,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2983,6 +3072,12 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
     if (productName.present) {
       map['product_name'] = Variable<String>(productName.value);
     }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (syncError.present) {
+      map['sync_error'] = Variable<String>(syncError.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3000,6 +3095,8 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
           ..write('unitPrice: $unitPrice, ')
           ..write('discount: $discount, ')
           ..write('productName: $productName, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('syncError: $syncError, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3063,6 +3160,29 @@ class $LocalSaleDeliveriesTable extends LocalSaleDeliveries
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('synced'),
+  );
+  static const VerificationMeta _syncErrorMeta = const VerificationMeta(
+    'syncError',
+  );
+  @override
+  late final GeneratedColumn<String> syncError = GeneratedColumn<String>(
+    'sync_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -3070,6 +3190,8 @@ class $LocalSaleDeliveriesTable extends LocalSaleDeliveries
     deliveryAddress,
     vehiclePlate,
     deliveryDate,
+    syncStatus,
+    syncError,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3123,6 +3245,18 @@ class $LocalSaleDeliveriesTable extends LocalSaleDeliveries
         ),
       );
     }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('sync_error')) {
+      context.handle(
+        _syncErrorMeta,
+        syncError.isAcceptableOrUnknown(data['sync_error']!, _syncErrorMeta),
+      );
+    }
     return context;
   }
 
@@ -3152,6 +3286,14 @@ class $LocalSaleDeliveriesTable extends LocalSaleDeliveries
         DriftSqlType.dateTime,
         data['${effectivePrefix}delivery_date'],
       ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      syncError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_error'],
+      ),
     );
   }
 
@@ -3168,12 +3310,16 @@ class LocalSaleDelivery extends DataClass
   final String? deliveryAddress;
   final String? vehiclePlate;
   final DateTime? deliveryDate;
+  final String syncStatus;
+  final String? syncError;
   const LocalSaleDelivery({
     required this.id,
     required this.saleId,
     this.deliveryAddress,
     this.vehiclePlate,
     this.deliveryDate,
+    required this.syncStatus,
+    this.syncError,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3188,6 +3334,10 @@ class LocalSaleDelivery extends DataClass
     }
     if (!nullToAbsent || deliveryDate != null) {
       map['delivery_date'] = Variable<DateTime>(deliveryDate);
+    }
+    map['sync_status'] = Variable<String>(syncStatus);
+    if (!nullToAbsent || syncError != null) {
+      map['sync_error'] = Variable<String>(syncError);
     }
     return map;
   }
@@ -3205,6 +3355,10 @@ class LocalSaleDelivery extends DataClass
       deliveryDate: deliveryDate == null && nullToAbsent
           ? const Value.absent()
           : Value(deliveryDate),
+      syncStatus: Value(syncStatus),
+      syncError: syncError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncError),
     );
   }
 
@@ -3219,6 +3373,8 @@ class LocalSaleDelivery extends DataClass
       deliveryAddress: serializer.fromJson<String?>(json['deliveryAddress']),
       vehiclePlate: serializer.fromJson<String?>(json['vehiclePlate']),
       deliveryDate: serializer.fromJson<DateTime?>(json['deliveryDate']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      syncError: serializer.fromJson<String?>(json['syncError']),
     );
   }
   @override
@@ -3230,6 +3386,8 @@ class LocalSaleDelivery extends DataClass
       'deliveryAddress': serializer.toJson<String?>(deliveryAddress),
       'vehiclePlate': serializer.toJson<String?>(vehiclePlate),
       'deliveryDate': serializer.toJson<DateTime?>(deliveryDate),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'syncError': serializer.toJson<String?>(syncError),
     };
   }
 
@@ -3239,6 +3397,8 @@ class LocalSaleDelivery extends DataClass
     Value<String?> deliveryAddress = const Value.absent(),
     Value<String?> vehiclePlate = const Value.absent(),
     Value<DateTime?> deliveryDate = const Value.absent(),
+    String? syncStatus,
+    Value<String?> syncError = const Value.absent(),
   }) => LocalSaleDelivery(
     id: id ?? this.id,
     saleId: saleId ?? this.saleId,
@@ -3247,6 +3407,8 @@ class LocalSaleDelivery extends DataClass
         : this.deliveryAddress,
     vehiclePlate: vehiclePlate.present ? vehiclePlate.value : this.vehiclePlate,
     deliveryDate: deliveryDate.present ? deliveryDate.value : this.deliveryDate,
+    syncStatus: syncStatus ?? this.syncStatus,
+    syncError: syncError.present ? syncError.value : this.syncError,
   );
   LocalSaleDelivery copyWithCompanion(LocalSaleDeliveriesCompanion data) {
     return LocalSaleDelivery(
@@ -3261,6 +3423,10 @@ class LocalSaleDelivery extends DataClass
       deliveryDate: data.deliveryDate.present
           ? data.deliveryDate.value
           : this.deliveryDate,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      syncError: data.syncError.present ? data.syncError.value : this.syncError,
     );
   }
 
@@ -3271,14 +3437,23 @@ class LocalSaleDelivery extends DataClass
           ..write('saleId: $saleId, ')
           ..write('deliveryAddress: $deliveryAddress, ')
           ..write('vehiclePlate: $vehiclePlate, ')
-          ..write('deliveryDate: $deliveryDate')
+          ..write('deliveryDate: $deliveryDate, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('syncError: $syncError')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, saleId, deliveryAddress, vehiclePlate, deliveryDate);
+  int get hashCode => Object.hash(
+    id,
+    saleId,
+    deliveryAddress,
+    vehiclePlate,
+    deliveryDate,
+    syncStatus,
+    syncError,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3287,7 +3462,9 @@ class LocalSaleDelivery extends DataClass
           other.saleId == this.saleId &&
           other.deliveryAddress == this.deliveryAddress &&
           other.vehiclePlate == this.vehiclePlate &&
-          other.deliveryDate == this.deliveryDate);
+          other.deliveryDate == this.deliveryDate &&
+          other.syncStatus == this.syncStatus &&
+          other.syncError == this.syncError);
 }
 
 class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
@@ -3296,6 +3473,8 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
   final Value<String?> deliveryAddress;
   final Value<String?> vehiclePlate;
   final Value<DateTime?> deliveryDate;
+  final Value<String> syncStatus;
+  final Value<String?> syncError;
   final Value<int> rowid;
   const LocalSaleDeliveriesCompanion({
     this.id = const Value.absent(),
@@ -3303,6 +3482,8 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
     this.deliveryAddress = const Value.absent(),
     this.vehiclePlate = const Value.absent(),
     this.deliveryDate = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.syncError = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   LocalSaleDeliveriesCompanion.insert({
@@ -3311,6 +3492,8 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
     this.deliveryAddress = const Value.absent(),
     this.vehiclePlate = const Value.absent(),
     this.deliveryDate = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.syncError = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        saleId = Value(saleId);
@@ -3320,6 +3503,8 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
     Expression<String>? deliveryAddress,
     Expression<String>? vehiclePlate,
     Expression<DateTime>? deliveryDate,
+    Expression<String>? syncStatus,
+    Expression<String>? syncError,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3328,6 +3513,8 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
       if (deliveryAddress != null) 'delivery_address': deliveryAddress,
       if (vehiclePlate != null) 'vehicle_plate': vehiclePlate,
       if (deliveryDate != null) 'delivery_date': deliveryDate,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (syncError != null) 'sync_error': syncError,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3338,6 +3525,8 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
     Value<String?>? deliveryAddress,
     Value<String?>? vehiclePlate,
     Value<DateTime?>? deliveryDate,
+    Value<String>? syncStatus,
+    Value<String?>? syncError,
     Value<int>? rowid,
   }) {
     return LocalSaleDeliveriesCompanion(
@@ -3346,6 +3535,8 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
       deliveryAddress: deliveryAddress ?? this.deliveryAddress,
       vehiclePlate: vehiclePlate ?? this.vehiclePlate,
       deliveryDate: deliveryDate ?? this.deliveryDate,
+      syncStatus: syncStatus ?? this.syncStatus,
+      syncError: syncError ?? this.syncError,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3368,6 +3559,12 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
     if (deliveryDate.present) {
       map['delivery_date'] = Variable<DateTime>(deliveryDate.value);
     }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (syncError.present) {
+      map['sync_error'] = Variable<String>(syncError.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3382,6 +3579,8 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
           ..write('deliveryAddress: $deliveryAddress, ')
           ..write('vehiclePlate: $vehiclePlate, ')
           ..write('deliveryDate: $deliveryDate, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('syncError: $syncError, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5422,6 +5621,8 @@ typedef $$LocalSaleDetailsTableCreateCompanionBuilder =
       required double unitPrice,
       required double discount,
       Value<String?> productName,
+      Value<String> syncStatus,
+      Value<String?> syncError,
       Value<int> rowid,
     });
 typedef $$LocalSaleDetailsTableUpdateCompanionBuilder =
@@ -5434,6 +5635,8 @@ typedef $$LocalSaleDetailsTableUpdateCompanionBuilder =
       Value<double> unitPrice,
       Value<double> discount,
       Value<String?> productName,
+      Value<String> syncStatus,
+      Value<String?> syncError,
       Value<int> rowid,
     });
 
@@ -5483,6 +5686,16 @@ class $$LocalSaleDetailsTableFilterComposer
 
   ColumnFilters<String> get productName => $composableBuilder(
     column: $table.productName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncError => $composableBuilder(
+    column: $table.syncError,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -5535,6 +5748,16 @@ class $$LocalSaleDetailsTableOrderingComposer
     column: $table.productName,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncError => $composableBuilder(
+    column: $table.syncError,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$LocalSaleDetailsTableAnnotationComposer
@@ -5573,6 +5796,14 @@ class $$LocalSaleDetailsTableAnnotationComposer
     column: $table.productName,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncError =>
+      $composableBuilder(column: $table.syncError, builder: (column) => column);
 }
 
 class $$LocalSaleDetailsTableTableManager
@@ -5620,6 +5851,8 @@ class $$LocalSaleDetailsTableTableManager
                 Value<double> unitPrice = const Value.absent(),
                 Value<double> discount = const Value.absent(),
                 Value<String?> productName = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<String?> syncError = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LocalSaleDetailsCompanion(
                 id: id,
@@ -5630,6 +5863,8 @@ class $$LocalSaleDetailsTableTableManager
                 unitPrice: unitPrice,
                 discount: discount,
                 productName: productName,
+                syncStatus: syncStatus,
+                syncError: syncError,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -5642,6 +5877,8 @@ class $$LocalSaleDetailsTableTableManager
                 required double unitPrice,
                 required double discount,
                 Value<String?> productName = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<String?> syncError = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LocalSaleDetailsCompanion.insert(
                 id: id,
@@ -5652,6 +5889,8 @@ class $$LocalSaleDetailsTableTableManager
                 unitPrice: unitPrice,
                 discount: discount,
                 productName: productName,
+                syncStatus: syncStatus,
+                syncError: syncError,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -5686,6 +5925,8 @@ typedef $$LocalSaleDeliveriesTableCreateCompanionBuilder =
       Value<String?> deliveryAddress,
       Value<String?> vehiclePlate,
       Value<DateTime?> deliveryDate,
+      Value<String> syncStatus,
+      Value<String?> syncError,
       Value<int> rowid,
     });
 typedef $$LocalSaleDeliveriesTableUpdateCompanionBuilder =
@@ -5695,6 +5936,8 @@ typedef $$LocalSaleDeliveriesTableUpdateCompanionBuilder =
       Value<String?> deliveryAddress,
       Value<String?> vehiclePlate,
       Value<DateTime?> deliveryDate,
+      Value<String> syncStatus,
+      Value<String?> syncError,
       Value<int> rowid,
     });
 
@@ -5729,6 +5972,16 @@ class $$LocalSaleDeliveriesTableFilterComposer
 
   ColumnFilters<DateTime> get deliveryDate => $composableBuilder(
     column: $table.deliveryDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncError => $composableBuilder(
+    column: $table.syncError,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -5766,6 +6019,16 @@ class $$LocalSaleDeliveriesTableOrderingComposer
     column: $table.deliveryDate,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncError => $composableBuilder(
+    column: $table.syncError,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$LocalSaleDeliveriesTableAnnotationComposer
@@ -5797,6 +6060,14 @@ class $$LocalSaleDeliveriesTableAnnotationComposer
     column: $table.deliveryDate,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncError =>
+      $composableBuilder(column: $table.syncError, builder: (column) => column);
 }
 
 class $$LocalSaleDeliveriesTableTableManager
@@ -5847,6 +6118,8 @@ class $$LocalSaleDeliveriesTableTableManager
                 Value<String?> deliveryAddress = const Value.absent(),
                 Value<String?> vehiclePlate = const Value.absent(),
                 Value<DateTime?> deliveryDate = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<String?> syncError = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LocalSaleDeliveriesCompanion(
                 id: id,
@@ -5854,6 +6127,8 @@ class $$LocalSaleDeliveriesTableTableManager
                 deliveryAddress: deliveryAddress,
                 vehiclePlate: vehiclePlate,
                 deliveryDate: deliveryDate,
+                syncStatus: syncStatus,
+                syncError: syncError,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -5863,6 +6138,8 @@ class $$LocalSaleDeliveriesTableTableManager
                 Value<String?> deliveryAddress = const Value.absent(),
                 Value<String?> vehiclePlate = const Value.absent(),
                 Value<DateTime?> deliveryDate = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<String?> syncError = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LocalSaleDeliveriesCompanion.insert(
                 id: id,
@@ -5870,6 +6147,8 @@ class $$LocalSaleDeliveriesTableTableManager
                 deliveryAddress: deliveryAddress,
                 vehiclePlate: vehiclePlate,
                 deliveryDate: deliveryDate,
+                syncStatus: syncStatus,
+                syncError: syncError,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

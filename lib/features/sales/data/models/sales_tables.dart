@@ -28,6 +28,8 @@ class LocalSaleDetails extends Table {
   RealColumn get unitPrice => real()();
   RealColumn get discount => real()();
   TextColumn get productName => text().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('synced'))();
+  TextColumn get syncError => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -39,6 +41,8 @@ class LocalSaleDeliveries extends Table {
   TextColumn get deliveryAddress => text().nullable()();
   TextColumn get vehiclePlate => text().nullable()();
   DateTimeColumn get deliveryDate => dateTime().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('synced'))();
+  TextColumn get syncError => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
