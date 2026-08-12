@@ -143,6 +143,35 @@ class SalesRepositoryImpl implements SalesRepository {
   }
 
   @override
+  Future<dartz.Either<Failure, Sale>> getSaleById(String saleId) async {
+    try {
+      final sale = await remoteDataSource.getSaleById(saleId);
+      return dartz.Right(sale);
+    } on supabase.PostgrestException catch (e) {
+      return dartz.Left(_mapDetailError(e));
+    } catch (_) {
+      return const dartz.Left(
+        UnexpectedFailure(
+          message: 'No se pudo obtener el detalle de la venta.',
+        ),
+      );
+    }
+  }
+
+  Failure _mapDetailError(supabase.PostgrestException e) {
+    return switch (e.code) {
+      'PGRST116' => const NotFoundFailure(message: 'La venta no existe.'),
+      '42501' => const UnauthorizedFailure(
+        message: 'No tienes permisos para ver esta venta.',
+      ),
+      _ => UnexpectedFailure(
+        message: 'No se pudo obtener el detalle de la venta.',
+        code: e.code,
+      ),
+    };
+  }
+
+  @override
   Future<dartz.Either<Failure, dartz.Unit>> voidSale(String saleId) async {
     try {
       await remoteDataSource.voidSale(saleId);

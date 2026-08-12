@@ -6,8 +6,10 @@ import 'sale_delivery_model.dart';
 class SaleModel extends Sale {
   const SaleModel({
     super.id,
+    super.number,
     required super.client,
     required super.sellerId,
+    super.sellerName,
     required super.saleDate,
     required super.deliveryMode,
     required super.paymentMethod,
@@ -21,8 +23,10 @@ class SaleModel extends Sale {
   factory SaleModel.fromJson(Map<String, dynamic> json) {
     return SaleModel(
       id: json['id'] as String?,
+      number: json['number'] as int?,
       client: ClientModel.fromJson(json['client'] as Map<String, dynamic>),
       sellerId: json['seller_id'] as String,
+      sellerName: _sellerNameFromJson(json['seller']),
       saleDate: DateTime.parse(json['sale_date'] as String),
       deliveryMode: SaleDeliveryMode.fromDatabase(
         json['delivery_mode'] as String,
@@ -38,6 +42,15 @@ class SaleModel extends Sale {
     );
   }
 
+  /// `profiles.name` es opcional; si falta se usa el correo, que sí es
+  /// obligatorio, para no dejar el detalle sin vendedor.
+  static String? _sellerNameFromJson(Object? raw) {
+    if (raw is! Map) return null;
+    final name = raw['name'] as String?;
+    if (name != null && name.trim().isNotEmpty) return name;
+    return raw['email'] as String?;
+  }
+
   static List<SaleDetailModel> _detailsFromJson(Object? raw) {
     if (raw is! List) return const [];
     return [
@@ -49,14 +62,16 @@ class SaleModel extends Sale {
     ];
   }
 
+  /// `sale_deliveries.sale_id` es UNIQUE, así que PostgREST trata la relación
+  /// como uno a uno y devuelve un objeto en vez de un arreglo. Se aceptan las
+  /// dos formas para no depender de cómo infiera la cardinalidad.
   static SaleDeliveryModel? _deliveryFromJson(Object? raw) {
-    if (raw is! List || raw.isEmpty) return null;
-    final first = raw.first;
-    if (first is Map<String, dynamic>) {
-      return SaleDeliveryModel.fromJson(first);
+    final source = raw is List ? (raw.isEmpty ? null : raw.first) : raw;
+    if (source is Map<String, dynamic>) {
+      return SaleDeliveryModel.fromJson(source);
     }
-    if (first is Map) {
-      return SaleDeliveryModel.fromJson(Map<String, dynamic>.from(first));
+    if (source is Map) {
+      return SaleDeliveryModel.fromJson(Map<String, dynamic>.from(source));
     }
     return null;
   }

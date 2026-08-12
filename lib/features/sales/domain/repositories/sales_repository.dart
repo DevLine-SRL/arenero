@@ -28,5 +28,7 @@ abstract class SalesRepository {
     DateTime? to,
   });
 
+  Future<Either<Failure, Sale>> getSaleById(String saleId);
+
   Future<Either<Failure, Unit>> voidSale(String saleId);
 }

@@ -59,6 +59,9 @@ class Sale {
   final int? number;
   final Client client;
   final String sellerId;
+
+  /// Nombre del vendedor. Solo viene en la consulta de detalle.
+  final String? sellerName;
   final DateTime saleDate;
   final SaleDeliveryMode deliveryMode;
   final SalePaymentMethod paymentMethod;
@@ -73,6 +76,7 @@ class Sale {
     this.number,
     required this.client,
     required this.sellerId,
+    this.sellerName,
     required this.saleDate,
     required this.deliveryMode,
     required this.paymentMethod,
@@ -93,6 +97,7 @@ class Sale {
     int? number,
     Client? client,
     String? sellerId,
+    String? sellerName,
     DateTime? saleDate,
     SaleDeliveryMode? deliveryMode,
     SalePaymentMethod? paymentMethod,
@@ -109,6 +114,7 @@ class Sale {
       number: number ?? this.number,
       client: client ?? this.client,
       sellerId: sellerId ?? this.sellerId,
+      sellerName: sellerName ?? this.sellerName,
       saleDate: saleDate ?? this.saleDate,
       deliveryMode: deliveryMode ?? this.deliveryMode,
       paymentMethod: paymentMethod ?? this.paymentMethod,
