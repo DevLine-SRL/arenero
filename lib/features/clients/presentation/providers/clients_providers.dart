@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/providers/app_database_provider.dart';
+import '../../../../core/providers/is_online_provider.dart';
 import '../../../../core/providers/supabase_client_provider.dart';
 import '../../data/datasources/clients_local_datasource.dart';
 import '../../data/datasources/clients_remote_datasource.dart';
@@ -27,6 +28,7 @@ ClientsRepository clientsRepository(Ref ref) {
   return ClientsRepositoryImpl(
     ref.watch(clientsRemoteDataSourceProvider),
     ref.watch(clientsLocalDataSourceProvider),
+    isOnline: () => ref.read(isOnlineProvider),
   );
 }
 

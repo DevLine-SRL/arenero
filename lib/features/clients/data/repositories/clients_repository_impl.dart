@@ -12,14 +12,22 @@ import '../datasources/clients_remote_datasource.dart';
 class ClientsRepositoryImpl implements ClientsRepository {
   final ClientsRemoteDataSource remoteDataSource;
   final ClientsLocalDataSource localDataSource;
+  final bool Function() isOnline;
 
-  const ClientsRepositoryImpl(this.remoteDataSource, this.localDataSource);
+  const ClientsRepositoryImpl(
+    this.remoteDataSource,
+    this.localDataSource, {
+    required this.isOnline,
+  });
 
   @override
   Future<Either<Failure, List<Client>>> searchClients({
     required String query,
     bool includeInactive = false,
   }) async {
+    if (!isOnline()) {
+      return _cachedClients(query: query, includeInactive: includeInactive);
+    }
     try {
       final clients = await remoteDataSource.searchClients(
         query: query,
@@ -70,6 +78,9 @@ class ClientsRepositoryImpl implements ClientsRepository {
     String? phone,
     String? nit,
   }) async {
+    if (!isOnline()) {
+      return const Left(NetworkFailure());
+    }
     try {
       final client = await remoteDataSource.createClient(
         name: name,
@@ -95,6 +106,15 @@ class ClientsRepositoryImpl implements ClientsRepository {
 
   @override
   Future<Either<Failure, bool>> existsByCi(Ci ci) async {
+    if (!isOnline()) {
+      try {
+        return Right(await localDataSource.existsByCi(ci.value));
+      } catch (_) {
+        return const Left(
+          CacheFailure(message: 'No se pudo verificar la cédula localmente.'),
+        );
+      }
+    }
     try {
       return Right(await remoteDataSource.existsByCi(ci.value));
     } on supabase.PostgrestException catch (e) {
@@ -123,6 +143,9 @@ class ClientsRepositoryImpl implements ClientsRepository {
     String? phone,
     String? nit,
   }) async {
+    if (!isOnline()) {
+      return const Left(NetworkFailure());
+    }
     try {
       final client = await remoteDataSource.updateClient(
         id: id,
@@ -151,6 +174,9 @@ class ClientsRepositoryImpl implements ClientsRepository {
 
   @override
   Future<Either<Failure, Unit>> setActive(String id, bool active) async {
+    if (!isOnline()) {
+      return const Left(NetworkFailure());
+    }
     try {
       await remoteDataSource.setActive(id, active);
       await _syncLocal(() => localDataSource.setActive(id, active));

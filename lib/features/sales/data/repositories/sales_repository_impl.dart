@@ -13,8 +13,9 @@ import '../models/sale_delivery_model.dart';
 
 class SalesRepositoryImpl implements SalesRepository {
   final SalesRemoteDataSource remoteDataSource;
+  final bool Function() isOnline;
 
-  const SalesRepositoryImpl(this.remoteDataSource);
+  const SalesRepositoryImpl(this.remoteDataSource, {required this.isOnline});
 
   @override
   Future<dartz.Either<Failure, Sale>> registerSale({
@@ -26,6 +27,9 @@ class SalesRepositoryImpl implements SalesRepository {
     SaleDelivery? delivery,
     required List<SaleDetail> details,
   }) async {
+    if (!isOnline()) {
+      return const dartz.Left(NetworkFailure());
+    }
     try {
       final sale = await remoteDataSource.registerSale(
         clientId: clientId,
@@ -90,6 +94,9 @@ class SalesRepositoryImpl implements SalesRepository {
     DateTime? from,
     DateTime? to,
   }) async {
+    if (!isOnline()) {
+      return const dartz.Left(NetworkFailure());
+    }
     try {
       final sales = await remoteDataSource.getSales(
         status: status,
@@ -116,6 +123,9 @@ class SalesRepositoryImpl implements SalesRepository {
     DateTime? from,
     DateTime? to,
   }) async {
+    if (!isOnline()) {
+      return const dartz.Left(NetworkFailure());
+    }
     try {
       final items = await remoteDataSource.getSalesHistory(from: from, to: to);
       return dartz.Right(items);
@@ -144,6 +154,9 @@ class SalesRepositoryImpl implements SalesRepository {
 
   @override
   Future<dartz.Either<Failure, Sale>> getSaleById(String saleId) async {
+    if (!isOnline()) {
+      return const dartz.Left(NetworkFailure());
+    }
     try {
       final sale = await remoteDataSource.getSaleById(saleId);
       return dartz.Right(sale);
@@ -173,6 +186,9 @@ class SalesRepositoryImpl implements SalesRepository {
 
   @override
   Future<dartz.Either<Failure, dartz.Unit>> voidSale(String saleId) async {
+    if (!isOnline()) {
+      return const dartz.Left(NetworkFailure());
+    }
     try {
       await remoteDataSource.voidSale(saleId);
       return const dartz.Right(dartz.unit);

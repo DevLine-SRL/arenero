@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/providers/app_database_provider.dart';
+import '../../../../core/providers/is_online_provider.dart';
 import '../../../../core/providers/supabase_client_provider.dart';
 import '../../data/datasources/products_local_datasource.dart';
 import '../../data/datasources/products_remote_datasource.dart';
@@ -29,6 +30,7 @@ ProductsRepository productsRepository(Ref ref) {
   return ProductsRepositoryImpl(
     ref.watch(productsRemoteDataSourceProvider),
     ref.watch(productsLocalDataSourceProvider),
+    isOnline: () => ref.read(isOnlineProvider),
   );
 }
 

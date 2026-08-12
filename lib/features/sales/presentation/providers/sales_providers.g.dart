@@ -97,7 +97,7 @@ final class SalesRepositoryProvider
   }
 }
 
-String _$salesRepositoryHash() => r'2d7d1d2ae3e912be7c2b19a0a4adf5d772ed9a0e';
+String _$salesRepositoryHash() => r'2167fe3e3915941a58d50690038d7077262c138e';
 
 @ProviderFor(registerSaleUseCase)
 final registerSaleUseCaseProvider = RegisterSaleUseCaseProvider._();

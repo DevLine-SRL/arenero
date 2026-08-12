@@ -11,11 +11,19 @@ import '../datasources/products_remote_datasource.dart';
 class ProductsRepositoryImpl implements ProductsRepository {
   final ProductsRemoteDataSource remoteDataSource;
   final ProductsLocalDataSource localDataSource;
+  final bool Function() isOnline;
 
-  const ProductsRepositoryImpl(this.remoteDataSource, this.localDataSource);
+  const ProductsRepositoryImpl(
+    this.remoteDataSource,
+    this.localDataSource, {
+    required this.isOnline,
+  });
 
   @override
   Future<dartz.Either<Failure, List<Product>>> getProducts() async {
+    if (!isOnline()) {
+      return _cachedProducts();
+    }
     try {
       final products = await remoteDataSource.getProducts();
       await localDataSource.replaceCatalog(products);
@@ -54,6 +62,9 @@ class ProductsRepositoryImpl implements ProductsRepository {
     required ProductUnitOfMeasure unit,
     required double unitPrice,
   }) async {
+    if (!isOnline()) {
+      return const dartz.Left(NetworkFailure());
+    }
     try {
       await remoteDataSource.createProduct(
         name: name,
@@ -96,6 +107,9 @@ class ProductsRepositoryImpl implements ProductsRepository {
     required String id,
     required String name,
   }) async {
+    if (!isOnline()) {
+      return const dartz.Left(NetworkFailure());
+    }
     try {
       await remoteDataSource.updateProductName(id: id, name: name);
       await _syncLocal(
@@ -141,6 +155,9 @@ class ProductsRepositoryImpl implements ProductsRepository {
     required String unitId,
     required double unitPrice,
   }) async {
+    if (!isOnline()) {
+      return const dartz.Left(NetworkFailure());
+    }
     try {
       await remoteDataSource.updateUnitPrice(
         unitId: unitId,
@@ -182,6 +199,9 @@ class ProductsRepositoryImpl implements ProductsRepository {
     String id,
     bool active,
   ) async {
+    if (!isOnline()) {
+      return const dartz.Left(NetworkFailure());
+    }
     try {
       await remoteDataSource.setActive(id, active);
       await _syncLocal(() => localDataSource.setActive(id, active));

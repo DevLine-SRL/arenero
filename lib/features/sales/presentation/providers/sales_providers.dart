@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/providers/is_online_provider.dart';
 import '../../../../core/providers/supabase_client_provider.dart';
 import '../../data/datasources/sales_remote_datasource.dart';
 import '../../data/repositories/sales_repository_impl.dart';
@@ -19,7 +20,10 @@ SalesRemoteDataSource salesRemoteDataSource(Ref ref) {
 
 @riverpod
 SalesRepository salesRepository(Ref ref) {
-  return SalesRepositoryImpl(ref.watch(salesRemoteDataSourceProvider));
+  return SalesRepositoryImpl(
+    ref.watch(salesRemoteDataSourceProvider),
+    isOnline: () => ref.read(isOnlineProvider),
+  );
 }
 
 @riverpod
