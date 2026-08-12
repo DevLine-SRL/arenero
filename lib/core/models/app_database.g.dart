@@ -66,6 +66,29 @@ class $LocalClientsTable extends LocalClients
       'CHECK ("active" IN (0, 1))',
     ),
   );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('synced'),
+  );
+  static const VerificationMeta _syncErrorMeta = const VerificationMeta(
+    'syncError',
+  );
+  @override
+  late final GeneratedColumn<String> syncError = GeneratedColumn<String>(
+    'sync_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -85,6 +108,8 @@ class $LocalClientsTable extends LocalClients
     ci,
     nit,
     active,
+    syncStatus,
+    syncError,
     updatedAt,
   ];
   @override
@@ -137,6 +162,18 @@ class $LocalClientsTable extends LocalClients
     } else if (isInserting) {
       context.missing(_activeMeta);
     }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('sync_error')) {
+      context.handle(
+        _syncErrorMeta,
+        syncError.isAcceptableOrUnknown(data['sync_error']!, _syncErrorMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -178,6 +215,14 @@ class $LocalClientsTable extends LocalClients
         DriftSqlType.bool,
         data['${effectivePrefix}active'],
       )!,
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      syncError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_error'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -198,6 +243,8 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
   final String ci;
   final String? nit;
   final bool active;
+  final String syncStatus;
+  final String? syncError;
   final DateTime updatedAt;
   const LocalClient({
     required this.id,
@@ -206,6 +253,8 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
     required this.ci,
     this.nit,
     required this.active,
+    required this.syncStatus,
+    this.syncError,
     required this.updatedAt,
   });
   @override
@@ -221,6 +270,10 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
       map['nit'] = Variable<String>(nit);
     }
     map['active'] = Variable<bool>(active);
+    map['sync_status'] = Variable<String>(syncStatus);
+    if (!nullToAbsent || syncError != null) {
+      map['sync_error'] = Variable<String>(syncError);
+    }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
   }
@@ -235,6 +288,10 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
       ci: Value(ci),
       nit: nit == null && nullToAbsent ? const Value.absent() : Value(nit),
       active: Value(active),
+      syncStatus: Value(syncStatus),
+      syncError: syncError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncError),
       updatedAt: Value(updatedAt),
     );
   }
@@ -251,6 +308,8 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
       ci: serializer.fromJson<String>(json['ci']),
       nit: serializer.fromJson<String?>(json['nit']),
       active: serializer.fromJson<bool>(json['active']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      syncError: serializer.fromJson<String?>(json['syncError']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
@@ -264,6 +323,8 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
       'ci': serializer.toJson<String>(ci),
       'nit': serializer.toJson<String?>(nit),
       'active': serializer.toJson<bool>(active),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'syncError': serializer.toJson<String?>(syncError),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
@@ -275,6 +336,8 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
     String? ci,
     Value<String?> nit = const Value.absent(),
     bool? active,
+    String? syncStatus,
+    Value<String?> syncError = const Value.absent(),
     DateTime? updatedAt,
   }) => LocalClient(
     id: id ?? this.id,
@@ -283,6 +346,8 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
     ci: ci ?? this.ci,
     nit: nit.present ? nit.value : this.nit,
     active: active ?? this.active,
+    syncStatus: syncStatus ?? this.syncStatus,
+    syncError: syncError.present ? syncError.value : this.syncError,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   LocalClient copyWithCompanion(LocalClientsCompanion data) {
@@ -293,6 +358,10 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
       ci: data.ci.present ? data.ci.value : this.ci,
       nit: data.nit.present ? data.nit.value : this.nit,
       active: data.active.present ? data.active.value : this.active,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      syncError: data.syncError.present ? data.syncError.value : this.syncError,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -306,13 +375,25 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
           ..write('ci: $ci, ')
           ..write('nit: $nit, ')
           ..write('active: $active, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('syncError: $syncError, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, phone, ci, nit, active, updatedAt);
+  int get hashCode => Object.hash(
+    id,
+    name,
+    phone,
+    ci,
+    nit,
+    active,
+    syncStatus,
+    syncError,
+    updatedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -323,6 +404,8 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
           other.ci == this.ci &&
           other.nit == this.nit &&
           other.active == this.active &&
+          other.syncStatus == this.syncStatus &&
+          other.syncError == this.syncError &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -333,6 +416,8 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
   final Value<String> ci;
   final Value<String?> nit;
   final Value<bool> active;
+  final Value<String> syncStatus;
+  final Value<String?> syncError;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const LocalClientsCompanion({
@@ -342,6 +427,8 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
     this.ci = const Value.absent(),
     this.nit = const Value.absent(),
     this.active = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.syncError = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -352,6 +439,8 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
     required String ci,
     this.nit = const Value.absent(),
     required bool active,
+    this.syncStatus = const Value.absent(),
+    this.syncError = const Value.absent(),
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -366,6 +455,8 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
     Expression<String>? ci,
     Expression<String>? nit,
     Expression<bool>? active,
+    Expression<String>? syncStatus,
+    Expression<String>? syncError,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
@@ -376,6 +467,8 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
       if (ci != null) 'ci': ci,
       if (nit != null) 'nit': nit,
       if (active != null) 'active': active,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (syncError != null) 'sync_error': syncError,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -388,6 +481,8 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
     Value<String>? ci,
     Value<String?>? nit,
     Value<bool>? active,
+    Value<String>? syncStatus,
+    Value<String?>? syncError,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
@@ -398,6 +493,8 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
       ci: ci ?? this.ci,
       nit: nit ?? this.nit,
       active: active ?? this.active,
+      syncStatus: syncStatus ?? this.syncStatus,
+      syncError: syncError ?? this.syncError,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -424,6 +521,12 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
     if (active.present) {
       map['active'] = Variable<bool>(active.value);
     }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (syncError.present) {
+      map['sync_error'] = Variable<String>(syncError.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -442,6 +545,8 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
           ..write('ci: $ci, ')
           ..write('nit: $nit, ')
           ..write('active: $active, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('syncError: $syncError, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1731,6 +1836,29 @@ class $LocalSalesTable extends LocalSales
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _syncStatusMeta = const VerificationMeta(
+    'syncStatus',
+  );
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+    'sync_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('synced'),
+  );
+  static const VerificationMeta _syncErrorMeta = const VerificationMeta(
+    'syncError',
+  );
+  @override
+  late final GeneratedColumn<String> syncError = GeneratedColumn<String>(
+    'sync_error',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -1754,6 +1882,8 @@ class $LocalSalesTable extends LocalSales
     status,
     total,
     notes,
+    syncStatus,
+    syncError,
     updatedAt,
   ];
   @override
@@ -1847,6 +1977,18 @@ class $LocalSalesTable extends LocalSales
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+        _syncStatusMeta,
+        syncStatus.isAcceptableOrUnknown(data['sync_status']!, _syncStatusMeta),
+      );
+    }
+    if (data.containsKey('sync_error')) {
+      context.handle(
+        _syncErrorMeta,
+        syncError.isAcceptableOrUnknown(data['sync_error']!, _syncErrorMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -1904,6 +2046,14 @@ class $LocalSalesTable extends LocalSales
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      syncStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_status'],
+      )!,
+      syncError: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sync_error'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -1928,6 +2078,8 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
   final String status;
   final double total;
   final String? notes;
+  final String syncStatus;
+  final String? syncError;
   final DateTime updatedAt;
   const LocalSale({
     required this.id,
@@ -1940,6 +2092,8 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
     required this.status,
     required this.total,
     this.notes,
+    required this.syncStatus,
+    this.syncError,
     required this.updatedAt,
   });
   @override
@@ -1958,6 +2112,10 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
     map['total'] = Variable<double>(total);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    map['sync_status'] = Variable<String>(syncStatus);
+    if (!nullToAbsent || syncError != null) {
+      map['sync_error'] = Variable<String>(syncError);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1979,6 +2137,10 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      syncStatus: Value(syncStatus),
+      syncError: syncError == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncError),
       updatedAt: Value(updatedAt),
     );
   }
@@ -1999,6 +2161,8 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
       status: serializer.fromJson<String>(json['status']),
       total: serializer.fromJson<double>(json['total']),
       notes: serializer.fromJson<String?>(json['notes']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      syncError: serializer.fromJson<String?>(json['syncError']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
   }
@@ -2016,6 +2180,8 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
       'status': serializer.toJson<String>(status),
       'total': serializer.toJson<double>(total),
       'notes': serializer.toJson<String?>(notes),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'syncError': serializer.toJson<String?>(syncError),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
   }
@@ -2031,6 +2197,8 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
     String? status,
     double? total,
     Value<String?> notes = const Value.absent(),
+    String? syncStatus,
+    Value<String?> syncError = const Value.absent(),
     DateTime? updatedAt,
   }) => LocalSale(
     id: id ?? this.id,
@@ -2043,6 +2211,8 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
     status: status ?? this.status,
     total: total ?? this.total,
     notes: notes.present ? notes.value : this.notes,
+    syncStatus: syncStatus ?? this.syncStatus,
+    syncError: syncError.present ? syncError.value : this.syncError,
     updatedAt: updatedAt ?? this.updatedAt,
   );
   LocalSale copyWithCompanion(LocalSalesCompanion data) {
@@ -2061,6 +2231,10 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
       status: data.status.present ? data.status.value : this.status,
       total: data.total.present ? data.total.value : this.total,
       notes: data.notes.present ? data.notes.value : this.notes,
+      syncStatus: data.syncStatus.present
+          ? data.syncStatus.value
+          : this.syncStatus,
+      syncError: data.syncError.present ? data.syncError.value : this.syncError,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
   }
@@ -2078,6 +2252,8 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
           ..write('status: $status, ')
           ..write('total: $total, ')
           ..write('notes: $notes, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('syncError: $syncError, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
@@ -2095,6 +2271,8 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
     status,
     total,
     notes,
+    syncStatus,
+    syncError,
     updatedAt,
   );
   @override
@@ -2111,6 +2289,8 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
           other.status == this.status &&
           other.total == this.total &&
           other.notes == this.notes &&
+          other.syncStatus == this.syncStatus &&
+          other.syncError == this.syncError &&
           other.updatedAt == this.updatedAt);
 }
 
@@ -2125,6 +2305,8 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
   final Value<String> status;
   final Value<double> total;
   final Value<String?> notes;
+  final Value<String> syncStatus;
+  final Value<String?> syncError;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
   const LocalSalesCompanion({
@@ -2138,6 +2320,8 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
     this.status = const Value.absent(),
     this.total = const Value.absent(),
     this.notes = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.syncError = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2152,6 +2336,8 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
     required String status,
     required double total,
     this.notes = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.syncError = const Value.absent(),
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -2174,6 +2360,8 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
     Expression<String>? status,
     Expression<double>? total,
     Expression<String>? notes,
+    Expression<String>? syncStatus,
+    Expression<String>? syncError,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
   }) {
@@ -2188,6 +2376,8 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
       if (status != null) 'status': status,
       if (total != null) 'total': total,
       if (notes != null) 'notes': notes,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (syncError != null) 'sync_error': syncError,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -2204,6 +2394,8 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
     Value<String>? status,
     Value<double>? total,
     Value<String?>? notes,
+    Value<String>? syncStatus,
+    Value<String?>? syncError,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
   }) {
@@ -2218,6 +2410,8 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
       status: status ?? this.status,
       total: total ?? this.total,
       notes: notes ?? this.notes,
+      syncStatus: syncStatus ?? this.syncStatus,
+      syncError: syncError ?? this.syncError,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -2256,6 +2450,12 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (syncError.present) {
+      map['sync_error'] = Variable<String>(syncError.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -2278,6 +2478,8 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
           ..write('status: $status, ')
           ..write('total: $total, ')
           ..write('notes: $notes, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('syncError: $syncError, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -3932,6 +4134,8 @@ typedef $$LocalClientsTableCreateCompanionBuilder =
       required String ci,
       Value<String?> nit,
       required bool active,
+      Value<String> syncStatus,
+      Value<String?> syncError,
       required DateTime updatedAt,
       Value<int> rowid,
     });
@@ -3943,6 +4147,8 @@ typedef $$LocalClientsTableUpdateCompanionBuilder =
       Value<String> ci,
       Value<String?> nit,
       Value<bool> active,
+      Value<String> syncStatus,
+      Value<String?> syncError,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
@@ -3983,6 +4189,16 @@ class $$LocalClientsTableFilterComposer
 
   ColumnFilters<bool> get active => $composableBuilder(
     column: $table.active,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncError => $composableBuilder(
+    column: $table.syncError,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4031,6 +4247,16 @@ class $$LocalClientsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncError => $composableBuilder(
+    column: $table.syncError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -4063,6 +4289,14 @@ class $$LocalClientsTableAnnotationComposer
 
   GeneratedColumn<bool> get active =>
       $composableBuilder(column: $table.active, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncError =>
+      $composableBuilder(column: $table.syncError, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -4105,6 +4339,8 @@ class $$LocalClientsTableTableManager
                 Value<String> ci = const Value.absent(),
                 Value<String?> nit = const Value.absent(),
                 Value<bool> active = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<String?> syncError = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LocalClientsCompanion(
@@ -4114,6 +4350,8 @@ class $$LocalClientsTableTableManager
                 ci: ci,
                 nit: nit,
                 active: active,
+                syncStatus: syncStatus,
+                syncError: syncError,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -4125,6 +4363,8 @@ class $$LocalClientsTableTableManager
                 required String ci,
                 Value<String?> nit = const Value.absent(),
                 required bool active,
+                Value<String> syncStatus = const Value.absent(),
+                Value<String?> syncError = const Value.absent(),
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => LocalClientsCompanion.insert(
@@ -4134,6 +4374,8 @@ class $$LocalClientsTableTableManager
                 ci: ci,
                 nit: nit,
                 active: active,
+                syncStatus: syncStatus,
+                syncError: syncError,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -4827,6 +5069,8 @@ typedef $$LocalSalesTableCreateCompanionBuilder =
       required String status,
       required double total,
       Value<String?> notes,
+      Value<String> syncStatus,
+      Value<String?> syncError,
       required DateTime updatedAt,
       Value<int> rowid,
     });
@@ -4842,6 +5086,8 @@ typedef $$LocalSalesTableUpdateCompanionBuilder =
       Value<String> status,
       Value<double> total,
       Value<String?> notes,
+      Value<String> syncStatus,
+      Value<String?> syncError,
       Value<DateTime> updatedAt,
       Value<int> rowid,
     });
@@ -4902,6 +5148,16 @@ class $$LocalSalesTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncError => $composableBuilder(
+    column: $table.syncError,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4970,6 +5226,16 @@ class $$LocalSalesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncError => $composableBuilder(
+    column: $table.syncError,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -5019,6 +5285,14 @@ class $$LocalSalesTableAnnotationComposer
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+    column: $table.syncStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get syncError =>
+      $composableBuilder(column: $table.syncError, builder: (column) => column);
+
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 }
@@ -5064,6 +5338,8 @@ class $$LocalSalesTableTableManager
                 Value<String> status = const Value.absent(),
                 Value<double> total = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<String?> syncError = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LocalSalesCompanion(
@@ -5077,6 +5353,8 @@ class $$LocalSalesTableTableManager
                 status: status,
                 total: total,
                 notes: notes,
+                syncStatus: syncStatus,
+                syncError: syncError,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),
@@ -5092,6 +5370,8 @@ class $$LocalSalesTableTableManager
                 required String status,
                 required double total,
                 Value<String?> notes = const Value.absent(),
+                Value<String> syncStatus = const Value.absent(),
+                Value<String?> syncError = const Value.absent(),
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
               }) => LocalSalesCompanion.insert(
@@ -5105,6 +5385,8 @@ class $$LocalSalesTableTableManager
                 status: status,
                 total: total,
                 notes: notes,
+                syncStatus: syncStatus,
+                syncError: syncError,
                 updatedAt: updatedAt,
                 rowid: rowid,
               ),

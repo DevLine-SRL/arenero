@@ -7,6 +7,8 @@ class LocalClients extends Table {
   TextColumn get ci => text()();
   TextColumn get nit => text().nullable()();
   BoolColumn get active => boolean()();
+  TextColumn get syncStatus => text().withDefault(const Constant('synced'))();
+  TextColumn get syncError => text().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
 
   @override

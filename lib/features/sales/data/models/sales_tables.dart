@@ -11,6 +11,8 @@ class LocalSales extends Table {
   TextColumn get status => text()();
   RealColumn get total => real()();
   TextColumn get notes => text().nullable()();
+  TextColumn get syncStatus => text().withDefault(const Constant('synced'))();
+  TextColumn get syncError => text().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
 
   @override
