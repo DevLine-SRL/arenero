@@ -47,6 +47,8 @@ class LoginForm extends _$LoginForm {
     state = state.copyWith(isSubmitting: true, submitError: null);
 
     final lockCheck = await ref.read(checkLoginLockUseCaseProvider)();
+    if (!ref.mounted) return;
+
     final locked = lockCheck.getOrElse(
       () => const LoginLockStatus(
         locked: false,
@@ -66,6 +68,7 @@ class LoginForm extends _$LoginForm {
       rawEmail: state.email,
       rawPassword: state.password,
     );
+    if (!ref.mounted) return;
 
     await result.fold(
       (failure) async {
@@ -73,13 +76,18 @@ class LoginForm extends _$LoginForm {
           final lockResult = await ref.read(
             registerFailedLoginUseCaseProvider,
           )();
+          if (!ref.mounted) return;
 
           lockResult.fold(
-            (_) => state = state.copyWith(
-              isSubmitting: false,
-              submitError: failure.message,
-            ),
+            (_) {
+              if (!ref.mounted) return;
+              state = state.copyWith(
+                isSubmitting: false,
+                submitError: failure.message,
+              );
+            },
             (status) {
+              if (!ref.mounted) return;
               if (status.locked) {
                 _applyLock(status);
               } else {
@@ -95,6 +103,7 @@ class LoginForm extends _$LoginForm {
             },
           );
         } else {
+          if (!ref.mounted) return;
           state = state.copyWith(
             isSubmitting: false,
             submitError: failure.message,
@@ -102,7 +111,9 @@ class LoginForm extends _$LoginForm {
         }
       },
       (_) async {
+        if (!ref.mounted) return;
         await ref.read(resetLoginAttemptsUseCaseProvider)();
+        if (!ref.mounted) return;
         state = state.copyWith(
           isSubmitting: false,
           isLocked: false,
