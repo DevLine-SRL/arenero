@@ -27,36 +27,52 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-    beforeOpen: (details) async {
-      if (!details.wasCreated) {
-        await _createMissingTables();
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await _upgradeToV2(m);
       }
     },
   );
 
-  Future<void> _createMissingTables() async {
+  Future<void> _upgradeToV2(Migrator m) async {
+    await m.createAll();
+
+    await _addColumnIfMissing(m, localClients, localClients.syncStatus);
+    await _addColumnIfMissing(m, localClients, localClients.syncError);
+    await _addColumnIfMissing(m, localSales, localSales.syncStatus);
+    await _addColumnIfMissing(m, localSales, localSales.syncError);
+    await _addColumnIfMissing(m, localSaleDetails, localSaleDetails.syncStatus);
+    await _addColumnIfMissing(m, localSaleDetails, localSaleDetails.syncError);
+    await _addColumnIfMissing(
+      m,
+      localSaleDeliveries,
+      localSaleDeliveries.syncStatus,
+    );
+    await _addColumnIfMissing(
+      m,
+      localSaleDeliveries,
+      localSaleDeliveries.syncError,
+    );
+  }
+
+  Future<void> _addColumnIfMissing(
+    Migrator m,
+    TableInfo table,
+    GeneratedColumn column,
+  ) async {
     final rows = await customSelect(
-      "SELECT name FROM sqlite_master WHERE type = 'table'",
+      'PRAGMA table_info(${table.actualTableName})',
     ).get();
-    final present = {for (final row in rows) row.read<String>('name')};
-    final complete = {
-      'local_clients',
-      'local_products',
-      'local_product_units',
-      'local_profiles',
-      'local_sales',
-      'local_sale_details',
-      'local_sale_deliveries',
-      'local_sale_history',
-      'outbox_operations',
-      'sync_meta',
-    };
-    if (!complete.every(present.contains)) {
-      await createMigrator().createAll();
+    final hasColumn = rows.any(
+      (row) => row.read<String>('name') == column.$name,
+    );
+    if (!hasColumn) {
+      await m.addColumn(table, column);
     }
   }
 }
