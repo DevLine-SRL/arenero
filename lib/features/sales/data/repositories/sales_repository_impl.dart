@@ -7,6 +7,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/network_errors.dart';
 import '../../../../core/models/sync_status.dart';
 import '../../../clients/data/models/client_model.dart';
+import '../../../clients/domain/entities/client.dart';
 import '../../domain/entities/sale.dart';
 import '../../domain/entities/sale_detail.dart';
 import '../../domain/entities/sale_delivery.dart';
@@ -16,6 +17,7 @@ import '../datasources/sales_local_datasource.dart';
 import '../datasources/sales_remote_datasource.dart';
 import '../models/sale_detail_model.dart';
 import '../models/sale_delivery_model.dart';
+import '../models/sale_history_item_model.dart';
 import '../models/sale_model.dart';
 
 class SalesRepositoryImpl implements SalesRepository {
@@ -33,7 +35,7 @@ class SalesRepositoryImpl implements SalesRepository {
 
   @override
   Future<dartz.Either<Failure, Sale>> registerSale({
-    required String clientId,
+    required Client client,
     required String sellerId,
     required SaleDeliveryMode deliveryMode,
     required SalePaymentMethod paymentMethod,
@@ -43,7 +45,7 @@ class SalesRepositoryImpl implements SalesRepository {
   }) async {
     if (!isOnline()) {
       return _registerSaleOffline(
-        clientId: clientId,
+        client: client,
         sellerId: sellerId,
         deliveryMode: deliveryMode,
         paymentMethod: paymentMethod,
@@ -54,7 +56,7 @@ class SalesRepositoryImpl implements SalesRepository {
     }
     try {
       final sale = await remoteDataSource.registerSale(
-        clientId: clientId,
+        clientId: client.id,
         sellerId: sellerId,
         deliveryMode: deliveryMode,
         paymentMethod: paymentMethod,
@@ -78,6 +80,9 @@ class SalesRepositoryImpl implements SalesRepository {
         ],
       );
       await _syncLocal(() => localDataSource.upsertSale(sale));
+      await _syncLocal(
+        () => localDataSource.upsertHistory([_historyItemFromSale(sale)]),
+      );
       return dartz.Right(sale);
     } on supabase.PostgrestException catch (e) {
       return dartz.Left(_mapRegisterError(e));
@@ -111,10 +116,8 @@ class SalesRepositoryImpl implements SalesRepository {
     };
   }
 
-  /// Guarda la venta en la caché local como pendiente y encola la operación en
-  /// el outbox para reproducirla en el servidor cuando vuelva la conexión.
   Future<dartz.Either<Failure, Sale>> _registerSaleOffline({
-    required String clientId,
+    required Client client,
     required String sellerId,
     required SaleDeliveryMode deliveryMode,
     required SalePaymentMethod paymentMethod,
@@ -145,7 +148,12 @@ class SalesRepositoryImpl implements SalesRepository {
 
     final sale = SaleModel(
       id: saleId,
-      client: ClientModel(id: clientId, name: 'Cliente', ci: '', active: true),
+      client: ClientModel(
+        id: client.id,
+        name: client.name,
+        ci: client.ci,
+        active: true,
+      ),
       sellerId: sellerId,
       saleDate: DateTime.now(),
       deliveryMode: deliveryMode,
@@ -162,7 +170,7 @@ class SalesRepositoryImpl implements SalesRepository {
         operation: OutboxOperationType.registerSale,
         payload: {
           'id': sale.id,
-          'client_id': clientId,
+          'client_id': client.id,
           'seller_id': sellerId,
           'sale_date': sale.saleDate.toIso8601String(),
           'delivery_mode': deliveryMode.dbValue,
@@ -173,12 +181,27 @@ class SalesRepositoryImpl implements SalesRepository {
           'details': [for (final detail in detailModels) detail.toJson()],
         },
       );
+      await _syncLocal(
+        () => localDataSource.upsertHistory([_historyItemFromSale(sale)]),
+      );
       return dartz.Right(sale);
     } catch (_) {
       return const dartz.Left(
         CacheFailure(message: 'No se pudo guardar la venta sin conexión.'),
       );
     }
+  }
+
+  SaleHistoryItemModel _historyItemFromSale(SaleModel sale) {
+    return SaleHistoryItemModel(
+      id: sale.id!,
+      number: sale.number,
+      clientName: sale.client.name,
+      clientCi: sale.client.ci,
+      saleDate: sale.saleDate,
+      total: sale.total,
+      paymentMethod: sale.paymentMethod,
+    );
   }
 
   @override

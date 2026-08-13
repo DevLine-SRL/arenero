@@ -2,7 +2,7 @@ import 'sale.dart';
 
 class SaleHistoryItem {
   final String id;
-  final int number;
+  final int? number;
   final String clientName;
   final String clientCi;
   final DateTime saleDate;

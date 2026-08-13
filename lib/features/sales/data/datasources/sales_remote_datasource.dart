@@ -6,10 +6,6 @@ import '../models/sale_delivery_model.dart';
 import '../models/sale_history_item_model.dart';
 import '../models/sale_model.dart';
 
-// El precio de cada línea se lee de sale_details.unit_price, que es el precio
-// congelado al registrar la venta. Este select no pide product_units.unit_price
-// a propósito: hacerlo mostraría el precio actual del catálogo en ventas
-// pasadas.
 const String _saleSelect = '''
   id, number, client_id, seller_id, sale_date, delivery_mode, payment_method,
   status, total, notes,

@@ -3607,9 +3607,9 @@ class $LocalSaleHistoryTable extends LocalSaleHistory
   late final GeneratedColumn<int> number = GeneratedColumn<int>(
     'number',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _clientNameMeta = const VerificationMeta(
     'clientName',
@@ -3708,8 +3708,6 @@ class $LocalSaleHistoryTable extends LocalSaleHistory
         _numberMeta,
         number.isAcceptableOrUnknown(data['number']!, _numberMeta),
       );
-    } else if (isInserting) {
-      context.missing(_numberMeta);
     }
     if (data.containsKey('client_name')) {
       context.handle(
@@ -3778,7 +3776,7 @@ class $LocalSaleHistoryTable extends LocalSaleHistory
       number: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}number'],
-      )!,
+      ),
       clientName: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}client_name'],
@@ -3815,7 +3813,7 @@ class $LocalSaleHistoryTable extends LocalSaleHistory
 class LocalSaleHistoryData extends DataClass
     implements Insertable<LocalSaleHistoryData> {
   final String id;
-  final int number;
+  final int? number;
   final String clientName;
   final String clientCi;
   final DateTime saleDate;
@@ -3824,7 +3822,7 @@ class LocalSaleHistoryData extends DataClass
   final DateTime updatedAt;
   const LocalSaleHistoryData({
     required this.id,
-    required this.number,
+    this.number,
     required this.clientName,
     required this.clientCi,
     required this.saleDate,
@@ -3836,7 +3834,9 @@ class LocalSaleHistoryData extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
-    map['number'] = Variable<int>(number);
+    if (!nullToAbsent || number != null) {
+      map['number'] = Variable<int>(number);
+    }
     map['client_name'] = Variable<String>(clientName);
     map['client_ci'] = Variable<String>(clientCi);
     map['sale_date'] = Variable<DateTime>(saleDate);
@@ -3849,7 +3849,9 @@ class LocalSaleHistoryData extends DataClass
   LocalSaleHistoryCompanion toCompanion(bool nullToAbsent) {
     return LocalSaleHistoryCompanion(
       id: Value(id),
-      number: Value(number),
+      number: number == null && nullToAbsent
+          ? const Value.absent()
+          : Value(number),
       clientName: Value(clientName),
       clientCi: Value(clientCi),
       saleDate: Value(saleDate),
@@ -3866,7 +3868,7 @@ class LocalSaleHistoryData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LocalSaleHistoryData(
       id: serializer.fromJson<String>(json['id']),
-      number: serializer.fromJson<int>(json['number']),
+      number: serializer.fromJson<int?>(json['number']),
       clientName: serializer.fromJson<String>(json['clientName']),
       clientCi: serializer.fromJson<String>(json['clientCi']),
       saleDate: serializer.fromJson<DateTime>(json['saleDate']),
@@ -3880,7 +3882,7 @@ class LocalSaleHistoryData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
-      'number': serializer.toJson<int>(number),
+      'number': serializer.toJson<int?>(number),
       'clientName': serializer.toJson<String>(clientName),
       'clientCi': serializer.toJson<String>(clientCi),
       'saleDate': serializer.toJson<DateTime>(saleDate),
@@ -3892,7 +3894,7 @@ class LocalSaleHistoryData extends DataClass
 
   LocalSaleHistoryData copyWith({
     String? id,
-    int? number,
+    Value<int?> number = const Value.absent(),
     String? clientName,
     String? clientCi,
     DateTime? saleDate,
@@ -3901,7 +3903,7 @@ class LocalSaleHistoryData extends DataClass
     DateTime? updatedAt,
   }) => LocalSaleHistoryData(
     id: id ?? this.id,
-    number: number ?? this.number,
+    number: number.present ? number.value : this.number,
     clientName: clientName ?? this.clientName,
     clientCi: clientCi ?? this.clientCi,
     saleDate: saleDate ?? this.saleDate,
@@ -3968,7 +3970,7 @@ class LocalSaleHistoryData extends DataClass
 
 class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
   final Value<String> id;
-  final Value<int> number;
+  final Value<int?> number;
   final Value<String> clientName;
   final Value<String> clientCi;
   final Value<DateTime> saleDate;
@@ -3989,7 +3991,7 @@ class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
   });
   LocalSaleHistoryCompanion.insert({
     required String id,
-    required int number,
+    this.number = const Value.absent(),
     required String clientName,
     required String clientCi,
     required DateTime saleDate,
@@ -3998,7 +4000,6 @@ class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
-       number = Value(number),
        clientName = Value(clientName),
        clientCi = Value(clientCi),
        saleDate = Value(saleDate),
@@ -4031,7 +4032,7 @@ class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
 
   LocalSaleHistoryCompanion copyWith({
     Value<String>? id,
-    Value<int>? number,
+    Value<int?>? number,
     Value<String>? clientName,
     Value<String>? clientCi,
     Value<DateTime>? saleDate,
@@ -6703,7 +6704,7 @@ typedef $$LocalSaleDeliveriesTableProcessedTableManager =
 typedef $$LocalSaleHistoryTableCreateCompanionBuilder =
     LocalSaleHistoryCompanion Function({
       required String id,
-      required int number,
+      Value<int?> number,
       required String clientName,
       required String clientCi,
       required DateTime saleDate,
@@ -6715,7 +6716,7 @@ typedef $$LocalSaleHistoryTableCreateCompanionBuilder =
 typedef $$LocalSaleHistoryTableUpdateCompanionBuilder =
     LocalSaleHistoryCompanion Function({
       Value<String> id,
-      Value<int> number,
+      Value<int?> number,
       Value<String> clientName,
       Value<String> clientCi,
       Value<DateTime> saleDate,
@@ -6901,7 +6902,7 @@ class $$LocalSaleHistoryTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
-                Value<int> number = const Value.absent(),
+                Value<int?> number = const Value.absent(),
                 Value<String> clientName = const Value.absent(),
                 Value<String> clientCi = const Value.absent(),
                 Value<DateTime> saleDate = const Value.absent(),
@@ -6923,7 +6924,7 @@ class $$LocalSaleHistoryTableTableManager
           createCompanionCallback:
               ({
                 required String id,
-                required int number,
+                Value<int?> number = const Value.absent(),
                 required String clientName,
                 required String clientCi,
                 required DateTime saleDate,

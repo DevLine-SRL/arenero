@@ -5,14 +5,8 @@ class SaleDetail {
   final String productUnitId;
   final ProductUnitOfMeasure unit;
   final double quantity;
-
-  /// Precio al que se vendió la unidad, congelado al registrar la venta. No es
-  /// el precio actual del catálogo.
   final double unitPrice;
   final double discount;
-
-  /// Nombre del producto. Solo viene en la consulta de detalle; el flujo de
-  /// registro no lo necesita.
   final String? productName;
 
   const SaleDetail({

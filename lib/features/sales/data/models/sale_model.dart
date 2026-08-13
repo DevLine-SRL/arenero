@@ -42,8 +42,6 @@ class SaleModel extends Sale {
     );
   }
 
-  /// `profiles.name` es opcional; si falta se usa el correo, que sí es
-  /// obligatorio, para no dejar el detalle sin vendedor.
   static String? _sellerNameFromJson(Object? raw) {
     if (raw is! Map) return null;
     final name = raw['name'] as String?;
@@ -62,9 +60,6 @@ class SaleModel extends Sale {
     ];
   }
 
-  /// `sale_deliveries.sale_id` es UNIQUE, así que PostgREST trata la relación
-  /// como uno a uno y devuelve un objeto en vez de un arreglo. Se aceptan las
-  /// dos formas para no depender de cómo infiera la cardinalidad.
   static SaleDeliveryModel? _deliveryFromJson(Object? raw) {
     final source = raw is List ? (raw.isEmpty ? null : raw.first) : raw;
     if (source is Map<String, dynamic>) {

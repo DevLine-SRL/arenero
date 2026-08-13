@@ -60,7 +60,6 @@ class Sale {
   final Client client;
   final String sellerId;
 
-  /// Nombre del vendedor. Solo viene en la consulta de detalle.
   final String? sellerName;
   final DateTime saleDate;
   final SaleDeliveryMode deliveryMode;

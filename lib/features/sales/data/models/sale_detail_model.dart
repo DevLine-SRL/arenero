@@ -21,8 +21,6 @@ class SaleDetailModel extends SaleDetail {
           ? ProductUnitOfMeasure.fromDatabase(productUnit['unit'] as String)
           : ProductUnitOfMeasure.unit,
       quantity: _toDouble(json['quantity']),
-      // El precio sale de sale_details, nunca de product_units: es el precio
-      // al que se vendió, no el vigente en el catálogo.
       unitPrice: _toDouble(json['unit_price']),
       discount: _toDouble(json['discount']),
       productName: _productNameFromJson(productUnit),

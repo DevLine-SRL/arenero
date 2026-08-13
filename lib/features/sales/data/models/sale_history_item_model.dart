@@ -15,7 +15,7 @@ class SaleHistoryItemModel extends SaleHistoryItem {
   factory SaleHistoryItemModel.fromJson(Map<String, dynamic> json) {
     return SaleHistoryItemModel(
       id: json['id'] as String,
-      number: json['number'] as int,
+      number: json['number'] as int?,
       clientName: json['client_name'] as String,
       clientCi: json['client_ci'] as String,
       saleDate: DateTime.parse(json['sale_date'] as String),

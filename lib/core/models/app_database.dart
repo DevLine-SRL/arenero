@@ -27,7 +27,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -35,6 +35,9 @@ class AppDatabase extends _$AppDatabase {
     onUpgrade: (m, from, to) async {
       if (from < 2) {
         await _upgradeToV2(m);
+      }
+      if (from < 3) {
+        await _upgradeToV3(m);
       }
     },
   );
@@ -58,6 +61,11 @@ class AppDatabase extends _$AppDatabase {
       localSaleDeliveries,
       localSaleDeliveries.syncError,
     );
+  }
+
+  Future<void> _upgradeToV3(Migrator m) async {
+    await m.drop(localSaleHistory);
+    await m.createTable(localSaleHistory);
   }
 
   Future<void> _addColumnIfMissing(

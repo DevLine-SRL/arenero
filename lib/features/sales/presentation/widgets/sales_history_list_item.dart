@@ -50,10 +50,12 @@ class SalesHistoryListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${sale.number}',
+                    sale.number?.toString() ?? 'Pendiente',
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: theme.colorScheme.primary,
+                      color: sale.number == null
+                          ? theme.colorScheme.onSurfaceVariant
+                          : theme.colorScheme.primary,
                     ),
                   ),
                   Text(

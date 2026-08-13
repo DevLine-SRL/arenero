@@ -143,7 +143,7 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
           database.localSaleHistory,
           LocalSaleHistoryCompanion.insert(
             id: item.id,
-            number: item.number,
+            number: Value(item.number),
             clientName: item.clientName,
             clientCi: item.clientCi,
             saleDate: item.saleDate,

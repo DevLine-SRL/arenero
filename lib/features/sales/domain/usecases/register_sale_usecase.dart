@@ -22,7 +22,7 @@ class RegisterSaleUseCase {
     required List<SaleDetail> details,
   }) {
     return repository.registerSale(
-      clientId: client.id,
+      client: client,
       sellerId: sellerId,
       deliveryMode: deliveryMode,
       paymentMethod: paymentMethod,

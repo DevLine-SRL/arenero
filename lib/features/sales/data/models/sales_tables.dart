@@ -50,7 +50,7 @@ class LocalSaleDeliveries extends Table {
 
 class LocalSaleHistory extends Table {
   TextColumn get id => text()();
-  IntColumn get number => integer()();
+  IntColumn get number => integer().nullable()();
   TextColumn get clientName => text()();
   TextColumn get clientCi => text()();
   DateTimeColumn get saleDate => dateTime()();
