@@ -6,8 +6,6 @@ import 'package:uuid/uuid.dart';
 import '../../models/app_database.dart';
 import '../../models/sync_status.dart';
 
-/// Operación registrada en el outbox para reproducirla en el servidor cuando
-/// vuelva la conexión.
 enum OutboxOperationType {
   createClient('create_client'),
   registerSale('register_sale');
@@ -24,7 +22,6 @@ enum OutboxOperationType {
   }
 }
 
-/// Operación pendiente lista para ser enviada al servidor.
 class PendingOperation {
   final int id;
   final OutboxOperationType operation;
@@ -41,30 +38,20 @@ class PendingOperation {
   });
 }
 
-/// Infraestructura de sincronización local: el outbox (operaciones pendientes
-/// de reproducir en el servidor) y las claves de `sync_meta` (`device_id`,
-/// `last_sync_at`).
 abstract class SyncLocalDataSource {
-  /// Registra [payload] en el outbox para reproducirlo en el servidor.
   Future<void> enqueue({
     required OutboxOperationType operation,
     required Map<String, dynamic> payload,
   });
 
-  /// Lista las operaciones pendientes en el orden en que se encolaron.
   Future<List<PendingOperation>> getPendingOperations();
 
-  /// Elimina la operación del outbox porque el servidor ya la confirmó.
   Future<void> markSynced(int operationId);
 
-  /// Marca la operación como fallida: incrementa los intentos, guarda el error
-  /// y cambia el estado a `error`. Nunca se descarta.
   Future<void> markFailed(int operationId, String error);
 
-  /// Cuenta cuántas operaciones siguen pendientes de enviar.
   Future<int> countPending();
 
-  /// El identificador de este dispositivo, persistido en la primera apertura.
   Future<String> getDeviceId();
 
   Future<DateTime?> getLastSyncAt();

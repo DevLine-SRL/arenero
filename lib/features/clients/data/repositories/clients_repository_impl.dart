@@ -61,8 +61,6 @@ class ClientsRepositoryImpl implements ClientsRepository {
     }
   }
 
-  /// Sirve la búsqueda desde la caché local cuando no hay red. Si la caché no
-  /// tiene resultados, el fallo es de red, no una búsqueda legítimamente vacía.
   @override
   Future<Either<Failure, List<Client>>> searchCachedClients({
     required String query,
@@ -117,8 +115,6 @@ class ClientsRepositoryImpl implements ClientsRepository {
     }
   }
 
-  /// Guarda el cliente en la caché local como pendiente y encola la operación
-  /// en el outbox para reproducirla en el servidor cuando vuelva la conexión.
   Future<Either<Failure, Client>> _createClientOffline({
     required String name,
     required Ci ci,
@@ -252,26 +248,18 @@ class ClientsRepositoryImpl implements ClientsRepository {
     }
   }
 
-  /// Escribe la operación exitosa en la caché local sin propagar sus errores:
-  /// el remoto ya confirmó, y una caché que falla no debe invalidar el éxito.
   Future<void> _syncLocal(Future<void> Function() write) async {
     try {
       await write();
     } catch (_) {
-      // La caché se actualizará en la próxima lectura con red.
     }
   }
 
-  /// Traduce el error de Postgres al `Failure` que corresponde. La tabla de
-  /// códigos está en `docs/convenciones/supabase.md`.
   Failure _mapPostgrestException(
     supabase.PostgrestException e,
     String fallbackMessage,
   ) {
     return switch (e.code) {
-      // La restricción `clients_ci_unique` es la garantía real de que no hay
-      // cédulas repetidas: la comprobación previa de la interfaz no cubre el
-      // caso de dos altas simultáneas.
       '23505' when _violates(e, 'clients_ci_unique') => const ValidationFailure(
         message: 'Ya existe un cliente registrado con esa cédula de identidad.',
         errors: {'ci': 'Esta cédula ya está registrada'},
