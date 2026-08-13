@@ -11,7 +11,9 @@ enum ConnectionStatus { online, noInternet, offline }
 @Riverpod(keepAlive: true)
 Stream<ConnectionStatus> connectionStatus(Ref _) async* {
   final connectivity = Connectivity();
-  final internetChecker = InternetConnection();
+  final internetChecker = InternetConnection.createInstance(
+    checkInterval: const Duration(seconds: 2),
+  );
 
   var hasNetwork = _hasNetwork(await connectivity.checkConnectivity());
   var hasInternet = await internetChecker.hasInternetAccess;
