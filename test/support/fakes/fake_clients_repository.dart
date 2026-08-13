@@ -52,6 +52,14 @@ class FakeClientsRepository implements ClientsRepository {
   }
 
   @override
+  Future<Either<Failure, List<Client>>> searchCachedClients({
+    required String query,
+    bool includeInactive = false,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Either<Failure, bool>> existsByCi(Ci ci) async {
     existsCallCount++;
     lastCheckedCi = ci;

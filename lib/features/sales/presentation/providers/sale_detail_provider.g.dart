@@ -9,12 +9,11 @@ part of 'sale_detail_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(saleDetail)
+@ProviderFor(SaleDetail)
 final saleDetailProvider = SaleDetailFamily._();
 
 final class SaleDetailProvider
-    extends $FunctionalProvider<AsyncValue<Sale>, Sale, FutureOr<Sale>>
-    with $FutureModifier<Sale>, $FutureProvider<Sale> {
+    extends $AsyncNotifierProvider<SaleDetail, Sale> {
   SaleDetailProvider._({
     required SaleDetailFamily super.from,
     required String super.argument,
@@ -38,14 +37,7 @@ final class SaleDetailProvider
 
   @$internal
   @override
-  $FutureProviderElement<Sale> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<Sale> create(Ref ref) {
-    final argument = this.argument as String;
-    return saleDetail(ref, argument);
-  }
+  SaleDetail create() => SaleDetail();
 
   @override
   bool operator ==(Object other) {
@@ -58,10 +50,17 @@ final class SaleDetailProvider
   }
 }
 
-String _$saleDetailHash() => r'fcc947fb32e33a267b365950e0a72407dbfeac00';
+String _$saleDetailHash() => r'6c9cce49de8b4c77d0ae820d617213a832b5c091';
 
 final class SaleDetailFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<Sale>, String> {
+    with
+        $ClassFamilyOverride<
+          SaleDetail,
+          AsyncValue<Sale>,
+          Sale,
+          FutureOr<Sale>,
+          String
+        > {
   SaleDetailFamily._()
     : super(
         retry: null,
@@ -76,4 +75,25 @@ final class SaleDetailFamily extends $Family
 
   @override
   String toString() => r'saleDetailProvider';
+}
+
+abstract class _$SaleDetail extends $AsyncNotifier<Sale> {
+  late final _$args = ref.$arg as String;
+  String get saleId => _$args;
+
+  FutureOr<Sale> build(String saleId);
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref = this.ref as $Ref<AsyncValue<Sale>, Sale>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<AsyncValue<Sale>, Sale>,
+              AsyncValue<Sale>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, () => build(_$args));
+  }
 }

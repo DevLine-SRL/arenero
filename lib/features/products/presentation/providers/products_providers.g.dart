@@ -201,6 +201,54 @@ final class GetProductsUseCaseProvider
 String _$getProductsUseCaseHash() =>
     r'8d795d8eb5232498a8d081bd2aa99d492e6b8043';
 
+@ProviderFor(getCachedProductsUseCase)
+final getCachedProductsUseCaseProvider = GetCachedProductsUseCaseProvider._();
+
+final class GetCachedProductsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          GetCachedProductsUseCase,
+          GetCachedProductsUseCase,
+          GetCachedProductsUseCase
+        >
+    with $Provider<GetCachedProductsUseCase> {
+  GetCachedProductsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'getCachedProductsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$getCachedProductsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<GetCachedProductsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  GetCachedProductsUseCase create(Ref ref) {
+    return getCachedProductsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(GetCachedProductsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<GetCachedProductsUseCase>(value),
+    );
+  }
+}
+
+String _$getCachedProductsUseCaseHash() =>
+    r'bff8b6bbe3cf14bb6cd3aed1e37de7aa0b3270ad';
+
 @ProviderFor(createProductUseCase)
 final createProductUseCaseProvider = CreateProductUseCaseProvider._();
 

@@ -61,6 +61,10 @@ class _ProductsRepositoryFake implements ProductsRepository {
       throw UnimplementedError();
 
   @override
+  Future<dartz.Either<Failure, List<Product>>> getCachedProducts() =>
+      throw UnimplementedError();
+
+  @override
   Future<dartz.Either<Failure, dartz.Unit>> setActive(String id, bool active) =>
       throw UnimplementedError();
 

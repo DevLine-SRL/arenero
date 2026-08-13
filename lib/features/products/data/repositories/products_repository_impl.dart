@@ -22,7 +22,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
   @override
   Future<dartz.Either<Failure, List<Product>>> getProducts() async {
     if (!isOnline()) {
-      return _cachedProducts();
+      return getCachedProducts();
     }
     try {
       final products = await remoteDataSource.getProducts();
@@ -32,7 +32,7 @@ class ProductsRepositoryImpl implements ProductsRepository {
       return dartz.Left(_mapGetProductsError(e));
     } catch (e) {
       if (isNetworkError(e)) {
-        return _cachedProducts();
+        return getCachedProducts();
       }
       return const dartz.Left(
         UnexpectedFailure(
@@ -42,7 +42,8 @@ class ProductsRepositoryImpl implements ProductsRepository {
     }
   }
 
-  Future<dartz.Either<Failure, List<Product>>> _cachedProducts() async {
+  @override
+  Future<dartz.Either<Failure, List<Product>>> getCachedProducts() async {
     try {
       final cached = await localDataSource.getCachedProducts();
       if (cached.isEmpty) {

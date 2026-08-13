@@ -28,7 +28,14 @@ abstract class SalesRepository {
     DateTime? to,
   });
 
+  Future<Either<Failure, List<SaleHistoryItem>>> getCachedSalesHistory({
+    DateTime? from,
+    DateTime? to,
+  });
+
   Future<Either<Failure, Sale>> getSaleById(String saleId);
+
+  Future<Either<Failure, Sale>> getCachedSaleById(String saleId);
 
   Future<Either<Failure, Unit>> voidSale(String saleId);
 }

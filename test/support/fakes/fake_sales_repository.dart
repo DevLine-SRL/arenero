@@ -51,6 +51,19 @@ class FakeSalesRepository implements SalesRepository {
   }
 
   @override
+  Future<Either<Failure, List<SaleHistoryItem>>> getCachedSalesHistory({
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, Sale>> getCachedSaleById(String saleId) async {
+    throw UnimplementedError();
+  }
+
+  @override
   Future<Either<Failure, Unit>> voidSale(String saleId) async {
     throw UnimplementedError();
   }

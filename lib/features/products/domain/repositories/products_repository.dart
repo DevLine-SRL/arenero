@@ -6,6 +6,8 @@ import '../entities/product.dart';
 abstract class ProductsRepository {
   Future<Either<Failure, List<Product>>> getProducts();
 
+  Future<Either<Failure, List<Product>>> getCachedProducts();
+
   Future<Either<Failure, Unit>> createProduct({
     required String name,
     required ProductUnitOfMeasure unit,

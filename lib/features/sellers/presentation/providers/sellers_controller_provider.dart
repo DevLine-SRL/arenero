@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/providers/is_online_provider.dart';
 import '../../domain/entities/seller.dart';
 import 'sellers_providers.dart';
 
@@ -7,12 +8,35 @@ part 'sellers_controller_provider.g.dart';
 
 @riverpod
 class SellersController extends _$SellersController {
+  bool _refreshInFlight = false;
+
   @override
   Future<List<Seller>> build() async {
-    final useCase = ref.watch(getSellersUseCaseProvider);
-    final result = await useCase();
+    ref.watch(getSellersUseCaseProvider);
+    ref.watch(getCachedSellersUseCaseProvider);
 
-    return result.fold((failure) => throw failure, (sellers) => sellers);
+    final cachedResult = await ref.read(getCachedSellersUseCaseProvider)();
+    final cached = cachedResult.fold((_) => null, (sellers) => sellers);
+    if (cached != null) {
+      _refreshInBackground();
+      return cached;
+    }
+
+    final remote = await ref.read(getSellersUseCaseProvider)();
+    return remote.fold((failure) => throw failure, (sellers) => sellers);
+  }
+
+  Future<void> _refreshInBackground() async {
+    if (_refreshInFlight) return;
+    if (!ref.read(isOnlineProvider)) return;
+    _refreshInFlight = true;
+    try {
+      final result = await ref.read(getSellersUseCaseProvider)();
+      if (!ref.mounted) return;
+      result.fold((_) {}, (sellers) => state = AsyncData(sellers));
+    } finally {
+      _refreshInFlight = false;
+    }
   }
 
   Future<void> setActive(Set<String> ids, bool active) async {

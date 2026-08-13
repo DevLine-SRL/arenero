@@ -15,6 +15,11 @@ abstract class ClientsRepository {
     bool includeInactive = false,
   });
 
+  Future<Either<Failure, List<Client>>> searchCachedClients({
+    required String query,
+    bool includeInactive = false,
+  });
+
   /// Tarea #36.
   Future<Either<Failure, Client>> createClient({
     required String name,

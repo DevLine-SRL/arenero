@@ -200,6 +200,55 @@ final class SearchClientsUseCaseProvider
 String _$searchClientsUseCaseHash() =>
     r'6a65b2b25296eef5185b7fa1430dcff66be78c49';
 
+@ProviderFor(searchCachedClientsUseCase)
+final searchCachedClientsUseCaseProvider =
+    SearchCachedClientsUseCaseProvider._();
+
+final class SearchCachedClientsUseCaseProvider
+    extends
+        $FunctionalProvider<
+          SearchCachedClientsUseCase,
+          SearchCachedClientsUseCase,
+          SearchCachedClientsUseCase
+        >
+    with $Provider<SearchCachedClientsUseCase> {
+  SearchCachedClientsUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'searchCachedClientsUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$searchCachedClientsUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<SearchCachedClientsUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SearchCachedClientsUseCase create(Ref ref) {
+    return searchCachedClientsUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SearchCachedClientsUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SearchCachedClientsUseCase>(value),
+    );
+  }
+}
+
+String _$searchCachedClientsUseCaseHash() =>
+    r'edde0a702f9bd8ffc0bd2d4ddea045da04b76525';
+
 @ProviderFor(createClientUseCase)
 final createClientUseCaseProvider = CreateClientUseCaseProvider._();
 

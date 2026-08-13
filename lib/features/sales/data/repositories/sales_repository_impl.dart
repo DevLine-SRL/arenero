@@ -137,7 +137,7 @@ class SalesRepositoryImpl implements SalesRepository {
     DateTime? to,
   }) async {
     if (!isOnline()) {
-      return _cachedHistory(from: from, to: to);
+      return getCachedSalesHistory(from: from, to: to);
     }
     try {
       final items = await remoteDataSource.getSalesHistory(from: from, to: to);
@@ -147,7 +147,7 @@ class SalesRepositoryImpl implements SalesRepository {
       return dartz.Left(_mapHistoryError(e));
     } catch (e) {
       if (isNetworkError(e)) {
-        return _cachedHistory(from: from, to: to);
+        return getCachedSalesHistory(from: from, to: to);
       }
       return const dartz.Left(
         UnexpectedFailure(
@@ -172,7 +172,7 @@ class SalesRepositoryImpl implements SalesRepository {
   @override
   Future<dartz.Either<Failure, Sale>> getSaleById(String saleId) async {
     if (!isOnline()) {
-      return _cachedSale(saleId);
+      return getCachedSaleById(saleId);
     }
     try {
       final sale = await remoteDataSource.getSaleById(saleId);
@@ -182,7 +182,7 @@ class SalesRepositoryImpl implements SalesRepository {
       return dartz.Left(_mapDetailError(e));
     } catch (e) {
       if (isNetworkError(e)) {
-        return _cachedSale(saleId);
+        return getCachedSaleById(saleId);
       }
       return const dartz.Left(
         UnexpectedFailure(
@@ -223,7 +223,8 @@ class SalesRepositoryImpl implements SalesRepository {
     }
   }
 
-  Future<dartz.Either<Failure, List<SaleHistoryItem>>> _cachedHistory({
+  @override
+  Future<dartz.Either<Failure, List<SaleHistoryItem>>> getCachedSalesHistory({
     DateTime? from,
     DateTime? to,
   }) async {
@@ -240,7 +241,8 @@ class SalesRepositoryImpl implements SalesRepository {
     }
   }
 
-  Future<dartz.Either<Failure, Sale>> _cachedSale(String saleId) async {
+  @override
+  Future<dartz.Either<Failure, Sale>> getCachedSaleById(String saleId) async {
     try {
       final cached = await localDataSource.getSaleById(saleId);
       if (cached == null) {

@@ -7,6 +7,8 @@ import '../../data/datasources/sales_local_datasource.dart';
 import '../../data/datasources/sales_remote_datasource.dart';
 import '../../data/repositories/sales_repository_impl.dart';
 import '../../domain/repositories/sales_repository.dart';
+import '../../domain/usecases/get_cached_sale_detail_usecase.dart';
+import '../../domain/usecases/get_cached_sales_history_usecase.dart';
 import '../../domain/usecases/get_sale_detail_usecase.dart';
 import '../../domain/usecases/get_sales_history_usecase.dart';
 import '../../domain/usecases/get_sales_usecase.dart';
@@ -50,8 +52,18 @@ GetSalesHistoryUseCase getSalesHistoryUseCase(Ref ref) {
 }
 
 @riverpod
+GetCachedSalesHistoryUseCase getCachedSalesHistoryUseCase(Ref ref) {
+  return GetCachedSalesHistoryUseCase(ref.watch(salesRepositoryProvider));
+}
+
+@riverpod
 GetSaleDetailUseCase getSaleDetailUseCase(Ref ref) {
   return GetSaleDetailUseCase(ref.watch(salesRepositoryProvider));
+}
+
+@riverpod
+GetCachedSaleDetailUseCase getCachedSaleDetailUseCase(Ref ref) {
+  return GetCachedSaleDetailUseCase(ref.watch(salesRepositoryProvider));
 }
 
 @riverpod

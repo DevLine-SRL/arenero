@@ -23,7 +23,7 @@ class SellersRepositoryImpl implements SellersRepository {
   @override
   Future<Either<Failure, List<Seller>>> getSellers() async {
     if (!isOnline()) {
-      return _cachedSellers();
+      return getCachedSellers();
     }
     try {
       final sellers = await remoteDataSource.getSellers();
@@ -35,7 +35,7 @@ class SellersRepositoryImpl implements SellersRepository {
       );
     } catch (e) {
       if (isNetworkError(e)) {
-        return _cachedSellers();
+        return getCachedSellers();
       }
       return const Left(
         UnexpectedFailure(
@@ -45,7 +45,8 @@ class SellersRepositoryImpl implements SellersRepository {
     }
   }
 
-  Future<Either<Failure, List<Seller>>> _cachedSellers() async {
+  @override
+  Future<Either<Failure, List<Seller>>> getCachedSellers() async {
     try {
       final cached = await localDataSource.getCachedSellers();
       if (cached.isEmpty) {

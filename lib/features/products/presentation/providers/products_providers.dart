@@ -8,6 +8,7 @@ import '../../data/datasources/products_remote_datasource.dart';
 import '../../data/repositories/products_repository_impl.dart';
 import '../../domain/repositories/products_repository.dart';
 import '../../domain/usecases/create_product_usecase.dart';
+import '../../domain/usecases/get_cached_products_usecase.dart';
 import '../../domain/usecases/get_products_usecase.dart';
 import '../../domain/usecases/set_product_active_usecase.dart';
 import '../../domain/usecases/update_product_name_usecase.dart';
@@ -37,6 +38,11 @@ ProductsRepository productsRepository(Ref ref) {
 @riverpod
 GetProductsUseCase getProductsUseCase(Ref ref) {
   return GetProductsUseCase(ref.watch(productsRepositoryProvider));
+}
+
+@riverpod
+GetCachedProductsUseCase getCachedProductsUseCase(Ref ref) {
+  return GetCachedProductsUseCase(ref.watch(productsRepositoryProvider));
 }
 
 @riverpod

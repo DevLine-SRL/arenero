@@ -9,19 +9,11 @@ part of 'sales_history_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(salesHistory)
+@ProviderFor(SalesHistory)
 final salesHistoryProvider = SalesHistoryProvider._();
 
 final class SalesHistoryProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<List<SaleHistoryItem>>,
-          List<SaleHistoryItem>,
-          FutureOr<List<SaleHistoryItem>>
-        >
-    with
-        $FutureModifier<List<SaleHistoryItem>>,
-        $FutureProvider<List<SaleHistoryItem>> {
+    extends $AsyncNotifierProvider<SalesHistory, List<SaleHistoryItem>> {
   SalesHistoryProvider._()
     : super(
         from: null,
@@ -38,14 +30,30 @@ final class SalesHistoryProvider
 
   @$internal
   @override
-  $FutureProviderElement<List<SaleHistoryItem>> $createElement(
-    $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
-
-  @override
-  FutureOr<List<SaleHistoryItem>> create(Ref ref) {
-    return salesHistory(ref);
-  }
+  SalesHistory create() => SalesHistory();
 }
 
-String _$salesHistoryHash() => r'13e6592c55775dbf953356f00ccc88034733b9c4';
+String _$salesHistoryHash() => r'a35dbcb05971036628a080f499f44a310d46641e';
+
+abstract class _$SalesHistory extends $AsyncNotifier<List<SaleHistoryItem>> {
+  FutureOr<List<SaleHistoryItem>> build();
+  @$mustCallSuper
+  @override
+  WhenComplete runBuild() {
+    final ref =
+        this.ref
+            as $Ref<AsyncValue<List<SaleHistoryItem>>, List<SaleHistoryItem>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                AsyncValue<List<SaleHistoryItem>>,
+                List<SaleHistoryItem>
+              >,
+              AsyncValue<List<SaleHistoryItem>>,
+              Object?,
+              Object?
+            >;
+    return element.handleCreate(ref, build);
+  }
+}

@@ -21,7 +21,9 @@ void main() {
 
       expect(find.text('Desactivar producto'), findsOneWidget);
       expect(
-        find.text('El producto dejará de estar disponible para nuevas ventas. Las ventas existentes no cambiarán.'),
+        find.text(
+          'El producto dejará de estar disponible para nuevas ventas. Las ventas existentes no cambiarán.',
+        ),
         findsOneWidget,
       );
 
@@ -92,6 +94,11 @@ class _ProductsRepositoryFake implements ProductsRepository {
         ],
       ),
     ]);
+  }
+
+  @override
+  Future<dartz.Either<Failure, List<Product>>> getCachedProducts() {
+    throw UnimplementedError();
   }
 
   @override

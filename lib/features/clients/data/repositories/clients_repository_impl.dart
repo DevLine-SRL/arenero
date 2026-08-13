@@ -26,7 +26,10 @@ class ClientsRepositoryImpl implements ClientsRepository {
     bool includeInactive = false,
   }) async {
     if (!isOnline()) {
-      return _cachedClients(query: query, includeInactive: includeInactive);
+      return searchCachedClients(
+        query: query,
+        includeInactive: includeInactive,
+      );
     }
     try {
       final clients = await remoteDataSource.searchClients(
@@ -41,7 +44,10 @@ class ClientsRepositoryImpl implements ClientsRepository {
       );
     } catch (e) {
       if (isNetworkError(e)) {
-        return _cachedClients(query: query, includeInactive: includeInactive);
+        return searchCachedClients(
+          query: query,
+          includeInactive: includeInactive,
+        );
       }
       return const Left(
         UnexpectedFailure(message: 'Error inesperado al buscar clientes.'),
@@ -51,9 +57,10 @@ class ClientsRepositoryImpl implements ClientsRepository {
 
   /// Sirve la búsqueda desde la caché local cuando no hay red. Si la caché no
   /// tiene resultados, el fallo es de red, no una búsqueda legítimamente vacía.
-  Future<Either<Failure, List<Client>>> _cachedClients({
+  @override
+  Future<Either<Failure, List<Client>>> searchCachedClients({
     required String query,
-    required bool includeInactive,
+    bool includeInactive = false,
   }) async {
     try {
       final cached = await localDataSource.searchCachedClients(

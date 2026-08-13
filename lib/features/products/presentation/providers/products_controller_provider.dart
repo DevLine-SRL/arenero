@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/providers/is_online_provider.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/services/product_duplicate_guard.dart';
 import 'products_providers.dart';
@@ -9,16 +10,39 @@ part 'products_controller_provider.g.dart';
 
 @riverpod
 class ProductsController extends _$ProductsController {
+  bool _refreshInFlight = false;
+
   @override
   Future<List<Product>> build() {
-    return _fetchProducts();
+    return _fetchFromCache();
   }
 
-  Future<List<Product>> _fetchProducts() async {
-    final useCase = ref.watch(getProductsUseCaseProvider);
-    final result = await useCase();
+  Future<List<Product>> _fetchFromCache() async {
+    ref.watch(getProductsUseCaseProvider);
+    ref.watch(getCachedProductsUseCaseProvider);
 
-    return result.fold((failure) => throw failure, (products) => products);
+    final cachedResult = await ref.read(getCachedProductsUseCaseProvider)();
+    final cached = cachedResult.fold((_) => null, (products) => products);
+    if (cached != null) {
+      _refreshInBackground();
+      return cached;
+    }
+
+    final remote = await ref.read(getProductsUseCaseProvider)();
+    return remote.fold((failure) => throw failure, (products) => products);
+  }
+
+  Future<void> _refreshInBackground() async {
+    if (_refreshInFlight) return;
+    if (!ref.read(isOnlineProvider)) return;
+    _refreshInFlight = true;
+    try {
+      final result = await ref.read(getProductsUseCaseProvider)();
+      if (!ref.mounted) return;
+      result.fold((_) {}, (products) => state = AsyncData(products));
+    } finally {
+      _refreshInFlight = false;
+    }
   }
 
   Future<Failure?> createProduct({
@@ -38,12 +62,11 @@ class ProductsController extends _$ProductsController {
 
     return result.fold(
       (failure) async {
-        state = await AsyncValue.guard(_fetchProducts);
+        state = await AsyncValue.guard(_fetchFromCache);
         return failure;
       },
       (_) async {
-        state = const AsyncLoading();
-        state = await AsyncValue.guard(_fetchProducts);
+        state = await AsyncValue.guard(_fetchFromCache);
         return null;
       },
     );

@@ -9,6 +9,7 @@ import '../../data/repositories/clients_repository_impl.dart';
 import '../../domain/repositories/clients_repository.dart';
 import '../../domain/usecases/check_ci_available_usecase.dart';
 import '../../domain/usecases/create_client_usecase.dart';
+import '../../domain/usecases/search_cached_clients_usecase.dart';
 import '../../domain/usecases/search_clients_usecase.dart';
 
 part 'clients_providers.g.dart';
@@ -35,6 +36,11 @@ ClientsRepository clientsRepository(Ref ref) {
 @riverpod
 SearchClientsUseCase searchClientsUseCase(Ref ref) {
   return SearchClientsUseCase(ref.watch(clientsRepositoryProvider));
+}
+
+@riverpod
+SearchCachedClientsUseCase searchCachedClientsUseCase(Ref ref) {
+  return SearchCachedClientsUseCase(ref.watch(clientsRepositoryProvider));
 }
 
 @riverpod
