@@ -251,8 +251,7 @@ class ClientsRepositoryImpl implements ClientsRepository {
   Future<void> _syncLocal(Future<void> Function() write) async {
     try {
       await write();
-    } catch (_) {
-    }
+    } catch (_) {}
   }
 
   Failure _mapPostgrestException(

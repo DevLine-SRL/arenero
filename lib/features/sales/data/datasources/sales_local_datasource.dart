@@ -32,6 +32,13 @@ abstract class SalesLocalDataSource {
   });
 
   Future<void> markVoided(String saleId);
+
+  Future<void> deleteById(String saleId);
+
+  Future<void> reassignClientId({
+    required String oldClientId,
+    required String newClientId,
+  });
 }
 
 class SalesLocalDataSourceImpl implements SalesLocalDataSource {
@@ -238,6 +245,34 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
         updatedAt: Value(DateTime.now()),
       ),
     );
+  }
+
+  @override
+  Future<void> deleteById(String saleId) async {
+    await database.transaction(() async {
+      await (database.delete(
+        database.localSaleDetails,
+      )..where((t) => t.saleId.equals(saleId))).go();
+      await (database.delete(
+        database.localSaleDeliveries,
+      )..where((t) => t.saleId.equals(saleId))).go();
+      await (database.delete(
+        database.localSaleHistory,
+      )..where((t) => t.id.equals(saleId))).go();
+      await (database.delete(
+        database.localSales,
+      )..where((t) => t.id.equals(saleId))).go();
+    });
+  }
+
+  @override
+  Future<void> reassignClientId({
+    required String oldClientId,
+    required String newClientId,
+  }) async {
+    await (database.update(database.localSales)
+          ..where((t) => t.clientId.equals(oldClientId)))
+        .write(LocalSalesCompanion(clientId: Value(newClientId)));
   }
 
   Future<SaleModel> _saleFromCache(LocalSale sale) async {

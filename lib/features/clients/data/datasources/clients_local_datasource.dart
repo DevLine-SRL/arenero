@@ -18,6 +18,8 @@ abstract class ClientsLocalDataSource {
   Future<bool> existsByCi(String ci);
 
   Future<void> setActive(String id, bool active);
+
+  Future<void> deleteById(String id);
 }
 
 class ClientsLocalDataSourceImpl implements ClientsLocalDataSource {
@@ -105,6 +107,13 @@ class ClientsLocalDataSourceImpl implements ClientsLocalDataSource {
         updatedAt: Value(DateTime.now()),
       ),
     );
+  }
+
+  @override
+  Future<void> deleteById(String id) async {
+    await (database.delete(
+      database.localClients,
+    )..where((t) => t.id.equals(id))).go();
   }
 
   bool _matches(LocalClient row, String term) {

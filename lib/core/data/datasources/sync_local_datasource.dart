@@ -50,6 +50,8 @@ abstract class SyncLocalDataSource {
 
   Future<void> markFailed(int operationId, String error);
 
+  Future<void> updatePayload(int operationId, Map<String, dynamic> payload);
+
   Future<int> countPending();
 
   Future<String> getDeviceId();
@@ -124,6 +126,21 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
         status: Value(SyncStatus.error.dbValue),
         attempts: Value(row.attempts + 1),
         lastError: Value(error),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  @override
+  Future<void> updatePayload(
+    int operationId,
+    Map<String, dynamic> payload,
+  ) async {
+    await (database.update(
+      database.outboxOperations,
+    )..where((t) => t.id.equals(operationId))).write(
+      OutboxOperationsCompanion(
+        payload: Value(jsonEncode(payload)),
         updatedAt: Value(DateTime.now()),
       ),
     );
