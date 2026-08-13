@@ -1,8 +1,12 @@
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+import 'package:uuid/uuid.dart';
 
+import '../../../../core/data/datasources/sync_local_datasource.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/network_errors.dart';
+import '../../../../core/models/sync_status.dart';
+import '../../../clients/data/models/client_model.dart';
 import '../../domain/entities/sale.dart';
 import '../../domain/entities/sale_detail.dart';
 import '../../domain/entities/sale_delivery.dart';
@@ -17,11 +21,13 @@ import '../models/sale_model.dart';
 class SalesRepositoryImpl implements SalesRepository {
   final SalesRemoteDataSource remoteDataSource;
   final SalesLocalDataSource localDataSource;
+  final SyncLocalDataSource syncDataSource;
   final bool Function() isOnline;
 
   const SalesRepositoryImpl(
     this.remoteDataSource,
     this.localDataSource, {
+    required this.syncDataSource,
     required this.isOnline,
   });
 
@@ -36,7 +42,15 @@ class SalesRepositoryImpl implements SalesRepository {
     required List<SaleDetail> details,
   }) async {
     if (!isOnline()) {
-      return const dartz.Left(NetworkFailure());
+      return _registerSaleOffline(
+        clientId: clientId,
+        sellerId: sellerId,
+        deliveryMode: deliveryMode,
+        paymentMethod: paymentMethod,
+        notes: notes,
+        delivery: delivery,
+        details: details,
+      );
     }
     try {
       final sale = await remoteDataSource.registerSale(
@@ -95,6 +109,76 @@ class SalesRepositoryImpl implements SalesRepository {
         code: e.code,
       ),
     };
+  }
+
+  /// Guarda la venta en la caché local como pendiente y encola la operación en
+  /// el outbox para reproducirla en el servidor cuando vuelva la conexión.
+  Future<dartz.Either<Failure, Sale>> _registerSaleOffline({
+    required String clientId,
+    required String sellerId,
+    required SaleDeliveryMode deliveryMode,
+    required SalePaymentMethod paymentMethod,
+    String? notes,
+    SaleDelivery? delivery,
+    required List<SaleDetail> details,
+  }) async {
+    final saleId = const Uuid().v4();
+    final total = details.fold(0.0, (sum, detail) => sum + detail.subtotal);
+
+    final detailModels = [
+      for (final detail in details)
+        SaleDetailModel(
+          productUnitId: detail.productUnitId,
+          unit: detail.unit,
+          quantity: detail.quantity,
+          unitPrice: detail.unitPrice,
+          discount: detail.discount,
+        ),
+    ];
+    final deliveryModel = delivery == null
+        ? null
+        : SaleDeliveryModel(
+            deliveryAddress: delivery.deliveryAddress,
+            vehiclePlate: delivery.vehiclePlate,
+            deliveryDate: delivery.deliveryDate,
+          );
+
+    final sale = SaleModel(
+      id: saleId,
+      client: ClientModel(id: clientId, name: 'Cliente', ci: '', active: true),
+      sellerId: sellerId,
+      saleDate: DateTime.now(),
+      deliveryMode: deliveryMode,
+      paymentMethod: paymentMethod,
+      total: total,
+      notes: notes,
+      details: detailModels,
+      delivery: deliveryModel,
+    );
+
+    try {
+      await localDataSource.upsertSale(sale, syncStatus: SyncStatus.pending);
+      await syncDataSource.enqueue(
+        operation: OutboxOperationType.registerSale,
+        payload: {
+          'id': sale.id,
+          'client_id': clientId,
+          'seller_id': sellerId,
+          'sale_date': sale.saleDate.toIso8601String(),
+          'delivery_mode': deliveryMode.dbValue,
+          'payment_method': paymentMethod.dbValue,
+          'notes': notes,
+          'total': total,
+          'delivery': deliveryModel?.toJson(),
+          'details': [for (final detail in detailModels) detail.toJson()],
+        },
+      );
+      return dartz.Right(sale);
+    } catch (_) {
+      return const dartz.Left(
+        CacheFailure(message: 'No se pudo guardar la venta sin conexión.'),
+      );
+    }
   }
 
   @override

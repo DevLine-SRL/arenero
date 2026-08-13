@@ -1,22 +1,28 @@
 import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+import 'package:uuid/uuid.dart';
 
+import '../../../../core/data/datasources/sync_local_datasource.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/network_errors.dart';
+import '../../../../core/models/sync_status.dart';
 import '../../../../shared/value_objects/value_objects.dart';
 import '../../domain/entities/client.dart';
 import '../../domain/repositories/clients_repository.dart';
 import '../datasources/clients_local_datasource.dart';
 import '../datasources/clients_remote_datasource.dart';
+import '../models/client_model.dart';
 
 class ClientsRepositoryImpl implements ClientsRepository {
   final ClientsRemoteDataSource remoteDataSource;
   final ClientsLocalDataSource localDataSource;
+  final SyncLocalDataSource syncDataSource;
   final bool Function() isOnline;
 
   const ClientsRepositoryImpl(
     this.remoteDataSource,
     this.localDataSource, {
+    required this.syncDataSource,
     required this.isOnline,
   });
 
@@ -86,7 +92,7 @@ class ClientsRepositoryImpl implements ClientsRepository {
     String? nit,
   }) async {
     if (!isOnline()) {
-      return const Left(NetworkFailure());
+      return _createClientOffline(name: name, ci: ci, phone: phone, nit: nit);
     }
     try {
       final client = await remoteDataSource.createClient(
@@ -107,6 +113,45 @@ class ClientsRepositoryImpl implements ClientsRepository {
       }
       return const Left(
         UnexpectedFailure(message: 'Error inesperado al registrar el cliente.'),
+      );
+    }
+  }
+
+  /// Guarda el cliente en la caché local como pendiente y encola la operación
+  /// en el outbox para reproducirla en el servidor cuando vuelva la conexión.
+  Future<Either<Failure, Client>> _createClientOffline({
+    required String name,
+    required Ci ci,
+    String? phone,
+    String? nit,
+  }) async {
+    final client = ClientModel(
+      id: const Uuid().v4(),
+      name: name,
+      phone: phone,
+      ci: ci.value,
+      nit: nit,
+      active: true,
+    );
+
+    try {
+      await localDataSource.upsertClients([
+        client,
+      ], syncStatus: SyncStatus.pending);
+      await syncDataSource.enqueue(
+        operation: OutboxOperationType.createClient,
+        payload: {
+          'id': client.id,
+          'name': client.name,
+          'phone': client.phone,
+          'ci': client.ci,
+          'nit': client.nit,
+        },
+      );
+      return Right(client);
+    } catch (_) {
+      return const Left(
+        CacheFailure(message: 'No se pudo guardar el cliente sin conexión.'),
       );
     }
   }

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../../../core/models/app_database.dart';
+import '../../../../core/models/sync_status.dart';
 import '../../../clients/data/models/client_model.dart';
 import '../../../products/domain/entities/product.dart';
 import '../../domain/entities/sale.dart';
@@ -10,7 +11,10 @@ import '../models/sale_history_item_model.dart';
 import '../models/sale_model.dart';
 
 abstract class SalesLocalDataSource {
-  Future<void> upsertSale(SaleModel sale);
+  Future<void> upsertSale(
+    SaleModel sale, {
+    SyncStatus syncStatus = SyncStatus.synced,
+  });
 
   Future<void> upsertHistory(List<SaleHistoryItemModel> items);
 
@@ -36,7 +40,10 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
   const SalesLocalDataSourceImpl(this.database);
 
   @override
-  Future<void> upsertSale(SaleModel sale) async {
+  Future<void> upsertSale(
+    SaleModel sale, {
+    SyncStatus syncStatus = SyncStatus.synced,
+  }) async {
     final saleId = sale.id;
     if (saleId == null) return;
 
@@ -56,6 +63,7 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
               status: sale.status.dbValue,
               total: sale.total,
               notes: Value(sale.notes),
+              syncStatus: Value(syncStatus.dbValue),
               updatedAt: now,
             ),
             onConflict: DoUpdate(
@@ -69,6 +77,7 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
                 status: Value(sale.status.dbValue),
                 total: Value(sale.total),
                 notes: Value(sale.notes),
+                syncStatus: Value(syncStatus.dbValue),
                 updatedAt: Value(now),
               ),
             ),

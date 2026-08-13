@@ -1,10 +1,14 @@
 import 'package:drift/drift.dart';
 
 import '../../../../core/models/app_database.dart';
+import '../../../../core/models/sync_status.dart';
 import '../models/client_model.dart';
 
 abstract class ClientsLocalDataSource {
-  Future<void> upsertClients(List<ClientModel> clients);
+  Future<void> upsertClients(
+    List<ClientModel> clients, {
+    SyncStatus syncStatus = SyncStatus.synced,
+  });
 
   Future<List<ClientModel>> searchCachedClients({
     required String query,
@@ -22,7 +26,10 @@ class ClientsLocalDataSourceImpl implements ClientsLocalDataSource {
   const ClientsLocalDataSourceImpl(this.database);
 
   @override
-  Future<void> upsertClients(List<ClientModel> clients) async {
+  Future<void> upsertClients(
+    List<ClientModel> clients, {
+    SyncStatus syncStatus = SyncStatus.synced,
+  }) async {
     await database.transaction(() async {
       final now = DateTime.now();
       await database.batch((batch) {
@@ -36,6 +43,7 @@ class ClientsLocalDataSourceImpl implements ClientsLocalDataSource {
               ci: client.ci,
               nit: Value(client.nit),
               active: client.active,
+              syncStatus: Value(syncStatus.dbValue),
               updatedAt: now,
             ),
             onConflict: DoUpdate(
@@ -45,6 +53,7 @@ class ClientsLocalDataSourceImpl implements ClientsLocalDataSource {
                 ci: Value(client.ci),
                 nit: Value(client.nit),
                 active: Value(client.active),
+                syncStatus: Value(syncStatus.dbValue),
                 updatedAt: Value(now),
               ),
             ),

@@ -150,7 +150,7 @@ final class ClientsRepositoryProvider
   }
 }
 
-String _$clientsRepositoryHash() => r'2825cda40b60ebf47d5e6b14643e1118c6b05175';
+String _$clientsRepositoryHash() => r'd3b23a6511bdab8ad8407d1e9e0ffcaa0b51b862';
 
 @ProviderFor(searchClientsUseCase)
 final searchClientsUseCaseProvider = SearchClientsUseCaseProvider._();
