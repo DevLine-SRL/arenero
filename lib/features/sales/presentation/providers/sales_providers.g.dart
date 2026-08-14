@@ -103,7 +103,7 @@ final class SalesLocalDataSourceProvider
 }
 
 String _$salesLocalDataSourceHash() =>
-    r'ed80e5486d36ebad98d30e25ee26bcda097e9729';
+    r'69e4a6e9359abc48d8ca638426c86fe3d005e484';
 
 @ProviderFor(salesRepository)
 final salesRepositoryProvider = SalesRepositoryProvider._();

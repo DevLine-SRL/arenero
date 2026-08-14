@@ -103,7 +103,7 @@ final class ClientsLocalDataSourceProvider
 }
 
 String _$clientsLocalDataSourceHash() =>
-    r'65b5d9b85bb02e4051c39cca03e6b07d4ef38903';
+    r'2bdd84513550c9ff09ab028cf00aed8733c20177';
 
 @ProviderFor(clientsRepository)
 final clientsRepositoryProvider = ClientsRepositoryProvider._();

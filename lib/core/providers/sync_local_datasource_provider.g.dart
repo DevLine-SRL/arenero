@@ -55,4 +55,4 @@ final class SyncLocalDataSourceProvider
 }
 
 String _$syncLocalDataSourceHash() =>
-    r'389977dd35414f7b28371adc1ee4c3d0ba1909b7';
+    r'45fdbeb828e3acb69cb18878b76f9555c32eabdc';

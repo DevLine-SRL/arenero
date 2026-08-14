@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/providers/active_user_id_provider.dart';
 import '../../../../core/providers/app_database_provider.dart';
 import '../../../../core/providers/is_online_provider.dart';
 import '../../../../core/providers/supabase_client_provider.dart';
@@ -22,7 +23,10 @@ ClientsRemoteDataSource clientsRemoteDataSource(Ref ref) {
 
 @riverpod
 ClientsLocalDataSource clientsLocalDataSource(Ref ref) {
-  return ClientsLocalDataSourceImpl(ref.watch(appDatabaseProvider));
+  return ClientsLocalDataSourceImpl(
+    ref.watch(appDatabaseProvider),
+    currentUserId: () => ref.read(activeUserIdProvider),
+  );
 }
 
 @riverpod

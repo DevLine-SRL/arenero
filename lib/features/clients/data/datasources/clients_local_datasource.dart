@@ -24,14 +24,18 @@ abstract class ClientsLocalDataSource {
 
 class ClientsLocalDataSourceImpl implements ClientsLocalDataSource {
   final AppDatabase database;
+  final String? Function() currentUserId;
 
-  const ClientsLocalDataSourceImpl(this.database);
+  ClientsLocalDataSourceImpl(this.database, {required this.currentUserId});
 
   @override
   Future<void> upsertClients(
     List<ClientModel> clients, {
     SyncStatus syncStatus = SyncStatus.synced,
   }) async {
+    final userId = currentUserId();
+    if (userId == null) return;
+
     await database.transaction(() async {
       final now = DateTime.now();
       await database.batch((batch) {
@@ -40,6 +44,7 @@ class ClientsLocalDataSourceImpl implements ClientsLocalDataSource {
             database.localClients,
             LocalClientsCompanion.insert(
               id: client.id,
+              userId: Value(userId),
               name: client.name,
               phone: Value(client.phone),
               ci: client.ci,
@@ -70,9 +75,14 @@ class ClientsLocalDataSourceImpl implements ClientsLocalDataSource {
     required String query,
     bool includeInactive = false,
   }) async {
-    final rows = await (database.select(
-      database.localClients,
-    )..orderBy([(t) => OrderingTerm.asc(t.name)])).get();
+    final userId = currentUserId();
+    if (userId == null) return [];
+
+    final rows =
+        await (database.select(database.localClients)
+              ..where((t) => t.userId.equals(userId))
+              ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+            .get();
 
     final term = _sanitizeSearchTerm(query).toLowerCase();
     return [
@@ -91,9 +101,12 @@ class ClientsLocalDataSourceImpl implements ClientsLocalDataSource {
 
   @override
   Future<bool> existsByCi(String ci) async {
+    final userId = currentUserId();
+    if (userId == null) return false;
+
     final rows =
         await (database.select(database.localClients)
-              ..where((t) => t.ci.equals(ci))
+              ..where((t) => t.userId.equals(userId) & t.ci.equals(ci))
               ..limit(1))
             .get();
     return rows.isNotEmpty;
@@ -101,9 +114,12 @@ class ClientsLocalDataSourceImpl implements ClientsLocalDataSource {
 
   @override
   Future<void> setActive(String id, bool active) async {
+    final userId = currentUserId();
+    if (userId == null) return;
+
     await (database.update(
       database.localClients,
-    )..where((t) => t.id.equals(id))).write(
+    )..where((t) => t.userId.equals(userId) & t.id.equals(id))).write(
       LocalClientsCompanion(
         active: Value(active),
         updatedAt: Value(DateTime.now()),
@@ -113,9 +129,12 @@ class ClientsLocalDataSourceImpl implements ClientsLocalDataSource {
 
   @override
   Future<void> deleteById(String id) async {
+    final userId = currentUserId();
+    if (userId == null) return;
+
     await (database.delete(
       database.localClients,
-    )..where((t) => t.id.equals(id))).go();
+    )..where((t) => t.userId.equals(userId) & t.id.equals(id))).go();
   }
 
   bool _matches(LocalClient row, String term) {

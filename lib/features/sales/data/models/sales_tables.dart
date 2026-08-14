@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 class LocalSales extends Table {
   TextColumn get id => text()();
+  TextColumn get userId => text().nullable()();
   IntColumn get number => integer().nullable()();
   TextColumn get clientId => text()();
   TextColumn get sellerId => text()();
@@ -21,6 +22,7 @@ class LocalSales extends Table {
 
 class LocalSaleDetails extends Table {
   TextColumn get id => text()();
+  TextColumn get userId => text().nullable()();
   TextColumn get saleId => text()();
   TextColumn get productUnitId => text()();
   TextColumn get unit => text()();
@@ -37,6 +39,7 @@ class LocalSaleDetails extends Table {
 
 class LocalSaleDeliveries extends Table {
   TextColumn get id => text()();
+  TextColumn get userId => text().nullable()();
   TextColumn get saleId => text()();
   TextColumn get deliveryAddress => text().nullable()();
   TextColumn get vehiclePlate => text().nullable()();
@@ -50,6 +53,7 @@ class LocalSaleDeliveries extends Table {
 
 class LocalSaleHistory extends Table {
   TextColumn get id => text()();
+  TextColumn get userId => text().nullable()();
   IntColumn get number => integer().nullable()();
   TextColumn get clientName => text()();
   TextColumn get clientCi => text()();

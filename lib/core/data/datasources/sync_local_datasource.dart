@@ -63,8 +63,9 @@ abstract class SyncLocalDataSource {
 
 class SyncLocalDataSourceImpl implements SyncLocalDataSource {
   final AppDatabase database;
+  final String? Function() currentUserId;
 
-  const SyncLocalDataSourceImpl(this.database);
+  SyncLocalDataSourceImpl(this.database, {required this.currentUserId});
 
   static const String _deviceIdKey = 'device_id';
   static const String _lastSyncAtKey = 'last_sync_at';
@@ -74,6 +75,9 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
     required OutboxOperationType operation,
     required Map<String, dynamic> payload,
   }) async {
+    final userId = currentUserId();
+    if (userId == null) return;
+
     await database
         .into(database.outboxOperations)
         .insert(
@@ -81,15 +85,23 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
             operation: operation.dbValue,
             payload: jsonEncode(payload),
             status: SyncStatus.pending.dbValue,
+            userId: Value(userId),
           ),
         );
   }
 
   @override
   Future<List<PendingOperation>> getPendingOperations() async {
+    final userId = currentUserId();
+    if (userId == null) return [];
+
     final rows =
         await (database.select(database.outboxOperations)
-              ..where((t) => t.status.equals(SyncStatus.pending.dbValue))
+              ..where(
+                (t) =>
+                    t.userId.equals(userId) &
+                    t.status.equals(SyncStatus.pending.dbValue),
+              )
               ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
             .get();
 
@@ -148,9 +160,16 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
 
   @override
   Future<int> countPending() async {
-    final rows = await (database.select(
-      database.outboxOperations,
-    )..where((t) => t.status.equals(SyncStatus.pending.dbValue))).get();
+    final userId = currentUserId();
+    if (userId == null) return 0;
+
+    final rows =
+        await (database.select(database.outboxOperations)..where(
+              (t) =>
+                  t.userId.equals(userId) &
+                  t.status.equals(SyncStatus.pending.dbValue),
+            ))
+            .get();
     return rows.length;
   }
 

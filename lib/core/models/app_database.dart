@@ -27,7 +27,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -38,6 +38,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 3) {
         await _upgradeToV3(m);
+      }
+      if (from < 4) {
+        await _upgradeToV4(m);
       }
     },
   );
@@ -66,6 +69,37 @@ class AppDatabase extends _$AppDatabase {
   Future<void> _upgradeToV3(Migrator m) async {
     await m.drop(localSaleHistory);
     await m.createTable(localSaleHistory);
+  }
+
+  Future<void> _upgradeToV4(Migrator m) async {
+    await _addColumnIfMissing(m, localClients, localClients.userId);
+    await _addColumnIfMissing(m, localSales, localSales.userId);
+    await _addColumnIfMissing(m, localSaleDetails, localSaleDetails.userId);
+    await _addColumnIfMissing(
+      m,
+      localSaleDeliveries,
+      localSaleDeliveries.userId,
+    );
+    await _addColumnIfMissing(m, localSaleHistory, localSaleHistory.userId);
+    await _addColumnIfMissing(m, outboxOperations, outboxOperations.userId);
+
+    // Antes de v4 la caché no tenía dueño: estas filas quedaron huérfanas y no
+    // se pueden asignar a un usuario con seguridad. Se borran para que el
+    // próximo sync repueble con datos limpios.
+    await customStatement('DELETE FROM local_clients WHERE user_id IS NULL');
+    await customStatement('DELETE FROM local_sales WHERE user_id IS NULL');
+    await customStatement(
+      'DELETE FROM local_sale_details WHERE user_id IS NULL',
+    );
+    await customStatement(
+      'DELETE FROM local_sale_deliveries WHERE user_id IS NULL',
+    );
+    await customStatement(
+      'DELETE FROM local_sale_history WHERE user_id IS NULL',
+    );
+    await customStatement(
+      'DELETE FROM outbox_operations WHERE user_id IS NULL',
+    );
   }
 
   Future<void> _addColumnIfMissing(

@@ -43,8 +43,9 @@ abstract class SalesLocalDataSource {
 
 class SalesLocalDataSourceImpl implements SalesLocalDataSource {
   final AppDatabase database;
+  final String? Function() currentUserId;
 
-  const SalesLocalDataSourceImpl(this.database);
+  SalesLocalDataSourceImpl(this.database, {required this.currentUserId});
 
   @override
   Future<void> upsertSale(
@@ -54,6 +55,9 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
     final saleId = sale.id;
     if (saleId == null) return;
 
+    final userId = currentUserId();
+    if (userId == null) return;
+
     await database.transaction(() async {
       final now = DateTime.now();
       await database
@@ -61,6 +65,7 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
           .insert(
             LocalSalesCompanion.insert(
               id: saleId,
+              userId: Value(userId),
               number: Value(sale.number),
               clientId: sale.client.id,
               sellerId: sale.sellerId,
@@ -92,13 +97,14 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
 
       await (database.delete(
         database.localSaleDetails,
-      )..where((t) => t.saleId.equals(saleId))).go();
+      )..where((t) => t.userId.equals(userId) & t.saleId.equals(saleId))).go();
       for (final detail in sale.details) {
         await database
             .into(database.localSaleDetails)
             .insert(
               LocalSaleDetailsCompanion.insert(
                 id: detail.id ?? '$saleId-${detail.productUnitId}',
+                userId: Value(userId),
                 saleId: saleId,
                 productUnitId: detail.productUnitId,
                 unit: detail.unit.databaseValue,
@@ -123,7 +129,7 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
 
       await (database.delete(
         database.localSaleDeliveries,
-      )..where((t) => t.saleId.equals(saleId))).go();
+      )..where((t) => t.userId.equals(userId) & t.saleId.equals(saleId))).go();
       final delivery = sale.delivery;
       if (delivery != null) {
         await database
@@ -131,6 +137,7 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
             .insert(
               LocalSaleDeliveriesCompanion.insert(
                 id: saleId,
+                userId: Value(userId),
                 saleId: saleId,
                 deliveryAddress: Value(delivery.deliveryAddress),
                 vehiclePlate: Value(delivery.vehiclePlate),
@@ -143,6 +150,9 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
 
   @override
   Future<void> upsertHistory(List<SaleHistoryItemModel> items) async {
+    final userId = currentUserId();
+    if (userId == null) return;
+
     final now = DateTime.now();
     await database.batch((batch) {
       for (final item in items) {
@@ -150,6 +160,7 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
           database.localSaleHistory,
           LocalSaleHistoryCompanion.insert(
             id: item.id,
+            userId: Value(userId),
             number: Value(item.number),
             clientName: item.clientName,
             clientCi: item.clientCi,
@@ -176,9 +187,13 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
 
   @override
   Future<SaleModel?> getSaleById(String saleId) async {
-    final sale = await (database.select(
-      database.localSales,
-    )..where((t) => t.id.equals(saleId))).getSingleOrNull();
+    final userId = currentUserId();
+    if (userId == null) return null;
+
+    final sale =
+        await (database.select(database.localSales)
+              ..where((t) => t.userId.equals(userId) & t.id.equals(saleId)))
+            .getSingleOrNull();
     if (sale == null) return null;
 
     return _saleFromCache(sale);
@@ -190,7 +205,11 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
     DateTime? from,
     DateTime? to,
   }) async {
+    final userId = currentUserId();
+    if (userId == null) return [];
+
     final query = database.select(database.localSales);
+    query.where((t) => t.userId.equals(userId));
     if (status != null) {
       query.where((t) => t.status.equals(status.dbValue));
     }
@@ -211,7 +230,11 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
     DateTime? from,
     DateTime? to,
   }) async {
+    final userId = currentUserId();
+    if (userId == null) return [];
+
     final query = database.select(database.localSaleHistory);
+    query.where((t) => t.userId.equals(userId));
     if (from != null) {
       query.where((t) => t.saleDate.isBiggerOrEqualValue(from));
     }
@@ -237,9 +260,12 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
 
   @override
   Future<void> markVoided(String saleId) async {
+    final userId = currentUserId();
+    if (userId == null) return;
+
     await (database.update(
       database.localSales,
-    )..where((t) => t.id.equals(saleId))).write(
+    )..where((t) => t.userId.equals(userId) & t.id.equals(saleId))).write(
       LocalSalesCompanion(
         status: Value(SaleStatus.void_.dbValue),
         updatedAt: Value(DateTime.now()),
@@ -249,19 +275,22 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
 
   @override
   Future<void> deleteById(String saleId) async {
+    final userId = currentUserId();
+    if (userId == null) return;
+
     await database.transaction(() async {
       await (database.delete(
         database.localSaleDetails,
-      )..where((t) => t.saleId.equals(saleId))).go();
+      )..where((t) => t.userId.equals(userId) & t.saleId.equals(saleId))).go();
       await (database.delete(
         database.localSaleDeliveries,
-      )..where((t) => t.saleId.equals(saleId))).go();
+      )..where((t) => t.userId.equals(userId) & t.saleId.equals(saleId))).go();
       await (database.delete(
         database.localSaleHistory,
-      )..where((t) => t.id.equals(saleId))).go();
+      )..where((t) => t.userId.equals(userId) & t.id.equals(saleId))).go();
       await (database.delete(
         database.localSales,
-      )..where((t) => t.id.equals(saleId))).go();
+      )..where((t) => t.userId.equals(userId) & t.id.equals(saleId))).go();
     });
   }
 
@@ -270,8 +299,12 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
     required String oldClientId,
     required String newClientId,
   }) async {
-    await (database.update(database.localSales)
-          ..where((t) => t.clientId.equals(oldClientId)))
+    final userId = currentUserId();
+    if (userId == null) return;
+
+    await (database.update(database.localSales)..where(
+          (t) => t.userId.equals(userId) & t.clientId.equals(oldClientId),
+        ))
         .write(LocalSalesCompanion(clientId: Value(newClientId)));
   }
 
@@ -299,9 +332,15 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
   }
 
   Future<ClientModel> _cachedClient(String clientId) async {
-    final row = await (database.select(
-      database.localClients,
-    )..where((t) => t.id.equals(clientId))).getSingleOrNull();
+    final userId = currentUserId();
+    if (userId == null) {
+      return ClientModel(id: clientId, name: 'Cliente', ci: '', active: true);
+    }
+
+    final row =
+        await (database.select(database.localClients)
+              ..where((t) => t.userId.equals(userId) & t.id.equals(clientId)))
+            .getSingleOrNull();
 
     if (row == null) {
       return ClientModel(id: clientId, name: 'Cliente', ci: '', active: true);
@@ -317,9 +356,12 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
   }
 
   Future<List<SaleDetailModel>> _cachedDetails(String saleId) async {
+    final userId = currentUserId();
+    if (userId == null) return [];
+
     final rows = await (database.select(
       database.localSaleDetails,
-    )..where((t) => t.saleId.equals(saleId))).get();
+    )..where((t) => t.userId.equals(userId) & t.saleId.equals(saleId))).get();
 
     return [
       for (final row in rows)
@@ -336,9 +378,13 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
   }
 
   Future<SaleDeliveryModel?> _cachedDelivery(String saleId) async {
-    final row = await (database.select(
-      database.localSaleDeliveries,
-    )..where((t) => t.saleId.equals(saleId))).getSingleOrNull();
+    final userId = currentUserId();
+    if (userId == null) return null;
+
+    final row =
+        await (database.select(database.localSaleDeliveries)
+              ..where((t) => t.userId.equals(userId) & t.saleId.equals(saleId)))
+            .getSingleOrNull();
 
     if (row == null) return null;
     return SaleDeliveryModel(

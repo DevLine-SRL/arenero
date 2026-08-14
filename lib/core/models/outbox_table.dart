@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 class OutboxOperations extends Table {
   IntColumn get id => integer().autoIncrement()();
+  TextColumn get userId => text().nullable()();
   TextColumn get operation => text()();
   TextColumn get payload => text()();
   TextColumn get status => text()();

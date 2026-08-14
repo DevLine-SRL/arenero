@@ -18,6 +18,15 @@ class $LocalClientsTable extends LocalClients
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -103,6 +112,7 @@ class $LocalClientsTable extends LocalClients
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    userId,
     name,
     phone,
     ci,
@@ -128,6 +138,12 @@ class $LocalClientsTable extends LocalClients
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
     }
     if (data.containsKey('name')) {
       context.handle(
@@ -195,6 +211,10 @@ class $LocalClientsTable extends LocalClients
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -238,6 +258,7 @@ class $LocalClientsTable extends LocalClients
 
 class LocalClient extends DataClass implements Insertable<LocalClient> {
   final String id;
+  final String? userId;
   final String name;
   final String? phone;
   final String ci;
@@ -248,6 +269,7 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
   final DateTime updatedAt;
   const LocalClient({
     required this.id,
+    this.userId,
     required this.name,
     this.phone,
     required this.ci,
@@ -261,6 +283,9 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || phone != null) {
       map['phone'] = Variable<String>(phone);
@@ -281,6 +306,9 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
   LocalClientsCompanion toCompanion(bool nullToAbsent) {
     return LocalClientsCompanion(
       id: Value(id),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
       name: Value(name),
       phone: phone == null && nullToAbsent
           ? const Value.absent()
@@ -303,6 +331,7 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LocalClient(
       id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String?>(json['userId']),
       name: serializer.fromJson<String>(json['name']),
       phone: serializer.fromJson<String?>(json['phone']),
       ci: serializer.fromJson<String>(json['ci']),
@@ -318,6 +347,7 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String?>(userId),
       'name': serializer.toJson<String>(name),
       'phone': serializer.toJson<String?>(phone),
       'ci': serializer.toJson<String>(ci),
@@ -331,6 +361,7 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
 
   LocalClient copyWith({
     String? id,
+    Value<String?> userId = const Value.absent(),
     String? name,
     Value<String?> phone = const Value.absent(),
     String? ci,
@@ -341,6 +372,7 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
     DateTime? updatedAt,
   }) => LocalClient(
     id: id ?? this.id,
+    userId: userId.present ? userId.value : this.userId,
     name: name ?? this.name,
     phone: phone.present ? phone.value : this.phone,
     ci: ci ?? this.ci,
@@ -353,6 +385,7 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
   LocalClient copyWithCompanion(LocalClientsCompanion data) {
     return LocalClient(
       id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
       name: data.name.present ? data.name.value : this.name,
       phone: data.phone.present ? data.phone.value : this.phone,
       ci: data.ci.present ? data.ci.value : this.ci,
@@ -370,6 +403,7 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
   String toString() {
     return (StringBuffer('LocalClient(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('name: $name, ')
           ..write('phone: $phone, ')
           ..write('ci: $ci, ')
@@ -385,6 +419,7 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
   @override
   int get hashCode => Object.hash(
     id,
+    userId,
     name,
     phone,
     ci,
@@ -399,6 +434,7 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
       identical(this, other) ||
       (other is LocalClient &&
           other.id == this.id &&
+          other.userId == this.userId &&
           other.name == this.name &&
           other.phone == this.phone &&
           other.ci == this.ci &&
@@ -411,6 +447,7 @@ class LocalClient extends DataClass implements Insertable<LocalClient> {
 
 class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
   final Value<String> id;
+  final Value<String?> userId;
   final Value<String> name;
   final Value<String?> phone;
   final Value<String> ci;
@@ -422,6 +459,7 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
   final Value<int> rowid;
   const LocalClientsCompanion({
     this.id = const Value.absent(),
+    this.userId = const Value.absent(),
     this.name = const Value.absent(),
     this.phone = const Value.absent(),
     this.ci = const Value.absent(),
@@ -434,6 +472,7 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
   });
   LocalClientsCompanion.insert({
     required String id,
+    this.userId = const Value.absent(),
     required String name,
     this.phone = const Value.absent(),
     required String ci,
@@ -450,6 +489,7 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
        updatedAt = Value(updatedAt);
   static Insertable<LocalClient> custom({
     Expression<String>? id,
+    Expression<String>? userId,
     Expression<String>? name,
     Expression<String>? phone,
     Expression<String>? ci,
@@ -462,6 +502,7 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
       if (name != null) 'name': name,
       if (phone != null) 'phone': phone,
       if (ci != null) 'ci': ci,
@@ -476,6 +517,7 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
 
   LocalClientsCompanion copyWith({
     Value<String>? id,
+    Value<String?>? userId,
     Value<String>? name,
     Value<String?>? phone,
     Value<String>? ci,
@@ -488,6 +530,7 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
   }) {
     return LocalClientsCompanion(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       name: name ?? this.name,
       phone: phone ?? this.phone,
       ci: ci ?? this.ci,
@@ -505,6 +548,9 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
@@ -540,6 +586,7 @@ class LocalClientsCompanion extends UpdateCompanion<LocalClient> {
   String toString() {
     return (StringBuffer('LocalClientsCompanion(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('name: $name, ')
           ..write('phone: $phone, ')
           ..write('ci: $ci, ')
@@ -1745,6 +1792,15 @@ class $LocalSalesTable extends LocalSales
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _numberMeta = const VerificationMeta('number');
   @override
   late final GeneratedColumn<int> number = GeneratedColumn<int>(
@@ -1873,6 +1929,7 @@ class $LocalSalesTable extends LocalSales
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    userId,
     number,
     clientId,
     sellerId,
@@ -1902,6 +1959,12 @@ class $LocalSalesTable extends LocalSales
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
     }
     if (data.containsKey('number')) {
       context.handle(
@@ -2010,6 +2073,10 @@ class $LocalSalesTable extends LocalSales
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
       number: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}number'],
@@ -2069,6 +2136,7 @@ class $LocalSalesTable extends LocalSales
 
 class LocalSale extends DataClass implements Insertable<LocalSale> {
   final String id;
+  final String? userId;
   final int? number;
   final String clientId;
   final String sellerId;
@@ -2083,6 +2151,7 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
   final DateTime updatedAt;
   const LocalSale({
     required this.id,
+    this.userId,
     this.number,
     required this.clientId,
     required this.sellerId,
@@ -2100,6 +2169,9 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
     if (!nullToAbsent || number != null) {
       map['number'] = Variable<int>(number);
     }
@@ -2124,6 +2196,9 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
   LocalSalesCompanion toCompanion(bool nullToAbsent) {
     return LocalSalesCompanion(
       id: Value(id),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
       number: number == null && nullToAbsent
           ? const Value.absent()
           : Value(number),
@@ -2152,6 +2227,7 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LocalSale(
       id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String?>(json['userId']),
       number: serializer.fromJson<int?>(json['number']),
       clientId: serializer.fromJson<String>(json['clientId']),
       sellerId: serializer.fromJson<String>(json['sellerId']),
@@ -2171,6 +2247,7 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String?>(userId),
       'number': serializer.toJson<int?>(number),
       'clientId': serializer.toJson<String>(clientId),
       'sellerId': serializer.toJson<String>(sellerId),
@@ -2188,6 +2265,7 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
 
   LocalSale copyWith({
     String? id,
+    Value<String?> userId = const Value.absent(),
     Value<int?> number = const Value.absent(),
     String? clientId,
     String? sellerId,
@@ -2202,6 +2280,7 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
     DateTime? updatedAt,
   }) => LocalSale(
     id: id ?? this.id,
+    userId: userId.present ? userId.value : this.userId,
     number: number.present ? number.value : this.number,
     clientId: clientId ?? this.clientId,
     sellerId: sellerId ?? this.sellerId,
@@ -2218,6 +2297,7 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
   LocalSale copyWithCompanion(LocalSalesCompanion data) {
     return LocalSale(
       id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
       number: data.number.present ? data.number.value : this.number,
       clientId: data.clientId.present ? data.clientId.value : this.clientId,
       sellerId: data.sellerId.present ? data.sellerId.value : this.sellerId,
@@ -2243,6 +2323,7 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
   String toString() {
     return (StringBuffer('LocalSale(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('number: $number, ')
           ..write('clientId: $clientId, ')
           ..write('sellerId: $sellerId, ')
@@ -2262,6 +2343,7 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
   @override
   int get hashCode => Object.hash(
     id,
+    userId,
     number,
     clientId,
     sellerId,
@@ -2280,6 +2362,7 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
       identical(this, other) ||
       (other is LocalSale &&
           other.id == this.id &&
+          other.userId == this.userId &&
           other.number == this.number &&
           other.clientId == this.clientId &&
           other.sellerId == this.sellerId &&
@@ -2296,6 +2379,7 @@ class LocalSale extends DataClass implements Insertable<LocalSale> {
 
 class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
   final Value<String> id;
+  final Value<String?> userId;
   final Value<int?> number;
   final Value<String> clientId;
   final Value<String> sellerId;
@@ -2311,6 +2395,7 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
   final Value<int> rowid;
   const LocalSalesCompanion({
     this.id = const Value.absent(),
+    this.userId = const Value.absent(),
     this.number = const Value.absent(),
     this.clientId = const Value.absent(),
     this.sellerId = const Value.absent(),
@@ -2327,6 +2412,7 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
   });
   LocalSalesCompanion.insert({
     required String id,
+    this.userId = const Value.absent(),
     this.number = const Value.absent(),
     required String clientId,
     required String sellerId,
@@ -2351,6 +2437,7 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
        updatedAt = Value(updatedAt);
   static Insertable<LocalSale> custom({
     Expression<String>? id,
+    Expression<String>? userId,
     Expression<int>? number,
     Expression<String>? clientId,
     Expression<String>? sellerId,
@@ -2367,6 +2454,7 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
       if (number != null) 'number': number,
       if (clientId != null) 'client_id': clientId,
       if (sellerId != null) 'seller_id': sellerId,
@@ -2385,6 +2473,7 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
 
   LocalSalesCompanion copyWith({
     Value<String>? id,
+    Value<String?>? userId,
     Value<int?>? number,
     Value<String>? clientId,
     Value<String>? sellerId,
@@ -2401,6 +2490,7 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
   }) {
     return LocalSalesCompanion(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       number: number ?? this.number,
       clientId: clientId ?? this.clientId,
       sellerId: sellerId ?? this.sellerId,
@@ -2422,6 +2512,9 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
     }
     if (number.present) {
       map['number'] = Variable<int>(number.value);
@@ -2469,6 +2562,7 @@ class LocalSalesCompanion extends UpdateCompanion<LocalSale> {
   String toString() {
     return (StringBuffer('LocalSalesCompanion(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('number: $number, ')
           ..write('clientId: $clientId, ')
           ..write('sellerId: $sellerId, ')
@@ -2501,6 +2595,15 @@ class $LocalSaleDetailsTable extends LocalSaleDetails
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _saleIdMeta = const VerificationMeta('saleId');
   @override
@@ -2601,6 +2704,7 @@ class $LocalSaleDetailsTable extends LocalSaleDetails
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    userId,
     saleId,
     productUnitId,
     unit,
@@ -2627,6 +2731,12 @@ class $LocalSaleDetailsTable extends LocalSaleDetails
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
     }
     if (data.containsKey('sale_id')) {
       context.handle(
@@ -2713,6 +2823,10 @@ class $LocalSaleDetailsTable extends LocalSaleDetails
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
       saleId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}sale_id'],
@@ -2760,6 +2874,7 @@ class $LocalSaleDetailsTable extends LocalSaleDetails
 
 class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
   final String id;
+  final String? userId;
   final String saleId;
   final String productUnitId;
   final String unit;
@@ -2771,6 +2886,7 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
   final String? syncError;
   const LocalSaleDetail({
     required this.id,
+    this.userId,
     required this.saleId,
     required this.productUnitId,
     required this.unit,
@@ -2785,6 +2901,9 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
     map['sale_id'] = Variable<String>(saleId);
     map['product_unit_id'] = Variable<String>(productUnitId);
     map['unit'] = Variable<String>(unit);
@@ -2804,6 +2923,9 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
   LocalSaleDetailsCompanion toCompanion(bool nullToAbsent) {
     return LocalSaleDetailsCompanion(
       id: Value(id),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
       saleId: Value(saleId),
       productUnitId: Value(productUnitId),
       unit: Value(unit),
@@ -2827,6 +2949,7 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LocalSaleDetail(
       id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String?>(json['userId']),
       saleId: serializer.fromJson<String>(json['saleId']),
       productUnitId: serializer.fromJson<String>(json['productUnitId']),
       unit: serializer.fromJson<String>(json['unit']),
@@ -2843,6 +2966,7 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String?>(userId),
       'saleId': serializer.toJson<String>(saleId),
       'productUnitId': serializer.toJson<String>(productUnitId),
       'unit': serializer.toJson<String>(unit),
@@ -2857,6 +2981,7 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
 
   LocalSaleDetail copyWith({
     String? id,
+    Value<String?> userId = const Value.absent(),
     String? saleId,
     String? productUnitId,
     String? unit,
@@ -2868,6 +2993,7 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
     Value<String?> syncError = const Value.absent(),
   }) => LocalSaleDetail(
     id: id ?? this.id,
+    userId: userId.present ? userId.value : this.userId,
     saleId: saleId ?? this.saleId,
     productUnitId: productUnitId ?? this.productUnitId,
     unit: unit ?? this.unit,
@@ -2881,6 +3007,7 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
   LocalSaleDetail copyWithCompanion(LocalSaleDetailsCompanion data) {
     return LocalSaleDetail(
       id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
       saleId: data.saleId.present ? data.saleId.value : this.saleId,
       productUnitId: data.productUnitId.present
           ? data.productUnitId.value
@@ -2903,6 +3030,7 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
   String toString() {
     return (StringBuffer('LocalSaleDetail(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('saleId: $saleId, ')
           ..write('productUnitId: $productUnitId, ')
           ..write('unit: $unit, ')
@@ -2919,6 +3047,7 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
   @override
   int get hashCode => Object.hash(
     id,
+    userId,
     saleId,
     productUnitId,
     unit,
@@ -2934,6 +3063,7 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
       identical(this, other) ||
       (other is LocalSaleDetail &&
           other.id == this.id &&
+          other.userId == this.userId &&
           other.saleId == this.saleId &&
           other.productUnitId == this.productUnitId &&
           other.unit == this.unit &&
@@ -2947,6 +3077,7 @@ class LocalSaleDetail extends DataClass implements Insertable<LocalSaleDetail> {
 
 class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
   final Value<String> id;
+  final Value<String?> userId;
   final Value<String> saleId;
   final Value<String> productUnitId;
   final Value<String> unit;
@@ -2959,6 +3090,7 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
   final Value<int> rowid;
   const LocalSaleDetailsCompanion({
     this.id = const Value.absent(),
+    this.userId = const Value.absent(),
     this.saleId = const Value.absent(),
     this.productUnitId = const Value.absent(),
     this.unit = const Value.absent(),
@@ -2972,6 +3104,7 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
   });
   LocalSaleDetailsCompanion.insert({
     required String id,
+    this.userId = const Value.absent(),
     required String saleId,
     required String productUnitId,
     required String unit,
@@ -2991,6 +3124,7 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
        discount = Value(discount);
   static Insertable<LocalSaleDetail> custom({
     Expression<String>? id,
+    Expression<String>? userId,
     Expression<String>? saleId,
     Expression<String>? productUnitId,
     Expression<String>? unit,
@@ -3004,6 +3138,7 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
       if (saleId != null) 'sale_id': saleId,
       if (productUnitId != null) 'product_unit_id': productUnitId,
       if (unit != null) 'unit': unit,
@@ -3019,6 +3154,7 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
 
   LocalSaleDetailsCompanion copyWith({
     Value<String>? id,
+    Value<String?>? userId,
     Value<String>? saleId,
     Value<String>? productUnitId,
     Value<String>? unit,
@@ -3032,6 +3168,7 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
   }) {
     return LocalSaleDetailsCompanion(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       saleId: saleId ?? this.saleId,
       productUnitId: productUnitId ?? this.productUnitId,
       unit: unit ?? this.unit,
@@ -3050,6 +3187,9 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
     }
     if (saleId.present) {
       map['sale_id'] = Variable<String>(saleId.value);
@@ -3088,6 +3228,7 @@ class LocalSaleDetailsCompanion extends UpdateCompanion<LocalSaleDetail> {
   String toString() {
     return (StringBuffer('LocalSaleDetailsCompanion(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('saleId: $saleId, ')
           ..write('productUnitId: $productUnitId, ')
           ..write('unit: $unit, ')
@@ -3117,6 +3258,15 @@ class $LocalSaleDeliveriesTable extends LocalSaleDeliveries
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _saleIdMeta = const VerificationMeta('saleId');
   @override
@@ -3186,6 +3336,7 @@ class $LocalSaleDeliveriesTable extends LocalSaleDeliveries
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    userId,
     saleId,
     deliveryAddress,
     vehiclePlate,
@@ -3209,6 +3360,12 @@ class $LocalSaleDeliveriesTable extends LocalSaleDeliveries
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
     }
     if (data.containsKey('sale_id')) {
       context.handle(
@@ -3270,6 +3427,10 @@ class $LocalSaleDeliveriesTable extends LocalSaleDeliveries
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
       saleId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}sale_id'],
@@ -3306,6 +3467,7 @@ class $LocalSaleDeliveriesTable extends LocalSaleDeliveries
 class LocalSaleDelivery extends DataClass
     implements Insertable<LocalSaleDelivery> {
   final String id;
+  final String? userId;
   final String saleId;
   final String? deliveryAddress;
   final String? vehiclePlate;
@@ -3314,6 +3476,7 @@ class LocalSaleDelivery extends DataClass
   final String? syncError;
   const LocalSaleDelivery({
     required this.id,
+    this.userId,
     required this.saleId,
     this.deliveryAddress,
     this.vehiclePlate,
@@ -3325,6 +3488,9 @@ class LocalSaleDelivery extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
     map['sale_id'] = Variable<String>(saleId);
     if (!nullToAbsent || deliveryAddress != null) {
       map['delivery_address'] = Variable<String>(deliveryAddress);
@@ -3345,6 +3511,9 @@ class LocalSaleDelivery extends DataClass
   LocalSaleDeliveriesCompanion toCompanion(bool nullToAbsent) {
     return LocalSaleDeliveriesCompanion(
       id: Value(id),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
       saleId: Value(saleId),
       deliveryAddress: deliveryAddress == null && nullToAbsent
           ? const Value.absent()
@@ -3369,6 +3538,7 @@ class LocalSaleDelivery extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LocalSaleDelivery(
       id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String?>(json['userId']),
       saleId: serializer.fromJson<String>(json['saleId']),
       deliveryAddress: serializer.fromJson<String?>(json['deliveryAddress']),
       vehiclePlate: serializer.fromJson<String?>(json['vehiclePlate']),
@@ -3382,6 +3552,7 @@ class LocalSaleDelivery extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String?>(userId),
       'saleId': serializer.toJson<String>(saleId),
       'deliveryAddress': serializer.toJson<String?>(deliveryAddress),
       'vehiclePlate': serializer.toJson<String?>(vehiclePlate),
@@ -3393,6 +3564,7 @@ class LocalSaleDelivery extends DataClass
 
   LocalSaleDelivery copyWith({
     String? id,
+    Value<String?> userId = const Value.absent(),
     String? saleId,
     Value<String?> deliveryAddress = const Value.absent(),
     Value<String?> vehiclePlate = const Value.absent(),
@@ -3401,6 +3573,7 @@ class LocalSaleDelivery extends DataClass
     Value<String?> syncError = const Value.absent(),
   }) => LocalSaleDelivery(
     id: id ?? this.id,
+    userId: userId.present ? userId.value : this.userId,
     saleId: saleId ?? this.saleId,
     deliveryAddress: deliveryAddress.present
         ? deliveryAddress.value
@@ -3413,6 +3586,7 @@ class LocalSaleDelivery extends DataClass
   LocalSaleDelivery copyWithCompanion(LocalSaleDeliveriesCompanion data) {
     return LocalSaleDelivery(
       id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
       saleId: data.saleId.present ? data.saleId.value : this.saleId,
       deliveryAddress: data.deliveryAddress.present
           ? data.deliveryAddress.value
@@ -3434,6 +3608,7 @@ class LocalSaleDelivery extends DataClass
   String toString() {
     return (StringBuffer('LocalSaleDelivery(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('saleId: $saleId, ')
           ..write('deliveryAddress: $deliveryAddress, ')
           ..write('vehiclePlate: $vehiclePlate, ')
@@ -3447,6 +3622,7 @@ class LocalSaleDelivery extends DataClass
   @override
   int get hashCode => Object.hash(
     id,
+    userId,
     saleId,
     deliveryAddress,
     vehiclePlate,
@@ -3459,6 +3635,7 @@ class LocalSaleDelivery extends DataClass
       identical(this, other) ||
       (other is LocalSaleDelivery &&
           other.id == this.id &&
+          other.userId == this.userId &&
           other.saleId == this.saleId &&
           other.deliveryAddress == this.deliveryAddress &&
           other.vehiclePlate == this.vehiclePlate &&
@@ -3469,6 +3646,7 @@ class LocalSaleDelivery extends DataClass
 
 class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
   final Value<String> id;
+  final Value<String?> userId;
   final Value<String> saleId;
   final Value<String?> deliveryAddress;
   final Value<String?> vehiclePlate;
@@ -3478,6 +3656,7 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
   final Value<int> rowid;
   const LocalSaleDeliveriesCompanion({
     this.id = const Value.absent(),
+    this.userId = const Value.absent(),
     this.saleId = const Value.absent(),
     this.deliveryAddress = const Value.absent(),
     this.vehiclePlate = const Value.absent(),
@@ -3488,6 +3667,7 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
   });
   LocalSaleDeliveriesCompanion.insert({
     required String id,
+    this.userId = const Value.absent(),
     required String saleId,
     this.deliveryAddress = const Value.absent(),
     this.vehiclePlate = const Value.absent(),
@@ -3499,6 +3679,7 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
        saleId = Value(saleId);
   static Insertable<LocalSaleDelivery> custom({
     Expression<String>? id,
+    Expression<String>? userId,
     Expression<String>? saleId,
     Expression<String>? deliveryAddress,
     Expression<String>? vehiclePlate,
@@ -3509,6 +3690,7 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
       if (saleId != null) 'sale_id': saleId,
       if (deliveryAddress != null) 'delivery_address': deliveryAddress,
       if (vehiclePlate != null) 'vehicle_plate': vehiclePlate,
@@ -3521,6 +3703,7 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
 
   LocalSaleDeliveriesCompanion copyWith({
     Value<String>? id,
+    Value<String?>? userId,
     Value<String>? saleId,
     Value<String?>? deliveryAddress,
     Value<String?>? vehiclePlate,
@@ -3531,6 +3714,7 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
   }) {
     return LocalSaleDeliveriesCompanion(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       saleId: saleId ?? this.saleId,
       deliveryAddress: deliveryAddress ?? this.deliveryAddress,
       vehiclePlate: vehiclePlate ?? this.vehiclePlate,
@@ -3546,6 +3730,9 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
     }
     if (saleId.present) {
       map['sale_id'] = Variable<String>(saleId.value);
@@ -3575,6 +3762,7 @@ class LocalSaleDeliveriesCompanion extends UpdateCompanion<LocalSaleDelivery> {
   String toString() {
     return (StringBuffer('LocalSaleDeliveriesCompanion(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('saleId: $saleId, ')
           ..write('deliveryAddress: $deliveryAddress, ')
           ..write('vehiclePlate: $vehiclePlate, ')
@@ -3601,6 +3789,15 @@ class $LocalSaleHistoryTable extends LocalSaleHistory
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _numberMeta = const VerificationMeta('number');
   @override
@@ -3678,6 +3875,7 @@ class $LocalSaleHistoryTable extends LocalSaleHistory
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    userId,
     number,
     clientName,
     clientCi,
@@ -3702,6 +3900,12 @@ class $LocalSaleHistoryTable extends LocalSaleHistory
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
     }
     if (data.containsKey('number')) {
       context.handle(
@@ -3773,6 +3977,10 @@ class $LocalSaleHistoryTable extends LocalSaleHistory
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
       number: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}number'],
@@ -3813,6 +4021,7 @@ class $LocalSaleHistoryTable extends LocalSaleHistory
 class LocalSaleHistoryData extends DataClass
     implements Insertable<LocalSaleHistoryData> {
   final String id;
+  final String? userId;
   final int? number;
   final String clientName;
   final String clientCi;
@@ -3822,6 +4031,7 @@ class LocalSaleHistoryData extends DataClass
   final DateTime updatedAt;
   const LocalSaleHistoryData({
     required this.id,
+    this.userId,
     this.number,
     required this.clientName,
     required this.clientCi,
@@ -3834,6 +4044,9 @@ class LocalSaleHistoryData extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
     if (!nullToAbsent || number != null) {
       map['number'] = Variable<int>(number);
     }
@@ -3849,6 +4062,9 @@ class LocalSaleHistoryData extends DataClass
   LocalSaleHistoryCompanion toCompanion(bool nullToAbsent) {
     return LocalSaleHistoryCompanion(
       id: Value(id),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
       number: number == null && nullToAbsent
           ? const Value.absent()
           : Value(number),
@@ -3868,6 +4084,7 @@ class LocalSaleHistoryData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LocalSaleHistoryData(
       id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String?>(json['userId']),
       number: serializer.fromJson<int?>(json['number']),
       clientName: serializer.fromJson<String>(json['clientName']),
       clientCi: serializer.fromJson<String>(json['clientCi']),
@@ -3882,6 +4099,7 @@ class LocalSaleHistoryData extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String?>(userId),
       'number': serializer.toJson<int?>(number),
       'clientName': serializer.toJson<String>(clientName),
       'clientCi': serializer.toJson<String>(clientCi),
@@ -3894,6 +4112,7 @@ class LocalSaleHistoryData extends DataClass
 
   LocalSaleHistoryData copyWith({
     String? id,
+    Value<String?> userId = const Value.absent(),
     Value<int?> number = const Value.absent(),
     String? clientName,
     String? clientCi,
@@ -3903,6 +4122,7 @@ class LocalSaleHistoryData extends DataClass
     DateTime? updatedAt,
   }) => LocalSaleHistoryData(
     id: id ?? this.id,
+    userId: userId.present ? userId.value : this.userId,
     number: number.present ? number.value : this.number,
     clientName: clientName ?? this.clientName,
     clientCi: clientCi ?? this.clientCi,
@@ -3914,6 +4134,7 @@ class LocalSaleHistoryData extends DataClass
   LocalSaleHistoryData copyWithCompanion(LocalSaleHistoryCompanion data) {
     return LocalSaleHistoryData(
       id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
       number: data.number.present ? data.number.value : this.number,
       clientName: data.clientName.present
           ? data.clientName.value
@@ -3932,6 +4153,7 @@ class LocalSaleHistoryData extends DataClass
   String toString() {
     return (StringBuffer('LocalSaleHistoryData(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('number: $number, ')
           ..write('clientName: $clientName, ')
           ..write('clientCi: $clientCi, ')
@@ -3946,6 +4168,7 @@ class LocalSaleHistoryData extends DataClass
   @override
   int get hashCode => Object.hash(
     id,
+    userId,
     number,
     clientName,
     clientCi,
@@ -3959,6 +4182,7 @@ class LocalSaleHistoryData extends DataClass
       identical(this, other) ||
       (other is LocalSaleHistoryData &&
           other.id == this.id &&
+          other.userId == this.userId &&
           other.number == this.number &&
           other.clientName == this.clientName &&
           other.clientCi == this.clientCi &&
@@ -3970,6 +4194,7 @@ class LocalSaleHistoryData extends DataClass
 
 class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
   final Value<String> id;
+  final Value<String?> userId;
   final Value<int?> number;
   final Value<String> clientName;
   final Value<String> clientCi;
@@ -3980,6 +4205,7 @@ class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
   final Value<int> rowid;
   const LocalSaleHistoryCompanion({
     this.id = const Value.absent(),
+    this.userId = const Value.absent(),
     this.number = const Value.absent(),
     this.clientName = const Value.absent(),
     this.clientCi = const Value.absent(),
@@ -3991,6 +4217,7 @@ class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
   });
   LocalSaleHistoryCompanion.insert({
     required String id,
+    this.userId = const Value.absent(),
     this.number = const Value.absent(),
     required String clientName,
     required String clientCi,
@@ -4008,6 +4235,7 @@ class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
        updatedAt = Value(updatedAt);
   static Insertable<LocalSaleHistoryData> custom({
     Expression<String>? id,
+    Expression<String>? userId,
     Expression<int>? number,
     Expression<String>? clientName,
     Expression<String>? clientCi,
@@ -4019,6 +4247,7 @@ class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
       if (number != null) 'number': number,
       if (clientName != null) 'client_name': clientName,
       if (clientCi != null) 'client_ci': clientCi,
@@ -4032,6 +4261,7 @@ class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
 
   LocalSaleHistoryCompanion copyWith({
     Value<String>? id,
+    Value<String?>? userId,
     Value<int?>? number,
     Value<String>? clientName,
     Value<String>? clientCi,
@@ -4043,6 +4273,7 @@ class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
   }) {
     return LocalSaleHistoryCompanion(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       number: number ?? this.number,
       clientName: clientName ?? this.clientName,
       clientCi: clientCi ?? this.clientCi,
@@ -4059,6 +4290,9 @@ class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
     }
     if (number.present) {
       map['number'] = Variable<int>(number.value);
@@ -4091,6 +4325,7 @@ class LocalSaleHistoryCompanion extends UpdateCompanion<LocalSaleHistoryData> {
   String toString() {
     return (StringBuffer('LocalSaleHistoryCompanion(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('number: $number, ')
           ..write('clientName: $clientName, ')
           ..write('clientCi: $clientCi, ')
@@ -4122,6 +4357,15 @@ class $OutboxOperationsTable extends OutboxOperations
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'PRIMARY KEY AUTOINCREMENT',
     ),
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _operationMeta = const VerificationMeta(
     'operation',
@@ -4204,6 +4448,7 @@ class $OutboxOperationsTable extends OutboxOperations
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    userId,
     operation,
     payload,
     status,
@@ -4226,6 +4471,12 @@ class $OutboxOperationsTable extends OutboxOperations
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
     }
     if (data.containsKey('operation')) {
       context.handle(
@@ -4288,6 +4539,10 @@ class $OutboxOperationsTable extends OutboxOperations
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
       operation: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}operation'],
@@ -4327,6 +4582,7 @@ class $OutboxOperationsTable extends OutboxOperations
 
 class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
   final int id;
+  final String? userId;
   final String operation;
   final String payload;
   final String status;
@@ -4336,6 +4592,7 @@ class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
   final DateTime updatedAt;
   const OutboxOperation({
     required this.id,
+    this.userId,
     required this.operation,
     required this.payload,
     required this.status,
@@ -4348,6 +4605,9 @@ class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
     map['operation'] = Variable<String>(operation);
     map['payload'] = Variable<String>(payload);
     map['status'] = Variable<String>(status);
@@ -4363,6 +4623,9 @@ class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
   OutboxOperationsCompanion toCompanion(bool nullToAbsent) {
     return OutboxOperationsCompanion(
       id: Value(id),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
       operation: Value(operation),
       payload: Value(payload),
       status: Value(status),
@@ -4382,6 +4645,7 @@ class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return OutboxOperation(
       id: serializer.fromJson<int>(json['id']),
+      userId: serializer.fromJson<String?>(json['userId']),
       operation: serializer.fromJson<String>(json['operation']),
       payload: serializer.fromJson<String>(json['payload']),
       status: serializer.fromJson<String>(json['status']),
@@ -4396,6 +4660,7 @@ class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'userId': serializer.toJson<String?>(userId),
       'operation': serializer.toJson<String>(operation),
       'payload': serializer.toJson<String>(payload),
       'status': serializer.toJson<String>(status),
@@ -4408,6 +4673,7 @@ class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
 
   OutboxOperation copyWith({
     int? id,
+    Value<String?> userId = const Value.absent(),
     String? operation,
     String? payload,
     String? status,
@@ -4417,6 +4683,7 @@ class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
     DateTime? updatedAt,
   }) => OutboxOperation(
     id: id ?? this.id,
+    userId: userId.present ? userId.value : this.userId,
     operation: operation ?? this.operation,
     payload: payload ?? this.payload,
     status: status ?? this.status,
@@ -4428,6 +4695,7 @@ class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
   OutboxOperation copyWithCompanion(OutboxOperationsCompanion data) {
     return OutboxOperation(
       id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
       operation: data.operation.present ? data.operation.value : this.operation,
       payload: data.payload.present ? data.payload.value : this.payload,
       status: data.status.present ? data.status.value : this.status,
@@ -4442,6 +4710,7 @@ class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
   String toString() {
     return (StringBuffer('OutboxOperation(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('operation: $operation, ')
           ..write('payload: $payload, ')
           ..write('status: $status, ')
@@ -4456,6 +4725,7 @@ class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
   @override
   int get hashCode => Object.hash(
     id,
+    userId,
     operation,
     payload,
     status,
@@ -4469,6 +4739,7 @@ class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
       identical(this, other) ||
       (other is OutboxOperation &&
           other.id == this.id &&
+          other.userId == this.userId &&
           other.operation == this.operation &&
           other.payload == this.payload &&
           other.status == this.status &&
@@ -4480,6 +4751,7 @@ class OutboxOperation extends DataClass implements Insertable<OutboxOperation> {
 
 class OutboxOperationsCompanion extends UpdateCompanion<OutboxOperation> {
   final Value<int> id;
+  final Value<String?> userId;
   final Value<String> operation;
   final Value<String> payload;
   final Value<String> status;
@@ -4489,6 +4761,7 @@ class OutboxOperationsCompanion extends UpdateCompanion<OutboxOperation> {
   final Value<DateTime> updatedAt;
   const OutboxOperationsCompanion({
     this.id = const Value.absent(),
+    this.userId = const Value.absent(),
     this.operation = const Value.absent(),
     this.payload = const Value.absent(),
     this.status = const Value.absent(),
@@ -4499,6 +4772,7 @@ class OutboxOperationsCompanion extends UpdateCompanion<OutboxOperation> {
   });
   OutboxOperationsCompanion.insert({
     this.id = const Value.absent(),
+    this.userId = const Value.absent(),
     required String operation,
     required String payload,
     required String status,
@@ -4511,6 +4785,7 @@ class OutboxOperationsCompanion extends UpdateCompanion<OutboxOperation> {
        status = Value(status);
   static Insertable<OutboxOperation> custom({
     Expression<int>? id,
+    Expression<String>? userId,
     Expression<String>? operation,
     Expression<String>? payload,
     Expression<String>? status,
@@ -4521,6 +4796,7 @@ class OutboxOperationsCompanion extends UpdateCompanion<OutboxOperation> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
       if (operation != null) 'operation': operation,
       if (payload != null) 'payload': payload,
       if (status != null) 'status': status,
@@ -4533,6 +4809,7 @@ class OutboxOperationsCompanion extends UpdateCompanion<OutboxOperation> {
 
   OutboxOperationsCompanion copyWith({
     Value<int>? id,
+    Value<String?>? userId,
     Value<String>? operation,
     Value<String>? payload,
     Value<String>? status,
@@ -4543,6 +4820,7 @@ class OutboxOperationsCompanion extends UpdateCompanion<OutboxOperation> {
   }) {
     return OutboxOperationsCompanion(
       id: id ?? this.id,
+      userId: userId ?? this.userId,
       operation: operation ?? this.operation,
       payload: payload ?? this.payload,
       status: status ?? this.status,
@@ -4558,6 +4836,9 @@ class OutboxOperationsCompanion extends UpdateCompanion<OutboxOperation> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
     }
     if (operation.present) {
       map['operation'] = Variable<String>(operation.value);
@@ -4587,6 +4868,7 @@ class OutboxOperationsCompanion extends UpdateCompanion<OutboxOperation> {
   String toString() {
     return (StringBuffer('OutboxOperationsCompanion(')
           ..write('id: $id, ')
+          ..write('userId: $userId, ')
           ..write('operation: $operation, ')
           ..write('payload: $payload, ')
           ..write('status: $status, ')
@@ -4849,6 +5131,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$LocalClientsTableCreateCompanionBuilder =
     LocalClientsCompanion Function({
       required String id,
+      Value<String?> userId,
       required String name,
       Value<String?> phone,
       required String ci,
@@ -4862,6 +5145,7 @@ typedef $$LocalClientsTableCreateCompanionBuilder =
 typedef $$LocalClientsTableUpdateCompanionBuilder =
     LocalClientsCompanion Function({
       Value<String> id,
+      Value<String?> userId,
       Value<String> name,
       Value<String?> phone,
       Value<String> ci,
@@ -4884,6 +5168,11 @@ class $$LocalClientsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4942,6 +5231,11 @@ class $$LocalClientsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -4994,6 +5288,9 @@ class $$LocalClientsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
@@ -5054,6 +5351,7 @@ class $$LocalClientsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> phone = const Value.absent(),
                 Value<String> ci = const Value.absent(),
@@ -5065,6 +5363,7 @@ class $$LocalClientsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => LocalClientsCompanion(
                 id: id,
+                userId: userId,
                 name: name,
                 phone: phone,
                 ci: ci,
@@ -5078,6 +5377,7 @@ class $$LocalClientsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> userId = const Value.absent(),
                 required String name,
                 Value<String?> phone = const Value.absent(),
                 required String ci,
@@ -5089,6 +5389,7 @@ class $$LocalClientsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => LocalClientsCompanion.insert(
                 id: id,
+                userId: userId,
                 name: name,
                 phone: phone,
                 ci: ci,
@@ -5780,6 +6081,7 @@ typedef $$LocalProfilesTableProcessedTableManager =
 typedef $$LocalSalesTableCreateCompanionBuilder =
     LocalSalesCompanion Function({
       required String id,
+      Value<String?> userId,
       Value<int?> number,
       required String clientId,
       required String sellerId,
@@ -5797,6 +6099,7 @@ typedef $$LocalSalesTableCreateCompanionBuilder =
 typedef $$LocalSalesTableUpdateCompanionBuilder =
     LocalSalesCompanion Function({
       Value<String> id,
+      Value<String?> userId,
       Value<int?> number,
       Value<String> clientId,
       Value<String> sellerId,
@@ -5823,6 +6126,11 @@ class $$LocalSalesTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5901,6 +6209,11 @@ class $$LocalSalesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get number => $composableBuilder(
     column: $table.number,
     builder: (column) => ColumnOrderings(column),
@@ -5973,6 +6286,9 @@ class $$LocalSalesTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<int> get number =>
       $composableBuilder(column: $table.number, builder: (column) => column);
@@ -6049,6 +6365,7 @@ class $$LocalSalesTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
                 Value<int?> number = const Value.absent(),
                 Value<String> clientId = const Value.absent(),
                 Value<String> sellerId = const Value.absent(),
@@ -6064,6 +6381,7 @@ class $$LocalSalesTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => LocalSalesCompanion(
                 id: id,
+                userId: userId,
                 number: number,
                 clientId: clientId,
                 sellerId: sellerId,
@@ -6081,6 +6399,7 @@ class $$LocalSalesTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> userId = const Value.absent(),
                 Value<int?> number = const Value.absent(),
                 required String clientId,
                 required String sellerId,
@@ -6096,6 +6415,7 @@ class $$LocalSalesTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => LocalSalesCompanion.insert(
                 id: id,
+                userId: userId,
                 number: number,
                 clientId: clientId,
                 sellerId: sellerId,
@@ -6135,6 +6455,7 @@ typedef $$LocalSalesTableProcessedTableManager =
 typedef $$LocalSaleDetailsTableCreateCompanionBuilder =
     LocalSaleDetailsCompanion Function({
       required String id,
+      Value<String?> userId,
       required String saleId,
       required String productUnitId,
       required String unit,
@@ -6149,6 +6470,7 @@ typedef $$LocalSaleDetailsTableCreateCompanionBuilder =
 typedef $$LocalSaleDetailsTableUpdateCompanionBuilder =
     LocalSaleDetailsCompanion Function({
       Value<String> id,
+      Value<String?> userId,
       Value<String> saleId,
       Value<String> productUnitId,
       Value<String> unit,
@@ -6172,6 +6494,11 @@ class $$LocalSaleDetailsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6235,6 +6562,11 @@ class $$LocalSaleDetailsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get saleId => $composableBuilder(
     column: $table.saleId,
     builder: (column) => ColumnOrderings(column),
@@ -6292,6 +6624,9 @@ class $$LocalSaleDetailsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<String> get saleId =>
       $composableBuilder(column: $table.saleId, builder: (column) => column);
@@ -6365,6 +6700,7 @@ class $$LocalSaleDetailsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
                 Value<String> saleId = const Value.absent(),
                 Value<String> productUnitId = const Value.absent(),
                 Value<String> unit = const Value.absent(),
@@ -6377,6 +6713,7 @@ class $$LocalSaleDetailsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => LocalSaleDetailsCompanion(
                 id: id,
+                userId: userId,
                 saleId: saleId,
                 productUnitId: productUnitId,
                 unit: unit,
@@ -6391,6 +6728,7 @@ class $$LocalSaleDetailsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> userId = const Value.absent(),
                 required String saleId,
                 required String productUnitId,
                 required String unit,
@@ -6403,6 +6741,7 @@ class $$LocalSaleDetailsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => LocalSaleDetailsCompanion.insert(
                 id: id,
+                userId: userId,
                 saleId: saleId,
                 productUnitId: productUnitId,
                 unit: unit,
@@ -6442,6 +6781,7 @@ typedef $$LocalSaleDetailsTableProcessedTableManager =
 typedef $$LocalSaleDeliveriesTableCreateCompanionBuilder =
     LocalSaleDeliveriesCompanion Function({
       required String id,
+      Value<String?> userId,
       required String saleId,
       Value<String?> deliveryAddress,
       Value<String?> vehiclePlate,
@@ -6453,6 +6793,7 @@ typedef $$LocalSaleDeliveriesTableCreateCompanionBuilder =
 typedef $$LocalSaleDeliveriesTableUpdateCompanionBuilder =
     LocalSaleDeliveriesCompanion Function({
       Value<String> id,
+      Value<String?> userId,
       Value<String> saleId,
       Value<String?> deliveryAddress,
       Value<String?> vehiclePlate,
@@ -6473,6 +6814,11 @@ class $$LocalSaleDeliveriesTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6521,6 +6867,11 @@ class $$LocalSaleDeliveriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get saleId => $composableBuilder(
     column: $table.saleId,
     builder: (column) => ColumnOrderings(column),
@@ -6563,6 +6914,9 @@ class $$LocalSaleDeliveriesTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<String> get saleId =>
       $composableBuilder(column: $table.saleId, builder: (column) => column);
@@ -6635,6 +6989,7 @@ class $$LocalSaleDeliveriesTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
                 Value<String> saleId = const Value.absent(),
                 Value<String?> deliveryAddress = const Value.absent(),
                 Value<String?> vehiclePlate = const Value.absent(),
@@ -6644,6 +6999,7 @@ class $$LocalSaleDeliveriesTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => LocalSaleDeliveriesCompanion(
                 id: id,
+                userId: userId,
                 saleId: saleId,
                 deliveryAddress: deliveryAddress,
                 vehiclePlate: vehiclePlate,
@@ -6655,6 +7011,7 @@ class $$LocalSaleDeliveriesTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> userId = const Value.absent(),
                 required String saleId,
                 Value<String?> deliveryAddress = const Value.absent(),
                 Value<String?> vehiclePlate = const Value.absent(),
@@ -6664,6 +7021,7 @@ class $$LocalSaleDeliveriesTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => LocalSaleDeliveriesCompanion.insert(
                 id: id,
+                userId: userId,
                 saleId: saleId,
                 deliveryAddress: deliveryAddress,
                 vehiclePlate: vehiclePlate,
@@ -6704,6 +7062,7 @@ typedef $$LocalSaleDeliveriesTableProcessedTableManager =
 typedef $$LocalSaleHistoryTableCreateCompanionBuilder =
     LocalSaleHistoryCompanion Function({
       required String id,
+      Value<String?> userId,
       Value<int?> number,
       required String clientName,
       required String clientCi,
@@ -6716,6 +7075,7 @@ typedef $$LocalSaleHistoryTableCreateCompanionBuilder =
 typedef $$LocalSaleHistoryTableUpdateCompanionBuilder =
     LocalSaleHistoryCompanion Function({
       Value<String> id,
+      Value<String?> userId,
       Value<int?> number,
       Value<String> clientName,
       Value<String> clientCi,
@@ -6737,6 +7097,11 @@ class $$LocalSaleHistoryTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6790,6 +7155,11 @@ class $$LocalSaleHistoryTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get number => $composableBuilder(
     column: $table.number,
     builder: (column) => ColumnOrderings(column),
@@ -6837,6 +7207,9 @@ class $$LocalSaleHistoryTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<int> get number =>
       $composableBuilder(column: $table.number, builder: (column) => column);
@@ -6902,6 +7275,7 @@ class $$LocalSaleHistoryTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
                 Value<int?> number = const Value.absent(),
                 Value<String> clientName = const Value.absent(),
                 Value<String> clientCi = const Value.absent(),
@@ -6912,6 +7286,7 @@ class $$LocalSaleHistoryTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => LocalSaleHistoryCompanion(
                 id: id,
+                userId: userId,
                 number: number,
                 clientName: clientName,
                 clientCi: clientCi,
@@ -6924,6 +7299,7 @@ class $$LocalSaleHistoryTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> userId = const Value.absent(),
                 Value<int?> number = const Value.absent(),
                 required String clientName,
                 required String clientCi,
@@ -6934,6 +7310,7 @@ class $$LocalSaleHistoryTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => LocalSaleHistoryCompanion.insert(
                 id: id,
+                userId: userId,
                 number: number,
                 clientName: clientName,
                 clientCi: clientCi,
@@ -6975,6 +7352,7 @@ typedef $$LocalSaleHistoryTableProcessedTableManager =
 typedef $$OutboxOperationsTableCreateCompanionBuilder =
     OutboxOperationsCompanion Function({
       Value<int> id,
+      Value<String?> userId,
       required String operation,
       required String payload,
       required String status,
@@ -6986,6 +7364,7 @@ typedef $$OutboxOperationsTableCreateCompanionBuilder =
 typedef $$OutboxOperationsTableUpdateCompanionBuilder =
     OutboxOperationsCompanion Function({
       Value<int> id,
+      Value<String?> userId,
       Value<String> operation,
       Value<String> payload,
       Value<String> status,
@@ -7006,6 +7385,11 @@ class $$OutboxOperationsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7059,6 +7443,11 @@ class $$OutboxOperationsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get operation => $composableBuilder(
     column: $table.operation,
     builder: (column) => ColumnOrderings(column),
@@ -7106,6 +7495,9 @@ class $$OutboxOperationsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
 
   GeneratedColumn<String> get operation =>
       $composableBuilder(column: $table.operation, builder: (column) => column);
@@ -7167,6 +7559,7 @@ class $$OutboxOperationsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
                 Value<String> operation = const Value.absent(),
                 Value<String> payload = const Value.absent(),
                 Value<String> status = const Value.absent(),
@@ -7176,6 +7569,7 @@ class $$OutboxOperationsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => OutboxOperationsCompanion(
                 id: id,
+                userId: userId,
                 operation: operation,
                 payload: payload,
                 status: status,
@@ -7187,6 +7581,7 @@ class $$OutboxOperationsTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
                 required String operation,
                 required String payload,
                 required String status,
@@ -7196,6 +7591,7 @@ class $$OutboxOperationsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => OutboxOperationsCompanion.insert(
                 id: id,
+                userId: userId,
                 operation: operation,
                 payload: payload,
                 status: status,
