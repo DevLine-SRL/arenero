@@ -26,6 +26,12 @@ class ClientsRepositoryImpl implements ClientsRepository {
     required this.isOnline,
   });
 
+  static const _ciDuplicateFailure = ValidationFailure(
+    message: 'Ya existe un cliente registrado con esa cédula de identidad.',
+    errors: {'ci': 'Esta cédula ya está registrada'},
+    code: '23505',
+  );
+
   @override
   Future<Either<Failure, List<Client>>> searchClients({
     required String query,
@@ -89,6 +95,17 @@ class ClientsRepositoryImpl implements ClientsRepository {
     String? phone,
     String? nit,
   }) async {
+    var localCiExists = false;
+    try {
+      localCiExists = await localDataSource.existsByCi(ci.value);
+    } catch (_) {
+      // Si falla la lectura local se sigue; la restricción `clients_ci_unique`
+      // del servidor sigue cubriendo el caso.
+    }
+    if (localCiExists) {
+      return Left(_ciDuplicateFailure);
+    }
+
     if (!isOnline()) {
       return _createClientOffline(name: name, ci: ci, phone: phone, nit: nit);
     }
@@ -163,19 +180,24 @@ class ClientsRepositoryImpl implements ClientsRepository {
         );
       }
     }
+
+    var localExists = false;
+    try {
+      localExists = await localDataSource.existsByCi(ci.value);
+    } catch (_) {
+      // Si falla la lectura local se sigue con el chequeo remoto.
+    }
+    if (localExists) {
+      return const Right(true);
+    }
+
     try {
       return Right(await remoteDataSource.existsByCi(ci.value));
     } on supabase.PostgrestException catch (e) {
       return Left(_mapPostgrestException(e, 'No se pudo verificar la cédula.'));
     } catch (e) {
       if (isNetworkError(e)) {
-        try {
-          return Right(await localDataSource.existsByCi(ci.value));
-        } catch (_) {
-          return const Left(
-            CacheFailure(message: 'No se pudo verificar la cédula localmente.'),
-          );
-        }
+        return const Right(false);
       }
       return const Left(
         UnexpectedFailure(message: 'Error inesperado al verificar la cédula.'),
@@ -259,11 +281,7 @@ class ClientsRepositoryImpl implements ClientsRepository {
     String fallbackMessage,
   ) {
     return switch (e.code) {
-      '23505' when _violates(e, 'clients_ci_unique') => const ValidationFailure(
-        message: 'Ya existe un cliente registrado con esa cédula de identidad.',
-        errors: {'ci': 'Esta cédula ya está registrada'},
-        code: '23505',
-      ),
+      '23505' when _violates(e, 'clients_ci_unique') => _ciDuplicateFailure,
       '23505' => const ValidationFailure(
         message: 'Ya existe un registro con esos datos.',
         code: '23505',

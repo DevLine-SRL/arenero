@@ -91,10 +91,12 @@ class ClientsLocalDataSourceImpl implements ClientsLocalDataSource {
 
   @override
   Future<bool> existsByCi(String ci) async {
-    final row = await (database.select(
-      database.localClients,
-    )..where((t) => t.ci.equals(ci))).getSingleOrNull();
-    return row != null;
+    final rows =
+        await (database.select(database.localClients)
+              ..where((t) => t.ci.equals(ci))
+              ..limit(1))
+            .get();
+    return rows.isNotEmpty;
   }
 
   @override

@@ -18,8 +18,18 @@ class CreateClientUseCase {
   }) async {
     return Ci.create(rawCi).fold(
       (failure) => Left<Failure, Client>(failure),
-      (ci) =>
-          repository.createClient(name: name, ci: ci, phone: phone, nit: nit),
+      (ci) => repository.createClient(
+        name: name,
+        ci: ci,
+        phone: _optional(phone),
+        nit: _optional(nit),
+      ),
     );
+  }
+
+  String? _optional(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    return trimmed;
   }
 }
