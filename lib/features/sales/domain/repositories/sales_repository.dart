@@ -12,6 +12,8 @@ abstract class SalesRepository {
     required String sellerId,
     required SaleDeliveryMode deliveryMode,
     required SalePaymentMethod paymentMethod,
+    required double discountAmount,
+    required double freightAmount,
     String? notes,
     SaleDelivery? delivery,
     required List<SaleDetail> details,

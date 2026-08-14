@@ -1,5 +1,6 @@
 import '../../../clients/domain/entities/client.dart';
 import '../../../products/domain/entities/product.dart';
+import '../../../sellers/domain/entities/seller.dart';
 import '../../domain/entities/sale.dart';
 
 class SaleLineItem {
@@ -63,24 +64,26 @@ class SaleLineItem {
 }
 
 class RegisterSaleState {
+  final Seller? seller;
   final Client? client;
   final SaleDeliveryMode deliveryMode;
-  final String deliveryAddress;
   final String vehiclePlate;
-  final DateTime? deliveryDate;
+  final double freightAmount;
   final SalePaymentMethod paymentMethod;
+  final double discountAmount;
   final String notes;
   final List<SaleLineItem> items;
   final bool isSubmitting;
   final String? submitError;
 
   const RegisterSaleState({
+    this.seller,
     this.client,
     this.deliveryMode = SaleDeliveryMode.customerPickup,
-    this.deliveryAddress = '',
     this.vehiclePlate = '',
-    this.deliveryDate,
+    this.freightAmount = 0,
     this.paymentMethod = SalePaymentMethod.cash,
+    this.discountAmount = 0,
     this.notes = '',
     this.items = const [],
     this.isSubmitting = false,
@@ -90,42 +93,42 @@ class RegisterSaleState {
   List<SaleLineItem> get completedItems =>
       items.where((item) => item.isComplete).toList();
 
-  double get total => items.fold(0, (sum, item) => sum + item.subtotal);
+  double get subtotal => items.fold(0, (sum, item) => sum + item.subtotal);
 
-  bool get hasDeliveryInfo =>
-      deliveryMode == SaleDeliveryMode.companyDelivery &&
-      deliveryAddress.trim().isNotEmpty &&
-      deliveryDate != null;
+  double get total {
+    final effectiveFreight = deliveryMode == SaleDeliveryMode.companyDelivery
+        ? freightAmount
+        : 0.0;
+    final value = subtotal - discountAmount + effectiveFreight;
+    return value < 0 ? 0 : value;
+  }
 
   bool get canSubmit =>
-      client != null &&
-      completedItems.isNotEmpty &&
-      (deliveryMode != SaleDeliveryMode.companyDelivery || hasDeliveryInfo) &&
-      !isSubmitting;
+      client != null && completedItems.isNotEmpty && !isSubmitting;
 
   RegisterSaleState copyWith({
+    Seller? seller,
+    bool clearSeller = false,
     Client? client,
     bool clearClient = false,
     SaleDeliveryMode? deliveryMode,
-    String? deliveryAddress,
     String? vehiclePlate,
-    DateTime? deliveryDate,
-    bool clearDeliveryDate = false,
+    double? freightAmount,
     SalePaymentMethod? paymentMethod,
+    double? discountAmount,
     String? notes,
     List<SaleLineItem>? items,
     bool? isSubmitting,
     String? submitError,
   }) {
     return RegisterSaleState(
+      seller: clearSeller ? null : (seller ?? this.seller),
       client: clearClient ? null : (client ?? this.client),
       deliveryMode: deliveryMode ?? this.deliveryMode,
-      deliveryAddress: deliveryAddress ?? this.deliveryAddress,
       vehiclePlate: vehiclePlate ?? this.vehiclePlate,
-      deliveryDate: clearDeliveryDate
-          ? null
-          : (deliveryDate ?? this.deliveryDate),
+      freightAmount: freightAmount ?? this.freightAmount,
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      discountAmount: discountAmount ?? this.discountAmount,
       notes: notes ?? this.notes,
       items: items ?? this.items,
       isSubmitting: isSubmitting ?? this.isSubmitting,

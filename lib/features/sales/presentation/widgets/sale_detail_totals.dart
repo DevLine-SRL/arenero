@@ -21,12 +21,26 @@ class SaleDetailTotals extends StatelessWidget {
       0,
       (sum, detail) => sum + detail.discount,
     );
+    final subtotal = gross - discount;
 
     return Column(
       children: [
         _Row(label: 'Subtotal', value: formatAmount(gross)),
         if (discount > 0)
-          _Row(label: 'Descuentos', value: '-${formatAmount(discount)}'),
+          _Row(
+            label: 'Descuentos por producto',
+            value: '-${formatAmount(discount)}',
+          ),
+        if (sale.discountAmount > 0) ...[
+          if (discount > 0)
+            _Row(label: 'Subtotal neto', value: formatAmount(subtotal)),
+          _Row(
+            label: 'Descuento',
+            value: '-${formatAmount(sale.discountAmount)}',
+          ),
+        ],
+        if (sale.freightAmount > 0)
+          _Row(label: 'Flete', value: '+${formatAmount(sale.freightAmount)}'),
         const Divider(height: 24),
         _Row(
           label: 'Total',

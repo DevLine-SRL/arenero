@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../clients/presentation/widgets/create_client_dialog.dart';
 import '../providers/clients_picker_provider.dart';
 
 class SaleClientPickerDialog extends ConsumerStatefulWidget {
@@ -31,6 +32,17 @@ class _SaleClientPickerDialogState
     _debounce = Timer(const Duration(milliseconds: 350), () {
       if (mounted) setState(() => _query = value);
     });
+  }
+
+  Future<void> _registerClient(BuildContext context, String initialName) async {
+    final client = await CreateClientDialog.showForSelection(
+      context,
+      initialName: initialName,
+    );
+    if (!context.mounted || client == null) return;
+
+    ref.invalidate(clientsPickerResultsProvider(initialName));
+    Navigator.of(context).pop(client);
   }
 
   @override
@@ -80,10 +92,27 @@ class _SaleClientPickerDialogState
             Expanded(
               child: clientsAsync.when(
                 data: (clients) => clients.isEmpty
-                    ? _ClientEmptyState(query: query)
+                    ? _ClientEmptyState(
+                        query: query,
+                        onRegisterClient: query.isEmpty
+                            ? null
+                            : () => _registerClient(context, query),
+                      )
                     : ListView.builder(
-                        itemCount: clients.length,
+                        itemCount: clients.length + (query.isEmpty ? 0 : 1),
                         itemBuilder: (context, index) {
+                          if (index == clients.length) {
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: const Icon(Icons.person_add_alt_rounded),
+                              title: Text('Registrar "$query"'),
+                              subtitle: const Text(
+                                'Crear cliente y usarlo en esta venta',
+                              ),
+                              onTap: () => _registerClient(context, query),
+                            );
+                          }
+
                           final client = clients[index];
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
@@ -115,8 +144,13 @@ class _SaleClientPickerDialogState
 class _ClientEmptyState extends StatelessWidget {
   final String query;
   final bool isError;
+  final VoidCallback? onRegisterClient;
 
-  const _ClientEmptyState({required this.query, this.isError = false});
+  const _ClientEmptyState({
+    required this.query,
+    this.isError = false,
+    this.onRegisterClient,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -143,6 +177,14 @@ class _ClientEmptyState extends StatelessWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
+          if (onRegisterClient != null) ...[
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: onRegisterClient,
+              icon: const Icon(Icons.person_add_alt_rounded),
+              label: const Text('Registrar nuevo cliente'),
+            ),
+          ],
         ],
       ),
     );

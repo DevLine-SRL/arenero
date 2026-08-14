@@ -4,6 +4,7 @@ import '../../../../core/errors/failures.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../clients/domain/entities/client.dart';
 import '../../../products/domain/entities/product.dart';
+import '../../../sellers/domain/entities/seller.dart';
 import '../../domain/entities/sale.dart';
 import '../../domain/entities/sale_detail.dart';
 import '../../domain/entities/sale_delivery.dart';
@@ -33,6 +34,14 @@ class RegisterSaleController extends _$RegisterSaleController {
     state = state.copyWith(client: client);
   }
 
+  void onSellerSelected(Seller seller) {
+    state = state.copyWith(seller: seller);
+  }
+
+  void onClearSeller() {
+    state = state.copyWith(clearSeller: true);
+  }
+
   void onClearClient() {
     state = state.copyWith(clearClient: true);
   }
@@ -41,24 +50,29 @@ class RegisterSaleController extends _$RegisterSaleController {
     state = state.copyWith(deliveryMode: mode);
   }
 
-  void onDeliveryAddressChanged(String value) {
-    state = state.copyWith(deliveryAddress: value);
-  }
-
   void onVehiclePlateChanged(String value) {
     state = state.copyWith(vehiclePlate: value);
   }
 
-  void onDeliveryDateChanged(DateTime? date) {
-    state = state.copyWith(deliveryDate: date, clearDeliveryDate: date == null);
+  void onFreightAmountChanged(double value) {
+    state = state.copyWith(freightAmount: value < 0 ? 0 : value);
   }
 
   void onPaymentMethodChanged(SalePaymentMethod method) {
     state = state.copyWith(paymentMethod: method);
   }
 
+  void onDiscountAmountChanged(double value) {
+    state = state.copyWith(discountAmount: value < 0 ? 0 : value);
+  }
+
   void onNotesChanged(String value) {
     state = state.copyWith(notes: value);
+  }
+
+  void reset() {
+    state = const RegisterSaleState();
+    _nextRowId = 0;
   }
 
   void addLine() {
@@ -169,19 +183,31 @@ class RegisterSaleController extends _$RegisterSaleController {
 
     final delivery = state.deliveryMode == SaleDeliveryMode.companyDelivery
         ? SaleDelivery(
-            deliveryAddress: state.deliveryAddress.trim(),
             vehiclePlate: state.vehiclePlate.trim().isEmpty
                 ? null
                 : state.vehiclePlate.trim(),
-            deliveryDate: state.deliveryDate,
           )
         : null;
 
+    final sellerId = user.role == 'admin' ? state.seller?.id : user.id;
+    if (sellerId == null) {
+      const failure = ValidationFailure(
+        message: 'Selecciona el vendedor de la venta.',
+        errors: {'seller': 'Selecciona el vendedor de la venta.'},
+      );
+      state = state.copyWith(isSubmitting: false, submitError: failure.message);
+      return failure;
+    }
+
     final result = await ref.read(registerSaleUseCaseProvider)(
       client: state.client!,
-      sellerId: user.id,
+      sellerId: sellerId,
       deliveryMode: state.deliveryMode,
       paymentMethod: state.paymentMethod,
+      discountAmount: state.discountAmount,
+      freightAmount: state.deliveryMode == SaleDeliveryMode.companyDelivery
+          ? state.freightAmount
+          : 0,
       notes: state.notes.trim().isEmpty ? null : state.notes.trim(),
       delivery: delivery,
       details: details,

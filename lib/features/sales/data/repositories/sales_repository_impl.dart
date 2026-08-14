@@ -22,6 +22,8 @@ class SalesRepositoryImpl implements SalesRepository {
     required String sellerId,
     required SaleDeliveryMode deliveryMode,
     required SalePaymentMethod paymentMethod,
+    required double discountAmount,
+    required double freightAmount,
     String? notes,
     SaleDelivery? delivery,
     required List<SaleDetail> details,
@@ -32,6 +34,8 @@ class SalesRepositoryImpl implements SalesRepository {
         sellerId: sellerId,
         deliveryMode: deliveryMode,
         paymentMethod: paymentMethod,
+        discountAmount: discountAmount,
+        freightAmount: freightAmount,
         notes: notes,
         delivery: delivery == null
             ? null

@@ -12,6 +12,8 @@ Map<String, dynamic> _saleJson({Object? saleDeliveries}) {
     'payment_method': 'cash',
     'status': 'registered',
     'total': 20,
+    'discount_amount': 5,
+    'freight_amount': 8,
     'notes': null,
     'client': {
       'id': 'client-1',
@@ -89,6 +91,8 @@ void main() {
       expect(sale.details.single.unitPrice, 10);
       expect(sale.number, 12);
       expect(sale.sellerName, 'Ana Vendedora');
+      expect(sale.discountAmount, 5);
+      expect(sale.freightAmount, 8);
     });
 
     test('falls back to the seller email when the profile has no name', () {

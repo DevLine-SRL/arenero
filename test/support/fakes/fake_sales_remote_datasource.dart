@@ -13,6 +13,8 @@ import 'package:arenero/features/sales/domain/entities/sale.dart';
 class FakeSalesRemoteDataSource implements SalesRemoteDataSource {
   SaleModel? saleToReturn;
   Object? errorToThrow;
+  double? lastRegisteredDiscountAmount;
+  double? lastRegisteredFreightAmount;
 
   String? lastRequestedSaleId;
   int getSaleByIdCallCount = 0;
@@ -32,11 +34,22 @@ class FakeSalesRemoteDataSource implements SalesRemoteDataSource {
     required String sellerId,
     required SaleDeliveryMode deliveryMode,
     required SalePaymentMethod paymentMethod,
+    required double discountAmount,
+    required double freightAmount,
     String? notes,
     SaleDeliveryModel? delivery,
     required List<SaleDetailModel> details,
   }) async {
-    throw UnimplementedError();
+    lastRegisteredDiscountAmount = discountAmount;
+    lastRegisteredFreightAmount = freightAmount;
+    final error = errorToThrow;
+    if (error != null) throw error;
+    return saleToReturn ??
+        buildSaleModel(
+          total: 100,
+          discountAmount: discountAmount,
+          freightAmount: freightAmount,
+        );
   }
 
   @override
@@ -67,6 +80,8 @@ SaleModel buildSaleModel({
   int? number = 12,
   String? sellerName = 'Ana Vendedora',
   double total = 20,
+  double discountAmount = 0,
+  double freightAmount = 0,
   List<SaleDetailModel>? details,
 }) {
   return SaleModel(
@@ -84,6 +99,8 @@ SaleModel buildSaleModel({
     deliveryMode: SaleDeliveryMode.customerPickup,
     paymentMethod: SalePaymentMethod.cash,
     total: total,
+    discountAmount: discountAmount,
+    freightAmount: freightAmount,
     details:
         details ??
         const [

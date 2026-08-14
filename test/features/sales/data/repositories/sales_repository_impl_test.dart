@@ -2,6 +2,8 @@ import 'package:arenero/core/errors/failures.dart';
 import 'package:arenero/features/sales/data/models/sale_detail_model.dart';
 import 'package:arenero/features/sales/data/repositories/sales_repository_impl.dart';
 import 'package:arenero/features/products/domain/entities/product.dart';
+import 'package:arenero/features/sales/domain/entities/sale.dart';
+import 'package:arenero/features/sales/domain/entities/sale_detail.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
@@ -114,6 +116,30 @@ void main() {
 
       expect(failure, isA<UnexpectedFailure>());
       expect(failure.message, contains('No se pudo obtener el detalle'));
+    });
+  });
+
+  group('registerSale', () {
+    test('forwards the global discount to the data source', () async {
+      await repository.registerSale(
+        clientId: 'client-1',
+        sellerId: 'seller-1',
+        deliveryMode: SaleDeliveryMode.customerPickup,
+        paymentMethod: SalePaymentMethod.cash,
+        discountAmount: 12,
+        freightAmount: 15,
+        details: const [
+          SaleDetail(
+            productUnitId: 'product-unit-1',
+            unit: ProductUnitOfMeasure.m3,
+            quantity: 2,
+            unitPrice: 10,
+          ),
+        ],
+      );
+
+      expect(dataSource.lastRegisteredDiscountAmount, 12);
+      expect(dataSource.lastRegisteredFreightAmount, 15);
     });
   });
 }

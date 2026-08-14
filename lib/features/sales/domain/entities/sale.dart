@@ -3,8 +3,8 @@ import 'sale_detail.dart';
 import 'sale_delivery.dart';
 
 enum SaleDeliveryMode {
-  customerPickup(dbValue: 'customer_pickup', label: 'Retiro en tienda'),
-  companyDelivery(dbValue: 'company_delivery', label: 'Entrega a domicilio');
+  customerPickup(dbValue: 'customer_pickup', label: 'Recoge en planta'),
+  companyDelivery(dbValue: 'company_delivery', label: 'Domicilio');
 
   final String dbValue;
   final String label;
@@ -67,6 +67,8 @@ class Sale {
   final SalePaymentMethod paymentMethod;
   final SaleStatus status;
   final double total;
+  final double discountAmount;
+  final double freightAmount;
   final String? notes;
   final List<SaleDetail> details;
   final SaleDelivery? delivery;
@@ -82,6 +84,8 @@ class Sale {
     required this.paymentMethod,
     this.status = SaleStatus.registered,
     this.total = 0,
+    this.discountAmount = 0,
+    this.freightAmount = 0,
     this.notes,
     this.details = const [],
     this.delivery,
@@ -103,6 +107,8 @@ class Sale {
     SalePaymentMethod? paymentMethod,
     SaleStatus? status,
     double? total,
+    double? discountAmount,
+    double? freightAmount,
     String? notes,
     bool clearNotes = false,
     List<SaleDetail>? details,
@@ -120,6 +126,8 @@ class Sale {
       paymentMethod: paymentMethod ?? this.paymentMethod,
       status: status ?? this.status,
       total: total ?? this.total,
+      discountAmount: discountAmount ?? this.discountAmount,
+      freightAmount: freightAmount ?? this.freightAmount,
       notes: clearNotes ? null : (notes ?? this.notes),
       details: details ?? this.details,
       delivery: clearDelivery ? null : (delivery ?? this.delivery),
