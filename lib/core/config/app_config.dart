@@ -22,6 +22,12 @@ abstract final class AppConfig {
 
   static Duration get lastSeenTouchInterval => const Duration(minutes: 5);
 
+  static Duration get historyRetention => const Duration(days: 90);
+
+  static Duration get outboxBackoffBase => const Duration(minutes: 1);
+
+  static int get outboxMaxAttempts => 5;
+
   static String _require(String value, String name) {
     if (value.isEmpty) {
       throw ArgumentError('Missing --dart-define=$name=<value>');

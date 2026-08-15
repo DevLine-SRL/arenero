@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart' as dartz;
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:uuid/uuid.dart';
 
+import '../../../../core/config/app_config.dart';
 import '../../../../core/data/datasources/sync_local_datasource.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/errors/network_errors.dart';
@@ -251,6 +252,11 @@ class SalesRepositoryImpl implements SalesRepository {
     try {
       final items = await remoteDataSource.getSalesHistory(from: from, to: to);
       await _syncLocal(() => localDataSource.upsertHistory(items));
+      await _syncLocal(
+        () => localDataSource.pruneHistory(
+          before: DateTime.now().subtract(AppConfig.historyRetention),
+        ),
+      );
       return dartz.Right(items);
     } on supabase.PostgrestException catch (e) {
       return dartz.Left(_mapHistoryError(e));

@@ -18,6 +18,8 @@ abstract class SalesLocalDataSource {
 
   Future<void> upsertHistory(List<SaleHistoryItemModel> items);
 
+  Future<void> pruneHistory({required DateTime before});
+
   Future<SaleModel?> getSaleById(String saleId);
 
   Future<List<SaleHistoryItemModel>> getSaleHistory({
@@ -183,6 +185,18 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
         );
       }
     });
+  }
+
+  @override
+  Future<void> pruneHistory({required DateTime before}) async {
+    final userId = currentUserId();
+    if (userId == null) return;
+
+    await (database.delete(database.localSaleHistory)..where(
+          (t) =>
+              t.userId.equals(userId) & t.saleDate.isSmallerThanValue(before),
+        ))
+        .go();
   }
 
   @override

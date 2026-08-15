@@ -28,6 +28,7 @@ class PendingOperation {
   final Map<String, dynamic> payload;
   final int attempts;
   final String? lastError;
+  final DateTime updatedAt;
 
   const PendingOperation({
     required this.id,
@@ -35,6 +36,7 @@ class PendingOperation {
     required this.payload,
     required this.attempts,
     this.lastError,
+    required this.updatedAt,
   });
 }
 
@@ -45,6 +47,8 @@ abstract class SyncLocalDataSource {
   });
 
   Future<List<PendingOperation>> getPendingOperations();
+
+  Future<List<PendingOperation>> getFailedOperations();
 
   Future<void> markSynced(int operationId);
 
@@ -115,6 +119,35 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
           payload: jsonDecode(row.payload) as Map<String, dynamic>,
           attempts: row.attempts,
           lastError: row.lastError,
+          updatedAt: row.updatedAt,
+        ),
+    ];
+  }
+
+  @override
+  Future<List<PendingOperation>> getFailedOperations() async {
+    final userId = currentUserId();
+    if (userId == null) return [];
+
+    final rows =
+        await (database.select(database.outboxOperations)
+              ..where(
+                (t) =>
+                    t.userId.equals(userId) &
+                    t.status.equals(SyncStatus.error.dbValue),
+              )
+              ..orderBy([(t) => OrderingTerm.asc(t.updatedAt)]))
+            .get();
+
+    return [
+      for (final row in rows)
+        PendingOperation(
+          id: row.id,
+          operation: OutboxOperationType.fromDatabase(row.operation),
+          payload: jsonDecode(row.payload) as Map<String, dynamic>,
+          attempts: row.attempts,
+          lastError: row.lastError,
+          updatedAt: row.updatedAt,
         ),
     ];
   }

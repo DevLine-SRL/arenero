@@ -10,6 +10,7 @@ import '../../../features/sales/data/models/sale_detail_model.dart';
 import '../../../features/sales/data/models/sale_history_item_model.dart';
 import '../../../features/sales/data/models/sale_model.dart';
 import '../../../features/sales/domain/entities/sale.dart';
+import '../../config/app_config.dart';
 import '../../errors/network_errors.dart';
 import '../datasources/sync_local_datasource.dart';
 
@@ -55,8 +56,40 @@ class OutboxExecutorImpl implements OutboxExecutor {
           await syncDataSource.markFailed(operation.id, e.toString());
         }
       }
+
+      final retryable = await _retryableFailedOperations();
+      for (final operation in retryable) {
+        if (!isOnline()) break;
+        try {
+          await _process(operation);
+          syncedAny = true;
+        } on supabase.PostgrestException catch (e) {
+          await syncDataSource.markFailed(operation.id, e.message);
+        } catch (e) {
+          if (isNetworkError(e)) return syncedAny;
+          await syncDataSource.markFailed(operation.id, e.toString());
+        }
+      }
     } catch (_) {}
     return syncedAny;
+  }
+
+  Future<List<PendingOperation>> _retryableFailedOperations() async {
+    final failed = await syncDataSource.getFailedOperations();
+    final now = DateTime.now();
+    return [
+      for (final operation in failed)
+        if (operation.attempts < AppConfig.outboxMaxAttempts &&
+            _backoffElapsed(operation, now))
+          operation,
+    ];
+  }
+
+  bool _backoffElapsed(PendingOperation operation, DateTime now) {
+    final base = AppConfig.outboxBackoffBase;
+    final elapsed = now.difference(operation.updatedAt);
+    final backoff = base * (1 << (operation.attempts - 1));
+    return elapsed >= backoff;
   }
 
   Future<void> _process(PendingOperation operation) async {
