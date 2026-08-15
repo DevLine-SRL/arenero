@@ -1,6 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/data/datasources/sync_local_datasource.dart';
 import '../../../../core/providers/is_online_provider.dart';
+import '../../../../core/providers/sync_local_datasource_provider.dart';
+import '../../domain/entities/sale.dart';
 import '../../domain/entities/sale_history_item.dart';
 import '../utils/sale_formatters.dart';
 import 'sales_history_date_range_provider.dart';
@@ -28,7 +31,8 @@ class SalesHistory extends _$SalesHistory {
     final cached = cachedResult.fold((_) => null, (items) => items);
     if (cached != null) {
       _refreshInBackground(range);
-      return _applyFilter(cached, query);
+      final merged = await _mergeWithPending(cached);
+      return _applyFilter(merged, query);
     }
 
     final remote = await ref.read(getSalesHistoryUseCaseProvider)(
@@ -36,7 +40,8 @@ class SalesHistory extends _$SalesHistory {
       to: range.endDate,
     );
     final items = remote.fold((failure) => throw failure, (items) => items);
-    return _applyFilter(items, query);
+    final merged = await _mergeWithPending(items);
+    return _applyFilter(merged, query);
   }
 
   Future<void> _refreshInBackground(DateRangeFilter range) async {
@@ -50,14 +55,52 @@ class SalesHistory extends _$SalesHistory {
         to: range.endDate,
       );
       if (!ref.mounted) return;
-      result.fold((_) {}, (items) {
+      result.fold((_) {}, (items) async {
         _refreshedRange = range;
+        final merged = await _mergeWithPending(items);
+        if (!ref.mounted) return;
         final query = ref.read(salesHistorySearchQueryProvider);
-        state = AsyncData(_applyFilter(items, query));
+        state = AsyncData(_applyFilter(merged, query));
       });
     } finally {
       _refreshInFlight = false;
     }
+  }
+
+  Future<List<SaleHistoryItem>> _mergeWithPending(
+    List<SaleHistoryItem> items,
+  ) async {
+    final pending = await ref
+        .read(syncLocalDataSourceProvider)
+        .getPendingOperations();
+    final pendingItems = <SaleHistoryItem>[
+      for (final operation in pending)
+        if (operation.operation == OutboxOperationType.registerSale)
+          _pendingHistoryItem(operation),
+    ];
+    if (pendingItems.isEmpty) return items;
+
+    final mergedIds = {for (final item in pendingItems) item.id};
+    return [
+      ...pendingItems,
+      for (final item in items)
+        if (!mergedIds.contains(item.id)) item,
+    ];
+  }
+
+  SaleHistoryItem _pendingHistoryItem(PendingOperation operation) {
+    final payload = operation.payload;
+    return SaleHistoryItem(
+      id: payload['id'] as String,
+      number: null,
+      clientName: payload['client_name'] as String? ?? '',
+      clientCi: payload['client_ci'] as String? ?? '',
+      saleDate: DateTime.parse(payload['sale_date'] as String),
+      total: (payload['total'] as num).toDouble(),
+      paymentMethod: SalePaymentMethod.fromDatabase(
+        payload['payment_method'] as String,
+      ),
+    );
   }
 
   List<SaleHistoryItem> _applyFilter(

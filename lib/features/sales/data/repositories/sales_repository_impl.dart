@@ -171,6 +171,8 @@ class SalesRepositoryImpl implements SalesRepository {
         payload: {
           'id': sale.id,
           'client_id': client.id,
+          'client_name': client.name,
+          'client_ci': client.ci,
           'seller_id': sellerId,
           'sale_date': sale.saleDate.toIso8601String(),
           'delivery_mode': deliveryMode.dbValue,

@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/config/app_config.dart';
 import 'core/providers/app_database_provider.dart';
+import 'core/providers/initial_sync_provider.dart';
 import 'core/providers/last_seen_sync_provider.dart';
 import 'core/providers/outbox_sync_provider.dart';
 import 'core/router/app_router.dart';
@@ -32,6 +33,7 @@ class App extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
     ref.watch(lastSeenSyncProvider);
     ref.watch(outboxSyncProvider);
+    ref.watch(initialSyncProvider);
     ref.watch(appDatabaseProvider);
 
     return MaterialApp.router(

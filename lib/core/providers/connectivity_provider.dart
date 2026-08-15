@@ -12,7 +12,7 @@ enum ConnectionStatus { online, noInternet, offline }
 Stream<ConnectionStatus> connectionStatus(Ref _) async* {
   final connectivity = Connectivity();
   final internetChecker = InternetConnection.createInstance(
-    checkInterval: const Duration(seconds: 2),
+    checkInterval: const Duration(seconds: 1),
   );
 
   var hasNetwork = _hasNetwork(await connectivity.checkConnectivity());

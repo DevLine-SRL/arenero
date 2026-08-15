@@ -13,7 +13,7 @@ import '../../errors/network_errors.dart';
 import '../datasources/sync_local_datasource.dart';
 
 abstract class OutboxExecutor {
-  Future<void> drain();
+  Future<bool> drain();
 }
 
 class OutboxExecutorImpl implements OutboxExecutor {
@@ -34,9 +34,10 @@ class OutboxExecutorImpl implements OutboxExecutor {
   });
 
   @override
-  Future<void> drain() async {
-    if (!isOnline()) return;
+  Future<bool> drain() async {
+    if (!isOnline()) return false;
 
+    var syncedAny = false;
     try {
       while (true) {
         final pending = await syncDataSource.getPendingOperations();
@@ -45,14 +46,16 @@ class OutboxExecutorImpl implements OutboxExecutor {
         final operation = pending.first;
         try {
           await _process(operation);
+          syncedAny = true;
         } on supabase.PostgrestException catch (e) {
           await syncDataSource.markFailed(operation.id, e.message);
         } catch (e) {
-          if (isNetworkError(e)) return;
+          if (isNetworkError(e)) return syncedAny;
           await syncDataSource.markFailed(operation.id, e.toString());
         }
       }
     } catch (_) {}
+    return syncedAny;
   }
 
   Future<void> _process(PendingOperation operation) async {

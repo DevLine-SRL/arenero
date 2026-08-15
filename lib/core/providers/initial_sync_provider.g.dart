@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'outbox_sync_provider.dart';
+part of 'initial_sync_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,27 +9,27 @@ part of 'outbox_sync_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(OutboxSync)
-final outboxSyncProvider = OutboxSyncProvider._();
+@ProviderFor(InitialSync)
+final initialSyncProvider = InitialSyncProvider._();
 
-final class OutboxSyncProvider extends $NotifierProvider<OutboxSync, void> {
-  OutboxSyncProvider._()
+final class InitialSyncProvider extends $NotifierProvider<InitialSync, void> {
+  InitialSyncProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'outboxSyncProvider',
+        name: r'initialSyncProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$outboxSyncHash();
+  String debugGetCreateSourceHash() => _$initialSyncHash();
 
   @$internal
   @override
-  OutboxSync create() => OutboxSync();
+  InitialSync create() => InitialSync();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(void value) {
@@ -40,9 +40,9 @@ final class OutboxSyncProvider extends $NotifierProvider<OutboxSync, void> {
   }
 }
 
-String _$outboxSyncHash() => r'85e001da0d66951b2f685b1b4e5d48d251a79655';
+String _$initialSyncHash() => r'd0d360fe43a4b09fe1140783215b086284dffed7';
 
-abstract class _$OutboxSync extends $Notifier<void> {
+abstract class _$InitialSync extends $Notifier<void> {
   void build();
   @$mustCallSuper
   @override
