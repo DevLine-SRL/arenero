@@ -54,6 +54,8 @@ abstract class SyncLocalDataSource {
 
   Future<int> countPending();
 
+  Future<void> retryFailed();
+
   Future<String> getDeviceId();
 
   Future<DateTime?> getLastSyncAt();
@@ -171,6 +173,24 @@ class SyncLocalDataSourceImpl implements SyncLocalDataSource {
             ))
             .get();
     return rows.length;
+  }
+
+  @override
+  Future<void> retryFailed() async {
+    final userId = currentUserId();
+    if (userId == null) return;
+
+    await (database.update(database.outboxOperations)..where(
+          (t) =>
+              t.userId.equals(userId) &
+              t.status.equals(SyncStatus.error.dbValue),
+        ))
+        .write(
+          OutboxOperationsCompanion(
+            status: Value(SyncStatus.pending.dbValue),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
   }
 
   @override

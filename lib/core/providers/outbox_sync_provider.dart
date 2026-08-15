@@ -5,6 +5,7 @@ import '../../features/clients/presentation/providers/clients_search_provider.da
 import '../../features/sales/presentation/providers/sales_history_provider.dart';
 import 'connectivity_provider.dart';
 import 'outbox_executor_provider.dart';
+import 'sync_local_datasource_provider.dart';
 
 part 'outbox_sync_provider.g.dart';
 
@@ -42,5 +43,11 @@ class OutboxSync extends _$OutboxSync {
     } finally {
       _draining = false;
     }
+  }
+
+  Future<void> retryFailed() async {
+    await ref.read(syncLocalDataSourceProvider).retryFailed();
+    if (ref.read(authSessionProvider).value == null) return;
+    await _drain();
   }
 }
