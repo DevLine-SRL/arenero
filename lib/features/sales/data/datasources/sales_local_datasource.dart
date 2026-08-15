@@ -25,6 +25,11 @@ abstract class SalesLocalDataSource {
     DateTime? to,
   });
 
+  Future<List<SaleHistoryItemModel>> getPendingSalesHistory({
+    DateTime? from,
+    DateTime? to,
+  });
+
   Future<List<SaleModel>> getSales({
     SaleStatus? status,
     DateTime? from,
@@ -256,6 +261,44 @@ class SalesLocalDataSourceImpl implements SalesLocalDataSource {
           paymentMethod: SalePaymentMethod.fromDatabase(row.paymentMethod),
         ),
     ];
+  }
+
+  @override
+  Future<List<SaleHistoryItemModel>> getPendingSalesHistory({
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final userId = currentUserId();
+    if (userId == null) return [];
+
+    final query = database.select(database.localSales);
+    query.where((t) => t.userId.equals(userId));
+    query.where((t) => t.syncStatus.equals(SyncStatus.pending.dbValue));
+    if (from != null) {
+      query.where((t) => t.saleDate.isBiggerOrEqualValue(from));
+    }
+    if (to != null) {
+      query.where((t) => t.saleDate.isSmallerOrEqualValue(to));
+    }
+    query.orderBy([(t) => OrderingTerm.desc(t.saleDate)]);
+
+    final rows = await query.get();
+    final items = <SaleHistoryItemModel>[];
+    for (final row in rows) {
+      final client = await _cachedClient(row.clientId);
+      items.add(
+        SaleHistoryItemModel(
+          id: row.id,
+          number: row.number,
+          clientName: client.name,
+          clientCi: client.ci,
+          saleDate: row.saleDate,
+          total: row.total,
+          paymentMethod: SalePaymentMethod.fromDatabase(row.paymentMethod),
+        ),
+      );
+    }
+    return items;
   }
 
   @override

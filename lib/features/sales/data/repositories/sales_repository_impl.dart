@@ -249,7 +249,11 @@ class SalesRepositoryImpl implements SalesRepository {
     try {
       final items = await remoteDataSource.getSalesHistory(from: from, to: to);
       await _syncLocal(() => localDataSource.upsertHistory(items));
-      return dartz.Right(items);
+      final pending = await localDataSource.getPendingSalesHistory(
+        from: from,
+        to: to,
+      );
+      return dartz.Right(_mergeHistory(items, pending));
     } on supabase.PostgrestException catch (e) {
       return dartz.Left(_mapHistoryError(e));
     } catch (e) {
@@ -262,6 +266,16 @@ class SalesRepositoryImpl implements SalesRepository {
         ),
       );
     }
+  }
+
+  List<SaleHistoryItem> _mergeHistory(
+    List<SaleHistoryItemModel> remote,
+    List<SaleHistoryItemModel> pending,
+  ) {
+    if (pending.isEmpty) return remote;
+    final remoteIds = remote.map((item) => item.id).toSet();
+    return [...remote, ...pending.where((item) => !remoteIds.contains(item.id))]
+      ..sort((a, b) => b.saleDate.compareTo(a.saleDate));
   }
 
   Failure _mapHistoryError(supabase.PostgrestException e) {

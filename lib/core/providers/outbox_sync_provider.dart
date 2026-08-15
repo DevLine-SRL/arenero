@@ -1,8 +1,10 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
+import '../../features/sales/presentation/providers/sales_history_provider.dart';
 import 'connectivity_provider.dart';
 import 'outbox_executor_provider.dart';
+import 'sync_local_datasource_provider.dart';
 
 part 'outbox_sync_provider.g.dart';
 
@@ -32,7 +34,13 @@ class OutboxSync extends _$OutboxSync {
     if (_draining) return;
     _draining = true;
     try {
+      final hadPending =
+          await ref.read(syncLocalDataSourceProvider).countPending() > 0;
       await ref.read(outboxExecutorProvider).drain();
+      if (!ref.mounted) return;
+      if (hadPending) {
+        ref.invalidate(salesHistoryProvider);
+      }
     } finally {
       _draining = false;
     }
