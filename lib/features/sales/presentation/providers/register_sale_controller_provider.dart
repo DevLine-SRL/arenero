@@ -15,14 +15,17 @@ import 'sales_providers.dart';
 part 'register_sale_controller_provider.g.dart';
 
 @riverpod
-class RegisterSaleController
-    extends _$RegisterSaleController {
+class RegisterSaleController extends _$RegisterSaleController {
   int _nextRowId = 0;
 
   @override
   RegisterSaleState build() {
     return const RegisterSaleState();
   }
+
+  // ============================================================
+  // MÉTODOS INTERNOS
+  // ============================================================
 
   void _replaceItem(
     int rowId,
@@ -31,55 +34,159 @@ class RegisterSaleController
     state = state.copyWith(
       items: [
         for (final item in state.items)
-          if (item.rowId == rowId)
-            change(item)
-          else
-            item,
+          if (item.rowId == rowId) change(item) else item,
       ],
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
+
+  /// Construye los detalles que serán enviados al caso de uso.
+  List<SaleDetail> _buildDetails() {
+    return [
+      for (final item in state.completedItems)
+        SaleDetail(
+          productUnitId: item.productUnitId!,
+          unit: item.unit!,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          discount: item.discount,
+        ),
+    ];
+  }
+
+  /// HU-02:
+  /// Solo genera información de delivery cuando
+  /// la modalidad es domicilio.
+  SaleDelivery? _buildDelivery() {
+    if (state.deliveryMode != SaleDeliveryMode.companyDelivery) {
+      return null;
+    }
+
+    final vehiclePlate = state.vehiclePlate.trim();
+
+    return SaleDelivery(
+      vehiclePlate: vehiclePlate.isEmpty ? null : vehiclePlate,
+    );
+  }
+
+  /// HU-02:
+  /// Recoge en planta jamás envía flete.
+  double _resolveFreightAmount() {
+    if (state.deliveryMode != SaleDeliveryMode.companyDelivery) {
+      return 0;
+    }
+
+    return state.effectiveFreightAmount;
+  }
+
+  /// Valida la información del formulario antes de realizar
+  /// cualquier petición.
+  Failure? _validateBeforeSubmit() {
+    if (state.isSubmitting) {
+      return const ValidationFailure(
+        message: 'La venta ya se está registrando.',
+        errors: {
+          'submit': 'Espera a que termine el registro actual.',
+        },
+      );
+    }
+
+    if (state.client == null) {
+      return const ValidationFailure(
+        message: 'Selecciona un cliente.',
+        errors: {
+          'client': 'Selecciona un cliente para registrar la venta.',
+        },
+      );
+    }
+
+    if (state.items.isEmpty) {
+      return const ValidationFailure(
+        message: 'Agrega al menos un producto.',
+        errors: {
+          'products': 'La venta debe contener al menos un producto.',
+        },
+      );
+    }
+
+    if (state.items.any((item) => !item.isComplete)) {
+      return const ValidationFailure(
+        message: 'Completa todos los productos de la venta.',
+        errors: {
+          'products':
+              'Existen productos con información incompleta.',
+        },
+      );
+    }
+
+    if (state.completedItems.isEmpty) {
+      return const ValidationFailure(
+        message: 'Agrega al menos un producto válido.',
+        errors: {
+          'products': 'No existen productos válidos para registrar.',
+        },
+      );
+    }
+
+    return null;
+  }
+
+  // ============================================================
+  // CLIENTE Y VENDEDOR
+  // ============================================================
 
   void onClientSelected(Client client) {
     state = state.copyWith(
       client: client,
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
 
   void onSellerSelected(Seller seller) {
     state = state.copyWith(
       seller: seller,
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
 
   void onClearSeller() {
     state = state.copyWith(
       clearSeller: true,
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
 
   void onClearClient() {
     state = state.copyWith(
       clearClient: true,
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
 
-  /// HU-02:
-  ///
+  // ============================================================
+  // HU-02 - ENTREGA Y FLETE
+  // ============================================================
+
   /// Domicilio:
   /// - permite placa
   /// - permite flete
   ///
   /// Recoge en planta:
-  /// - limpia placa
-  /// - pone flete en 0
-  void onDeliveryModeChanged(
-    SaleDeliveryMode mode,
-  ) {
+  /// - elimina placa
+  /// - fuerza flete a 0
+  void onDeliveryModeChanged(SaleDeliveryMode mode) {
     if (mode == SaleDeliveryMode.customerPickup) {
       state = state.copyWith(
         deliveryMode: mode,
         vehiclePlate: '',
         freightAmount: 0,
+        clearSubmitError: true,
+        clearRegisteredSale: true,
       );
 
       return;
@@ -87,25 +194,29 @@ class RegisterSaleController
 
     state = state.copyWith(
       deliveryMode: mode,
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
 
   void onVehiclePlateChanged(String value) {
-    if (state.deliveryMode !=
-        SaleDeliveryMode.companyDelivery) {
+    if (state.deliveryMode != SaleDeliveryMode.companyDelivery) {
       return;
     }
 
     state = state.copyWith(
       vehiclePlate: value,
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
 
   void onFreightAmountChanged(double value) {
-    if (state.deliveryMode !=
-        SaleDeliveryMode.companyDelivery) {
+    if (state.deliveryMode != SaleDeliveryMode.companyDelivery) {
       state = state.copyWith(
         freightAmount: 0,
+        clearSubmitError: true,
+        clearRegisteredSale: true,
       );
 
       return;
@@ -113,44 +224,51 @@ class RegisterSaleController
 
     state = state.copyWith(
       freightAmount: value < 0 ? 0 : value,
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
 
-  void onPaymentMethodChanged(
-    SalePaymentMethod method,
-  ) {
+  // ============================================================
+  // MÉTODO DE PAGO
+  // ============================================================
+
+  void onPaymentMethodChanged(SalePaymentMethod method) {
     state = state.copyWith(
       paymentMethod: method,
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
 
-  /// HU-04:
-  /// Cambia el estado del cobro.
-  void onPaymentStatusChanged(
-    SalePaymentStatus status,
-  ) {
+  // ============================================================
+  // HU-04 - ESTADO DEL COBRO
+  // ============================================================
+
+  void onPaymentStatusChanged(SalePaymentStatus status) {
+    final total = state.paymentTotal;
+
     switch (status) {
       case SalePaymentStatus.paidInFull:
         state = state.copyWith(
           paymentStatus: status,
-          amountPaid: state.total,
+          amountPaid: total,
+          clearSubmitError: true,
         );
         break;
 
       case SalePaymentStatus.partial:
-        var currentAmount = state.amountPaid;
+        final currentAmount = state.amountPaid;
 
-        if (currentAmount < 0) {
-          currentAmount = 0;
-        }
-
-        if (currentAmount > state.total) {
-          currentAmount = state.total;
-        }
+        final validCurrentAmount =
+            currentAmount > 0 && currentAmount < total
+            ? currentAmount
+            : 0.0;
 
         state = state.copyWith(
           paymentStatus: status,
-          amountPaid: currentAmount,
+          amountPaid: validCurrentAmount,
+          clearSubmitError: true,
         );
         break;
 
@@ -158,18 +276,19 @@ class RegisterSaleController
         state = state.copyWith(
           paymentStatus: status,
           amountPaid: 0,
+          clearSubmitError: true,
         );
         break;
     }
   }
 
-  /// HU-04:
-  /// Registra el monto del abono parcial.
+  /// Registra el monto ingresado para un abono parcial.
   void onAmountPaidChanged(double value) {
-    if (state.paymentStatus !=
-        SalePaymentStatus.partial) {
+    if (state.paymentStatus != SalePaymentStatus.partial) {
       return;
     }
+
+    final total = state.paymentTotal;
 
     var amount = value;
 
@@ -177,31 +296,66 @@ class RegisterSaleController
       amount = 0;
     }
 
-    if (amount > state.total) {
-      amount = state.total;
+    if (amount > total) {
+      amount = total;
     }
 
     state = state.copyWith(
       amountPaid: amount,
+      clearSubmitError: true,
     );
   }
 
+  // ============================================================
+  // DESCUENTO Y NOTAS
+  // ============================================================
+
   void onDiscountAmountChanged(double value) {
+    var discount = value;
+
+    if (discount < 0) {
+      discount = 0;
+    }
+
+    if (discount > state.subtotal) {
+      discount = state.subtotal;
+    }
+
     state = state.copyWith(
-      discountAmount: value < 0 ? 0 : value,
+      discountAmount: discount,
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
 
   void onNotesChanged(String value) {
     state = state.copyWith(
       notes: value,
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
+
+  // ============================================================
+  // RESET
+  // ============================================================
 
   void reset() {
     state = const RegisterSaleState();
     _nextRowId = 0;
   }
+
+  /// Permite eliminar únicamente la referencia de la última
+  /// venta registrada una vez terminado el flujo HU-04.
+  void clearRegisteredSale() {
+    state = state.copyWith(
+      clearRegisteredSale: true,
+    );
+  }
+
+  // ============================================================
+  // PRODUCTOS
+  // ============================================================
 
   void addLine() {
     state = state.copyWith(
@@ -211,6 +365,8 @@ class RegisterSaleController
           rowId: _nextRowId++,
         ),
       ],
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
 
@@ -229,21 +385,24 @@ class RegisterSaleController
 
     final available = [
       for (final entry in product.units)
-        if (entry.active &&
-            !usedUnits.contains(entry.unit))
+        if (entry.active && !usedUnits.contains(entry.unit))
           entry,
     ];
 
-    final firstUnit =
-        available.isNotEmpty ? available.first : null;
+    final firstUnit = available.isNotEmpty ? available.first : null;
 
     _replaceItem(
       rowId,
       (item) => item.copyWith(
         productId: product.id,
         productName: product.name,
+
         unit: firstUnit?.unit,
+        clearUnit: firstUnit == null,
+
         productUnitId: firstUnit?.id,
+        clearProductUnitId: firstUnit == null,
+
         unitPrice: firstUnit?.unitPrice ?? 0,
         availableUnits: available,
       ),
@@ -331,22 +490,41 @@ class RegisterSaleController
   void removeLine(int rowId) {
     state = state.copyWith(
       items: state.items
-          .where(
-            (item) => item.rowId != rowId,
-          )
+          .where((item) => item.rowId != rowId)
           .toList(),
+      clearSubmitError: true,
+      clearRegisteredSale: true,
     );
   }
 
+  // ============================================================
+  // REGISTRAR VENTA
+  // ============================================================
+
   Future<Failure?> submit() async {
-    if (!state.canSubmit) {
-      return null;
+    // ----------------------------------------------------------
+    // 1. Validaciones locales
+    // ----------------------------------------------------------
+
+    final validationFailure = _validateBeforeSubmit();
+
+    if (validationFailure != null) {
+      state = state.copyWith(
+        isSubmitting: false,
+        submitError: validationFailure.message,
+      );
+
+      return validationFailure;
     }
 
     state = state.copyWith(
       isSubmitting: true,
-      submitError: null,
+      clearSubmitError: true,
     );
+
+    // ----------------------------------------------------------
+    // 2. Obtener usuario autenticado
+    // ----------------------------------------------------------
 
     final user = await ref.read(
       getCurrentUserUseCaseProvider,
@@ -354,8 +532,7 @@ class RegisterSaleController
 
     if (user == null) {
       const failure = UnauthorizedFailure(
-        message:
-            'No se pudo identificar al vendedor.',
+        message: 'No se pudo identificar al vendedor.',
       );
 
       state = state.copyWith(
@@ -366,27 +543,9 @@ class RegisterSaleController
       return failure;
     }
 
-    final details = <SaleDetail>[
-      for (final item in state.completedItems)
-        SaleDetail(
-          productUnitId: item.productUnitId!,
-          unit: item.unit!,
-          quantity: item.quantity,
-          unitPrice: item.unitPrice,
-          discount: item.discount,
-        ),
-    ];
-
-    final delivery =
-        state.deliveryMode ==
-                SaleDeliveryMode.companyDelivery
-            ? SaleDelivery(
-                vehiclePlate:
-                    state.vehiclePlate.trim().isEmpty
-                    ? null
-                    : state.vehiclePlate.trim(),
-              )
-            : null;
+    // ----------------------------------------------------------
+    // 3. Resolver vendedor
+    // ----------------------------------------------------------
 
     final sellerId = user.role == 'admin'
         ? state.seller?.id
@@ -394,11 +553,9 @@ class RegisterSaleController
 
     if (sellerId == null) {
       const failure = ValidationFailure(
-        message:
-            'Selecciona el vendedor de la venta.',
+        message: 'Selecciona el vendedor de la venta.',
         errors: {
-          'seller':
-              'Selecciona el vendedor de la venta.',
+          'seller': 'Selecciona el vendedor de la venta.',
         },
       );
 
@@ -410,6 +567,22 @@ class RegisterSaleController
       return failure;
     }
 
+    // ----------------------------------------------------------
+    // 4. Construir información de la venta
+    // ----------------------------------------------------------
+
+    final details = _buildDetails();
+
+    final delivery = _buildDelivery();
+
+    final freightAmount = _resolveFreightAmount();
+
+    final notes = state.notes.trim();
+
+    // ----------------------------------------------------------
+    // 5. Registrar venta
+    // ----------------------------------------------------------
+
     final result = await ref.read(
       registerSaleUseCaseProvider,
     )(
@@ -417,26 +590,22 @@ class RegisterSaleController
       sellerId: sellerId,
       deliveryMode: state.deliveryMode,
       paymentMethod: state.paymentMethod,
-      discountAmount: state.discountAmount,
+      discountAmount: state.effectiveDiscountAmount,
 
-      // HU-02:
-      // Solo domicilio puede enviar flete.
-      freightAmount:
-          state.deliveryMode ==
-              SaleDeliveryMode.companyDelivery
-          ? state.effectiveFreightAmount
-          : 0,
+      // HU-02
+      freightAmount: freightAmount,
 
-      notes: state.notes.trim().isEmpty
-          ? null
-          : state.notes.trim(),
+      notes: notes.isEmpty ? null : notes,
 
-      // HU-02:
-      // Recoge en planta envía null.
+      // HU-02
       delivery: delivery,
 
       details: details,
     );
+
+    // ----------------------------------------------------------
+    // 6. Procesar resultado
+    // ----------------------------------------------------------
 
     return result.fold(
       (failure) {
@@ -447,12 +616,32 @@ class RegisterSaleController
 
         return failure;
       },
-      (_) {
+      (sale) {
         ref.invalidate(
           salesHistoryProvider,
         );
 
-        state = const RegisterSaleState();
+        /*
+         * HU-04:
+         *
+         * Limpiamos el formulario pero conservamos la venta
+         * registrada.
+         *
+         * Esto permite que la UI pueda continuar después con:
+         *
+         * - Cobrado completo
+         * - Abono parcial
+         * - Pendiente
+         *
+         * sin perder el id ni el total de la venta.
+         */
+        state = RegisterSaleState(
+          paymentMethod: sale.paymentMethod,
+          paymentStatus: sale.paymentStatus,
+          amountPaid: sale.amountPaid,
+          registeredSale: sale,
+        );
+
         _nextRowId = 0;
 
         return null;

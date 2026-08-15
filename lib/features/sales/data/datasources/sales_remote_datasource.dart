@@ -7,13 +7,27 @@ import '../models/sale_delivery_model.dart';
 import '../models/sale_history_item_model.dart';
 import '../models/sale_model.dart';
 
-// El precio de cada línea se lee de
-// sale_details.unit_price.
+// ============================================================
+// CONSULTA DE VENTA
+// ============================================================
 //
-// Es el precio congelado al registrar la venta.
-// No se consulta product_units.unit_price porque
-// eso mostraría el precio actual del catálogo en
-// ventas históricas.
+// El precio utilizado en una venta histórica se obtiene desde:
+//
+// sale_details.unit_price
+//
+// No se utiliza product_units.unit_price porque ese valor puede
+// cambiar posteriormente en el catálogo.
+//
+// HU-04:
+// También recuperamos:
+//
+// - payment_status
+// - amount_paid
+// - pending_amount
+//
+// para reconstruir correctamente el estado del cobro.
+// ============================================================
+
 const String _saleSelect = '''
   id,
   number,
@@ -22,11 +36,15 @@ const String _saleSelect = '''
   sale_date,
   delivery_mode,
   payment_method,
+  payment_status,
   status,
   total,
   discount_amount,
   freight_amount,
+  amount_paid,
+  pending_amount,
   notes,
+
   client:clients(
     id,
     name,
@@ -35,11 +53,13 @@ const String _saleSelect = '''
     nit,
     active
   ),
+
   seller:profiles(
     id,
     name,
     email
   ),
+
   sale_details(
     id,
     sale_id,
@@ -47,11 +67,16 @@ const String _saleSelect = '''
     quantity,
     unit_price,
     discount,
+
     product_unit:product_units(
       unit,
-      product:products(name)
+
+      product:products(
+        name
+      )
     )
   ),
+
   sale_deliveries(
     id,
     sale_id,
@@ -60,6 +85,10 @@ const String _saleSelect = '''
     delivery_date
   )
 ''';
+
+// ============================================================
+// CONTRATO
+// ============================================================
 
 abstract class SalesRemoteDataSource {
   Future<SaleModel> registerSale({
@@ -76,8 +105,8 @@ abstract class SalesRemoteDataSource {
 
   /// HU-04:
   ///
-  /// Guarda el estado del cobro después
-  /// de registrar la venta.
+  /// Actualiza el estado del cobro después de que la venta
+  /// haya sido registrada.
   Future<void> updateSalePayment({
     required String saleId,
     required SalePaymentStatus paymentStatus,
@@ -91,8 +120,7 @@ abstract class SalesRemoteDataSource {
     DateTime? to,
   });
 
-  Future<List<SaleHistoryItemModel>>
-      getSalesHistory({
+  Future<List<SaleHistoryItemModel>> getSalesHistory({
     DateTime? from,
     DateTime? to,
   });
@@ -106,6 +134,10 @@ abstract class SalesRemoteDataSource {
   );
 }
 
+// ============================================================
+// IMPLEMENTACIÓN SUPABASE
+// ============================================================
+
 class SalesRemoteDataSourceImpl
     implements SalesRemoteDataSource {
   final supabase.SupabaseClient client;
@@ -113,6 +145,10 @@ class SalesRemoteDataSourceImpl
   const SalesRemoteDataSourceImpl(
     this.client,
   );
+
+  // ============================================================
+  // REGISTRAR VENTA
+  // ============================================================
 
   @override
   Future<SaleModel> registerSale({
@@ -126,14 +162,23 @@ class SalesRemoteDataSourceImpl
     SaleDeliveryModel? delivery,
     required List<SaleDetailModel> details,
   }) async {
-    /// HU-02:
-    /// Segunda protección además del frontend.
-    ///
-    /// Recoge en planta siempre manda flete 0
-    /// y delivery null.
+    // ----------------------------------------------------------
+    // HU-02
+    //
+    // Segunda capa de seguridad.
+    //
+    // Recoge en planta:
+    // freight = 0
+    // delivery = null
+    //
+    // Domicilio:
+    // se permite delivery y flete.
+    // ----------------------------------------------------------
+
     final effectiveFreight =
         deliveryMode ==
-            SaleDeliveryMode.companyDelivery
+                SaleDeliveryMode.companyDelivery &&
+            freightAmount > 0
         ? freightAmount
         : 0.0;
 
@@ -143,24 +188,36 @@ class SalesRemoteDataSourceImpl
         ? delivery
         : null;
 
-    final saleId = await client.rpc(
+    // ----------------------------------------------------------
+    // Ejecutar RPC
+    // ----------------------------------------------------------
+
+    final rawSaleId = await client.rpc(
       'register_sale',
       params: {
         'p_client_id': clientId,
+
         'p_seller_id': sellerId,
+
         'p_delivery_mode':
             deliveryMode.dbValue,
+
         'p_payment_method':
             paymentMethod.dbValue,
+
         'p_discount_amount':
-            discountAmount,
-        'p_freight_amount':
-            effectiveFreight < 0
+            discountAmount < 0
             ? 0
-            : effectiveFreight,
+            : discountAmount,
+
+        'p_freight_amount':
+            effectiveFreight,
+
         'p_notes': notes,
+
         'p_delivery':
             effectiveDelivery?.toJson(),
+
         'p_details': [
           for (final detail in details)
             detail.toJson(),
@@ -168,14 +225,35 @@ class SalesRemoteDataSourceImpl
       },
     );
 
+    // ----------------------------------------------------------
+    // Validar resultado del RPC
+    // ----------------------------------------------------------
+
+    if (rawSaleId is! String ||
+        rawSaleId.trim().isEmpty) {
+      throw supabase.PostgrestException(
+        message:
+            'No se recibió el identificador de la venta registrada.',
+        code: 'INVALID_SALE_ID',
+        details: rawSaleId?.toString() ?? '',
+        hint:
+            'Verifica que el RPC register_sale retorne el UUID de la venta.',
+      );
+    }
+
+    // ----------------------------------------------------------
+    // Recuperar venta completa
+    // ----------------------------------------------------------
+
     return getSaleById(
-      saleId as String,
+      rawSaleId.trim(),
     );
   }
 
-  /// HU-04:
-  /// Actualiza el estado de cobro de una venta
-  /// que ya fue registrada.
+  // ============================================================
+  // HU-04 - ACTUALIZAR COBRO
+  // ============================================================
+
   @override
   Future<void> updateSalePayment({
     required String saleId,
@@ -183,6 +261,18 @@ class SalesRemoteDataSourceImpl
     required double amountPaid,
     required double pendingAmount,
   }) async {
+    final normalizedSaleId = saleId.trim();
+
+    if (normalizedSaleId.isEmpty) {
+      throw supabase.PostgrestException(
+        message:
+            'El identificador de la venta es obligatorio.',
+        code: 'INVALID_SALE_ID',
+        details: '',
+        hint: '',
+      );
+    }
+
     final safeAmountPaid =
         amountPaid < 0 ? 0.0 : amountPaid;
 
@@ -191,19 +281,35 @@ class SalesRemoteDataSourceImpl
         ? 0.0
         : pendingAmount;
 
+    /*
+     * La aplicación envía amountPaid y pendingAmount,
+     * pero la base de datos debe continuar siendo la
+     * autoridad final.
+     *
+     * El trigger/RPC de la migración puede recalcular
+     * pending_amount antes de persistirlo.
+     */
     await client.rpc(
       'update_sale_payment',
       params: {
-        'p_sale_id': saleId,
+        'p_sale_id':
+            normalizedSaleId,
+
         'p_payment_status':
             paymentStatus.dbValue,
+
         'p_amount_paid':
             safeAmountPaid,
+
         'p_pending_amount':
             safePendingAmount,
       },
     );
   }
+
+  // ============================================================
+  // CONSULTAR VENTAS
+  // ============================================================
 
   @override
   Future<List<SaleModel>> getSales({
@@ -247,9 +353,12 @@ class SalesRemoteDataSourceImpl
     ];
   }
 
+  // ============================================================
+  // HISTORIAL
+  // ============================================================
+
   @override
-  Future<List<SaleHistoryItemModel>>
-      getSalesHistory({
+  Future<List<SaleHistoryItemModel>> getSalesHistory({
     DateTime? from,
     DateTime? to,
   }) async {
@@ -291,34 +400,68 @@ class SalesRemoteDataSourceImpl
     ];
   }
 
+  // ============================================================
+  // ANULAR VENTA
+  // ============================================================
+
   @override
   Future<void> voidSale(
     String saleId,
   ) async {
+    final normalizedSaleId =
+        saleId.trim();
+
+    if (normalizedSaleId.isEmpty) {
+      throw supabase.PostgrestException(
+        message:
+            'El identificador de la venta es obligatorio.',
+        code: 'INVALID_SALE_ID',
+        details: '',
+        hint: '',
+      );
+    }
+
     await client.rpc(
       'void_sale',
       params: {
-        'p_sale_id': saleId,
+        'p_sale_id':
+            normalizedSaleId,
       },
     );
   }
+
+  // ============================================================
+  // OBTENER VENTA POR ID
+  // ============================================================
 
   @override
   Future<SaleModel> getSaleById(
     String saleId,
   ) async {
+    final normalizedSaleId =
+        saleId.trim();
+
+    if (normalizedSaleId.isEmpty) {
+      throw supabase.PostgrestException(
+        message:
+            'El identificador de la venta es obligatorio.',
+        code: 'INVALID_SALE_ID',
+        details: '',
+        hint: '',
+      );
+    }
+
     final rows = await client
         .from('sales')
         .select(_saleSelect)
         .eq(
           'id',
-          saleId,
+          normalizedSaleId,
         );
 
     if (rows.isEmpty) {
       throw supabase.PostgrestException(
-        message:
-            'La venta no existe.',
+        message: 'La venta no existe.',
         code: 'PGRST116',
         details: '',
         hint: '',
