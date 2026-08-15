@@ -70,22 +70,25 @@ class SalesHistory extends _$SalesHistory {
   Future<List<SaleHistoryItem>> _mergeWithPending(
     List<SaleHistoryItem> items,
   ) async {
-    final pending = await ref
-        .read(syncLocalDataSourceProvider)
-        .getPendingOperations();
+    final sync = ref.read(syncLocalDataSourceProvider);
+    final pending = await sync.getPendingOperations();
+    final failed = await sync.getFailedOperations();
+
     final pendingItems = <SaleHistoryItem>[
-      for (final operation in pending)
+      for (final operation in [...pending, ...failed])
         if (operation.operation == OutboxOperationType.registerSale)
           _pendingHistoryItem(operation),
     ];
     if (pendingItems.isEmpty) return items;
 
     final mergedIds = {for (final item in pendingItems) item.id};
-    return [
+    final merged = <SaleHistoryItem>[
       ...pendingItems,
       for (final item in items)
         if (!mergedIds.contains(item.id)) item,
     ];
+    merged.sort((a, b) => b.saleDate.compareTo(a.saleDate));
+    return merged;
   }
 
   SaleHistoryItem _pendingHistoryItem(PendingOperation operation) {

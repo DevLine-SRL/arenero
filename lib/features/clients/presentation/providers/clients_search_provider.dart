@@ -1,6 +1,8 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/data/datasources/sync_local_datasource.dart';
 import '../../../../core/providers/is_online_provider.dart';
+import '../../../../core/providers/sync_local_datasource_provider.dart';
 import '../../domain/entities/client.dart';
 import 'clients_providers.dart';
 import 'clients_search_query_provider.dart';
@@ -46,16 +48,62 @@ class ClientsSearch extends _$ClientsSearch {
         includeInactive: query.includeInactive,
       );
       if (!ref.mounted) return;
-      result.fold((_) {}, (clients) {
+      result.fold((_) {}, (clients) async {
         final current = ref.read(clientsSearchQueryProvider);
         if (current.text != query.text ||
             current.includeInactive != query.includeInactive) {
           return;
         }
-        state = AsyncData(clients);
+        final merged = await _mergeWithPending(clients, query);
+        if (!ref.mounted) return;
+        state = AsyncData(merged);
       });
     } finally {
       _refreshInFlight = false;
     }
+  }
+
+  Future<List<Client>> _mergeWithPending(
+    List<Client> clients,
+    ClientsQuery query,
+  ) async {
+    final sync = ref.read(syncLocalDataSourceProvider);
+    final pending = await sync.getPendingOperations();
+    final failed = await sync.getFailedOperations();
+
+    final localClients = <Client>[
+      for (final operation in [...pending, ...failed])
+        if (operation.operation == OutboxOperationType.createClient)
+          _pendingClient(operation),
+    ].where((client) => _matchesQuery(client, query)).toList();
+    if (localClients.isEmpty) return clients;
+
+    final mergedIds = {for (final client in localClients) client.id};
+    return [
+      ...localClients,
+      for (final client in clients)
+        if (!mergedIds.contains(client.id)) client,
+    ];
+  }
+
+  Client _pendingClient(PendingOperation operation) {
+    final payload = operation.payload;
+    return Client(
+      id: payload['id'] as String,
+      name: payload['name'] as String,
+      phone: payload['phone'] as String?,
+      ci: payload['ci'] as String,
+      nit: payload['nit'] as String?,
+      active: true,
+    );
+  }
+
+  bool _matchesQuery(Client client, ClientsQuery query) {
+    if (!query.includeInactive && !client.active) return false;
+    final term = query.text.trim().toLowerCase();
+    if (term.isEmpty) return true;
+    return client.name.toLowerCase().contains(term) ||
+        client.ci.toLowerCase().contains(term) ||
+        (client.nit?.toLowerCase().contains(term) ?? false);
   }
 }

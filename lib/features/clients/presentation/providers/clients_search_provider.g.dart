@@ -39,7 +39,7 @@ final class ClientsSearchProvider
   ClientsSearch create() => ClientsSearch();
 }
 
-String _$clientsSearchHash() => r'4d03aaaff5ce07a0ecb85ca2ffe179d4b4134257';
+String _$clientsSearchHash() => r'9b23c52488fe86ea0c2f9ad0910237103e939aab';
 
 /// Resultado de la consulta de clientes. Con el texto vacío devuelve la lista
 /// completa, así que también es la fuente de la pantalla al abrirla.

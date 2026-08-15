@@ -26,6 +26,8 @@ abstract final class AppConfig {
 
   static Duration get outboxBackoffBase => const Duration(minutes: 1);
 
+  static Duration get outboxSyncInterval => const Duration(minutes: 5);
+
   static int get outboxMaxAttempts => 5;
 
   static String _require(String value, String name) {

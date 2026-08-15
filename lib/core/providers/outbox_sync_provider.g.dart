@@ -40,7 +40,7 @@ final class OutboxSyncProvider extends $NotifierProvider<OutboxSync, void> {
   }
 }
 
-String _$outboxSyncHash() => r'185d9993bee475e08bdc3193e77dc90dbf61f8bd';
+String _$outboxSyncHash() => r'12b103cb1a574b17d4c4703e7fafde24e596e425';
 
 abstract class _$OutboxSync extends $Notifier<void> {
   void build();

@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/clients/presentation/providers/clients_search_provider.dart';
 import '../../features/sales/presentation/providers/sales_history_provider.dart';
+import '../config/app_config.dart';
 import 'connectivity_provider.dart';
 import 'outbox_executor_provider.dart';
 import 'sync_local_datasource_provider.dart';
@@ -12,6 +15,7 @@ part 'outbox_sync_provider.g.dart';
 @Riverpod(keepAlive: true)
 class OutboxSync extends _$OutboxSync {
   bool _draining = false;
+  Timer? _retryTimer;
 
   @override
   void build() {
@@ -21,6 +25,20 @@ class OutboxSync extends _$OutboxSync {
     ref.listen(authSessionProvider, (previous, next) {
       _maybeDrain();
     });
+    _startRetryTimer();
+    ref.onDispose(_stopRetryTimer);
+  }
+
+  void _startRetryTimer() {
+    _retryTimer?.cancel();
+    _retryTimer = Timer.periodic(AppConfig.outboxSyncInterval, (_) {
+      _maybeDrain();
+    });
+  }
+
+  void _stopRetryTimer() {
+    _retryTimer?.cancel();
+    _retryTimer = null;
   }
 
   void _maybeDrain() {
