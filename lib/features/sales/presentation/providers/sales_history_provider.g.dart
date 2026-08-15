@@ -33,7 +33,7 @@ final class SalesHistoryProvider
   SalesHistory create() => SalesHistory();
 }
 
-String _$salesHistoryHash() => r'aaa4c6234b45e251351675ca4632db8433ebe84a';
+String _$salesHistoryHash() => r'114d208bd9dfae373af1f2e5b25d9556e26d0c8b';
 
 abstract class _$SalesHistory extends $AsyncNotifier<List<SaleHistoryItem>> {
   FutureOr<List<SaleHistoryItem>> build();

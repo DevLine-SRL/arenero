@@ -1,3 +1,4 @@
+import '../../../../core/models/sync_status.dart';
 import 'sale.dart';
 
 class SaleHistoryItem {
@@ -8,6 +9,7 @@ class SaleHistoryItem {
   final DateTime saleDate;
   final double total;
   final SalePaymentMethod paymentMethod;
+  final SyncStatus syncStatus;
 
   const SaleHistoryItem({
     required this.id,
@@ -17,6 +19,7 @@ class SaleHistoryItem {
     required this.saleDate,
     this.total = 0,
     required this.paymentMethod,
+    this.syncStatus = SyncStatus.synced,
   });
 
   SaleHistoryItem copyWith({
@@ -27,6 +30,7 @@ class SaleHistoryItem {
     DateTime? saleDate,
     double? total,
     SalePaymentMethod? paymentMethod,
+    SyncStatus? syncStatus,
   }) {
     return SaleHistoryItem(
       id: id ?? this.id,
@@ -36,6 +40,7 @@ class SaleHistoryItem {
       saleDate: saleDate ?? this.saleDate,
       total: total ?? this.total,
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      syncStatus: syncStatus ?? this.syncStatus,
     );
   }
 }

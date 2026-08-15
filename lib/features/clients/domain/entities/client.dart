@@ -1,3 +1,5 @@
+import '../../../../core/models/sync_status.dart';
+
 class Client {
   final String id;
   final String name;
@@ -5,6 +7,7 @@ class Client {
   final String ci;
   final String? nit;
   final bool active;
+  final SyncStatus syncStatus;
 
   const Client({
     required this.id,
@@ -13,6 +16,7 @@ class Client {
     required this.ci,
     this.nit,
     required this.active,
+    this.syncStatus = SyncStatus.synced,
   });
 
   Client copyWith({
@@ -22,6 +26,7 @@ class Client {
     String? ci,
     String? nit,
     bool? active,
+    SyncStatus? syncStatus,
   }) {
     return Client(
       id: id ?? this.id,
@@ -30,6 +35,7 @@ class Client {
       ci: ci ?? this.ci,
       nit: nit ?? this.nit,
       active: active ?? this.active,
+      syncStatus: syncStatus ?? this.syncStatus,
     );
   }
 }

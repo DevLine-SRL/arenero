@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/data/datasources/sync_local_datasource.dart';
+import '../../../../core/models/sync_status.dart';
 import '../../../../core/providers/is_online_provider.dart';
 import '../../../../core/providers/sync_local_datasource_provider.dart';
 import '../../domain/entities/client.dart';
@@ -72,9 +73,12 @@ class ClientsSearch extends _$ClientsSearch {
     final failed = await sync.getFailedOperations();
 
     final localClients = <Client>[
-      for (final operation in [...pending, ...failed])
+      for (final operation in pending)
         if (operation.operation == OutboxOperationType.createClient)
-          _pendingClient(operation),
+          _pendingClient(operation, status: SyncStatus.pending),
+      for (final operation in failed)
+        if (operation.operation == OutboxOperationType.createClient)
+          _pendingClient(operation, status: SyncStatus.error),
     ].where((client) => _matchesQuery(client, query)).toList();
     if (localClients.isEmpty) return clients;
 
@@ -86,7 +90,10 @@ class ClientsSearch extends _$ClientsSearch {
     ];
   }
 
-  Client _pendingClient(PendingOperation operation) {
+  Client _pendingClient(
+    PendingOperation operation, {
+    required SyncStatus status,
+  }) {
     final payload = operation.payload;
     return Client(
       id: payload['id'] as String,
@@ -95,6 +102,7 @@ class ClientsSearch extends _$ClientsSearch {
       ci: payload['ci'] as String,
       nit: payload['nit'] as String?,
       active: true,
+      syncStatus: status,
     );
   }
 

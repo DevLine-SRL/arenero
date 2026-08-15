@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/data/datasources/sync_local_datasource.dart';
+import '../../../../core/models/sync_status.dart';
 import '../../../../core/providers/is_online_provider.dart';
 import '../../../../core/providers/sync_local_datasource_provider.dart';
 import '../../domain/entities/sale.dart';
@@ -75,9 +76,12 @@ class SalesHistory extends _$SalesHistory {
     final failed = await sync.getFailedOperations();
 
     final pendingItems = <SaleHistoryItem>[
-      for (final operation in [...pending, ...failed])
+      for (final operation in pending)
         if (operation.operation == OutboxOperationType.registerSale)
-          _pendingHistoryItem(operation),
+          _pendingHistoryItem(operation, status: SyncStatus.pending),
+      for (final operation in failed)
+        if (operation.operation == OutboxOperationType.registerSale)
+          _pendingHistoryItem(operation, status: SyncStatus.error),
     ];
     if (pendingItems.isEmpty) return items;
 
@@ -91,7 +95,10 @@ class SalesHistory extends _$SalesHistory {
     return merged;
   }
 
-  SaleHistoryItem _pendingHistoryItem(PendingOperation operation) {
+  SaleHistoryItem _pendingHistoryItem(
+    PendingOperation operation, {
+    required SyncStatus status,
+  }) {
     final payload = operation.payload;
     return SaleHistoryItem(
       id: payload['id'] as String,
@@ -103,6 +110,7 @@ class SalesHistory extends _$SalesHistory {
       paymentMethod: SalePaymentMethod.fromDatabase(
         payload['payment_method'] as String,
       ),
+      syncStatus: status,
     );
   }
 

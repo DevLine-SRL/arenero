@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/models/sync_status.dart';
 import '../../../../core/router/route_paths.dart';
 import '../../domain/entities/sale_history_item.dart';
 import '../utils/sale_formatters.dart';
@@ -50,12 +51,10 @@ class SalesHistoryListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    sale.number?.toString() ?? 'Pendiente',
+                    sale.number?.toString() ?? _localStatusLabel(sale),
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: sale.number == null
-                          ? theme.colorScheme.onSurfaceVariant
-                          : theme.colorScheme.primary,
+                      color: _localStatusColor(theme),
                     ),
                   ),
                   Text(
@@ -110,5 +109,15 @@ class SalesHistoryListItem extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _localStatusLabel(SaleHistoryItem sale) {
+    if (sale.syncStatus == SyncStatus.error) return 'Sin sincronizar';
+    return 'Pendiente';
+  }
+
+  Color _localStatusColor(ThemeData theme) {
+    if (sale.syncStatus == SyncStatus.error) return theme.colorScheme.error;
+    return theme.colorScheme.onSurfaceVariant;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/widgets/local_sync_status_badge.dart';
 import '../../domain/entities/client.dart';
 import 'client_status_badge.dart';
 
@@ -62,7 +63,14 @@ class ClientListItem extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          ClientStatusBadge(active: client.active),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              LocalSyncStatusBadge(status: client.syncStatus),
+              const SizedBox(height: 4),
+              ClientStatusBadge(active: client.active),
+            ],
+          ),
         ],
       ),
     );

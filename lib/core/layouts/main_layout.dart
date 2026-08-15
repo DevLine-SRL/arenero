@@ -7,6 +7,7 @@ import '../../features/auth/presentation/providers/logout_provider.dart';
 import '../../shared/widgets/confirm_dialog.dart';
 import '../../shared/widgets/connection_status_indicator.dart';
 import '../../shared/widgets/failed_operations_badge.dart';
+import '../providers/sync_local_datasource_provider.dart';
 import '../router/route_definitions.dart';
 import 'bottom_nav_bar.dart';
 import 'sidebar.dart';
@@ -17,10 +18,23 @@ class MainLayout extends ConsumerWidget {
   const MainLayout({super.key, required this.navigationShell});
 
   Future<void> _confirmLogout(BuildContext context, WidgetRef ref) async {
+    final sync = ref.read(syncLocalDataSourceProvider);
+    final pending = await sync.countPending();
+    final failed = (await sync.getFailedOperations()).length;
+    final unsynced = pending + failed;
+
+    final content = unsynced == 0
+        ? '¿Estás seguro de que deseas cerrar sesión?'
+        : '¿Estás seguro de que deseas cerrar sesión?\n\n'
+              'Tienes $unsynced operaciones sin sincronizar. Se conservarán '
+              'localmente y se sincronizarán cuando vuelvas a entrar.';
+
+    if (!context.mounted) return;
+
     final confirmed = await showConfirmDialog(
       context: context,
       title: 'Cerrar sesión',
-      content: '¿Estás seguro de que deseas cerrar sesión?',
+      content: content,
       confirmLabel: 'Si, cerrar sesión',
     );
 
