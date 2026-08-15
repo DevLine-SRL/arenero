@@ -111,16 +111,17 @@ class _SaleClientSelectorState extends ConsumerState<SaleClientSelector> {
         ),
         if (_open) ...[
           const SizedBox(height: 8),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.45,
-              ),
+          Material(
+            color: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.45,
+            ),
+            shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
+              side: BorderSide(
                 color: theme.colorScheme.outline.withValues(alpha: 0.18),
               ),
             ),
+            clipBehavior: Clip.antiAlias,
             child: clientsAsync.when(
               data: (clients) => _ClientResultsList(
                 clients: clients.take(6).toList(),
