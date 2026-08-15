@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../../features/clients/data/datasources/clients_local_datasource.dart';
 import '../../../features/clients/data/datasources/clients_remote_datasource.dart';
+import '../../../features/clients/data/models/client_model.dart';
 import '../../../features/sales/data/datasources/sales_local_datasource.dart';
 import '../../../features/sales/data/datasources/sales_remote_datasource.dart';
 import '../../../features/sales/data/models/sale_delivery_model.dart';
@@ -69,14 +70,33 @@ class OutboxExecutorImpl implements OutboxExecutor {
 
   Future<void> _drainCreateClient(PendingOperation operation) async {
     final payload = operation.payload;
-    final client = await clientsRemoteDataSource.createClient(
-      name: payload['name'] as String,
-      ci: payload['ci'] as String,
-      phone: payload['phone'] as String?,
-      nit: payload['nit'] as String?,
-    );
-
     final tempId = payload['id'] as String;
+
+    ClientModel client;
+    try {
+      client = await clientsRemoteDataSource.createClient(
+        name: payload['name'] as String,
+        ci: payload['ci'] as String,
+        phone: payload['phone'] as String?,
+        nit: payload['nit'] as String?,
+      );
+    } on supabase.PostgrestException catch (e) {
+      if (e.code != '23505') rethrow;
+      final existing = await clientsRemoteDataSource.getClientByCi(
+        payload['ci'] as String,
+      );
+      if (existing == null) rethrow;
+      client = existing;
+    }
+
+    await _reconcileClientId(tempId: tempId, client: client);
+    await syncDataSource.markSynced(operation.id);
+  }
+
+  Future<void> _reconcileClientId({
+    required String tempId,
+    required ClientModel client,
+  }) async {
     await clientsLocalDataSource.deleteById(tempId);
     await clientsLocalDataSource.upsertClients([client]);
     await salesLocalDataSource.reassignClientId(
@@ -87,7 +107,6 @@ class OutboxExecutorImpl implements OutboxExecutor {
       oldClientId: tempId,
       newClientId: client.id,
     );
-    await syncDataSource.markSynced(operation.id);
   }
 
   Future<void> _drainRegisterSale(PendingOperation operation) async {

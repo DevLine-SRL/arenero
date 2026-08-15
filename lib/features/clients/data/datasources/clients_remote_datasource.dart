@@ -17,6 +17,8 @@ abstract class ClientsRemoteDataSource {
 
   Future<bool> existsByCi(String ci);
 
+  Future<ClientModel?> getClientByCi(String ci);
+
   Future<ClientModel> updateClient({
     required String id,
     required String name,
@@ -86,6 +88,17 @@ class ClientsRemoteDataSourceImpl implements ClientsRemoteDataSource {
         .maybeSingle();
 
     return row != null;
+  }
+
+  @override
+  Future<ClientModel?> getClientByCi(String ci) async {
+    final row = await client
+        .from('clients')
+        .select()
+        .eq('ci', ci)
+        .maybeSingle();
+
+    return row == null ? null : ClientModel.fromJson(row);
   }
 
   @override
