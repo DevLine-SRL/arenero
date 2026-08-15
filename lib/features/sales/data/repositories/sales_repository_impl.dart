@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:dartz/dartz.dart' as dartz;
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:uuid/uuid.dart';
@@ -87,7 +89,23 @@ class SalesRepositoryImpl implements SalesRepository {
       return dartz.Right(sale);
     } on supabase.PostgrestException catch (e) {
       return dartz.Left(_mapRegisterError(e));
-    } catch (_) {
+    } catch (e) {
+      developer.log(
+        'registerSale falló por red (isOnline=${isOnline()}): '
+        '${e.runtimeType}: $e',
+        name: 'offline',
+      );
+      if (isNetworkError(e)) {
+        return _registerSaleOffline(
+          client: client,
+          sellerId: sellerId,
+          deliveryMode: deliveryMode,
+          paymentMethod: paymentMethod,
+          notes: notes,
+          delivery: delivery,
+          details: details,
+        );
+      }
       return const dartz.Left(
         UnexpectedFailure(message: 'No se pudo registrar la venta.'),
       );

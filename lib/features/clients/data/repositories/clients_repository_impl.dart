@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import 'package:uuid/uuid.dart';
@@ -123,8 +125,13 @@ class ClientsRepositoryImpl implements ClientsRepository {
         _mapPostgrestException(e, 'No se pudo registrar el cliente.'),
       );
     } catch (e) {
+      developer.log(
+        'createClient falló por red (isOnline=${isOnline()}): '
+        '${e.runtimeType}: $e',
+        name: 'offline',
+      );
       if (isNetworkError(e)) {
-        return const Left(NetworkFailure());
+        return _createClientOffline(name: name, ci: ci, phone: phone, nit: nit);
       }
       return const Left(
         UnexpectedFailure(message: 'Error inesperado al registrar el cliente.'),

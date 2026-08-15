@@ -18,6 +18,7 @@ class SellersLocalDataSourceImpl implements SellersLocalDataSource {
 
   @override
   Future<void> replaceSellers(List<SellerModel> sellers) async {
+    if (sellers.isEmpty) return;
     await database.transaction(() async {
       await (database.delete(
         database.localProfiles,

@@ -26,6 +26,7 @@ class ProductsLocalDataSourceImpl implements ProductsLocalDataSource {
 
   @override
   Future<void> replaceCatalog(List<ProductModel> products) async {
+    if (products.isEmpty) return;
     await database.transaction(() async {
       await database.delete(database.localProductUnits).go();
       await database.delete(database.localProducts).go();

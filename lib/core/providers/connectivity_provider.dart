@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
@@ -17,14 +18,18 @@ Stream<ConnectionStatus> connectionStatus(Ref _) async* {
 
   var hasNetwork = _hasNetwork(await connectivity.checkConnectivity());
   var hasInternet = await internetChecker.hasInternetAccess;
-  yield _resolve(hasNetwork, hasInternet);
+  final initial = _resolve(hasNetwork, hasInternet);
+  developer.log('Connectivity: $initial', name: 'offline');
+  yield initial;
 
   final controller = StreamController<ConnectionStatus>();
 
   void compute({bool? network, bool? internet}) {
     hasNetwork = network ?? hasNetwork;
     hasInternet = internet ?? hasInternet;
-    controller.add(_resolve(hasNetwork, hasInternet));
+    final status = _resolve(hasNetwork, hasInternet);
+    developer.log('Connectivity: $status', name: 'offline');
+    controller.add(status);
   }
 
   late final StreamSubscription<List<ConnectivityResult>> networkSub;
