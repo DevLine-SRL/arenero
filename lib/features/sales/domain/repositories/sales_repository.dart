@@ -32,5 +32,12 @@ abstract class SalesRepository {
 
   Future<Either<Failure, Sale>> getSaleById(String saleId);
 
+  Future<Either<Failure, Unit>> updateSalePayment({
+    required String saleId,
+    required SalePaymentStatus paymentStatus,
+    required double amountPaid,
+    required double pendingAmount,
+  });
+
   Future<Either<Failure, Unit>> voidSale(String saleId);
 }

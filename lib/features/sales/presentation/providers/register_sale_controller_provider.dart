@@ -27,10 +27,7 @@ class RegisterSaleController extends _$RegisterSaleController {
   // MÉTODOS INTERNOS
   // ============================================================
 
-  void _replaceItem(
-    int rowId,
-    SaleLineItem Function(SaleLineItem) change,
-  ) {
+  void _replaceItem(int rowId, SaleLineItem Function(SaleLineItem) change) {
     state = state.copyWith(
       items: [
         for (final item in state.items)
@@ -86,46 +83,35 @@ class RegisterSaleController extends _$RegisterSaleController {
     if (state.isSubmitting) {
       return const ValidationFailure(
         message: 'La venta ya se está registrando.',
-        errors: {
-          'submit': 'Espera a que termine el registro actual.',
-        },
+        errors: {'submit': 'Espera a que termine el registro actual.'},
       );
     }
 
     if (state.client == null) {
       return const ValidationFailure(
         message: 'Selecciona un cliente.',
-        errors: {
-          'client': 'Selecciona un cliente para registrar la venta.',
-        },
+        errors: {'client': 'Selecciona un cliente para registrar la venta.'},
       );
     }
 
     if (state.items.isEmpty) {
       return const ValidationFailure(
         message: 'Agrega al menos un producto.',
-        errors: {
-          'products': 'La venta debe contener al menos un producto.',
-        },
+        errors: {'products': 'La venta debe contener al menos un producto.'},
       );
     }
 
     if (state.items.any((item) => !item.isComplete)) {
       return const ValidationFailure(
         message: 'Completa todos los productos de la venta.',
-        errors: {
-          'products':
-              'Existen productos con información incompleta.',
-        },
+        errors: {'products': 'Existen productos con información incompleta.'},
       );
     }
 
     if (state.completedItems.isEmpty) {
       return const ValidationFailure(
         message: 'Agrega al menos un producto válido.',
-        errors: {
-          'products': 'No existen productos válidos para registrar.',
-        },
+        errors: {'products': 'No existen productos válidos para registrar.'},
       );
     }
 
@@ -260,8 +246,7 @@ class RegisterSaleController extends _$RegisterSaleController {
       case SalePaymentStatus.partial:
         final currentAmount = state.amountPaid;
 
-        final validCurrentAmount =
-            currentAmount > 0 && currentAmount < total
+        final validCurrentAmount = currentAmount > 0 && currentAmount < total
             ? currentAmount
             : 0.0;
 
@@ -300,10 +285,7 @@ class RegisterSaleController extends _$RegisterSaleController {
       amount = total;
     }
 
-    state = state.copyWith(
-      amountPaid: amount,
-      clearSubmitError: true,
-    );
+    state = state.copyWith(amountPaid: amount, clearSubmitError: true);
   }
 
   // ============================================================
@@ -348,9 +330,11 @@ class RegisterSaleController extends _$RegisterSaleController {
   /// Permite eliminar únicamente la referencia de la última
   /// venta registrada una vez terminado el flujo HU-04.
   void clearRegisteredSale() {
-    state = state.copyWith(
-      clearRegisteredSale: true,
-    );
+    state = state.copyWith(clearRegisteredSale: true);
+  }
+
+  void finishPaymentLater() {
+    reset();
   }
 
   // ============================================================
@@ -361,32 +345,23 @@ class RegisterSaleController extends _$RegisterSaleController {
     state = state.copyWith(
       items: [
         ...state.items,
-        SaleLineItem(
-          rowId: _nextRowId++,
-        ),
+        SaleLineItem(rowId: _nextRowId++),
       ],
       clearSubmitError: true,
       clearRegisteredSale: true,
     );
   }
 
-  void changeLineProduct(
-    int rowId,
-    Product product,
-  ) {
+  void changeLineProduct(int rowId, Product product) {
     if (!product.active) {
       return;
     }
 
-    final usedUnits = _unitsInUse(
-      product.id,
-      excludeRowId: rowId,
-    );
+    final usedUnits = _unitsInUse(product.id, excludeRowId: rowId);
 
     final available = [
       for (final entry in product.units)
-        if (entry.active && !usedUnits.contains(entry.unit))
-          entry,
+        if (entry.active && !usedUnits.contains(entry.unit)) entry,
     ];
 
     final firstUnit = available.isNotEmpty ? available.first : null;
@@ -409,10 +384,7 @@ class RegisterSaleController extends _$RegisterSaleController {
     );
   }
 
-  Set<ProductUnitOfMeasure> _unitsInUse(
-    String productId, {
-    int? excludeRowId,
-  }) {
+  Set<ProductUnitOfMeasure> _unitsInUse(String productId, {int? excludeRowId}) {
     final used = <ProductUnitOfMeasure>{};
 
     for (final item in state.items) {
@@ -420,9 +392,7 @@ class RegisterSaleController extends _$RegisterSaleController {
         continue;
       }
 
-      if (item.isComplete &&
-          item.productId == productId &&
-          item.unit != null) {
+      if (item.isComplete && item.productId == productId && item.unit != null) {
         used.add(item.unit!);
       }
     }
@@ -430,68 +400,46 @@ class RegisterSaleController extends _$RegisterSaleController {
     return used;
   }
 
-  void changeLineUnit(
-    int rowId,
-    ProductUnitOfMeasure unit,
-  ) {
-    _replaceItem(
-      rowId,
-      (item) {
-        for (final entry in item.availableUnits) {
-          if (entry.unit == unit) {
-            return item.copyWith(
-              unit: unit,
-              productUnitId: entry.id,
-              unitPrice: entry.unitPrice,
-            );
-          }
+  void changeLineUnit(int rowId, ProductUnitOfMeasure unit) {
+    _replaceItem(rowId, (item) {
+      for (final entry in item.availableUnits) {
+        if (entry.unit == unit) {
+          return item.copyWith(
+            unit: unit,
+            productUnitId: entry.id,
+            unitPrice: entry.unitPrice,
+          );
         }
+      }
 
-        return item;
-      },
+      return item;
+    });
+  }
+
+  void changeLineQuantity(int rowId, double quantity) {
+    _replaceItem(
+      rowId,
+      (item) => item.copyWith(quantity: quantity < 1 ? 1 : quantity),
     );
   }
 
-  void changeLineQuantity(
-    int rowId,
-    double quantity,
-  ) {
-    _replaceItem(
-      rowId,
-      (item) => item.copyWith(
-        quantity: quantity < 1 ? 1 : quantity,
-      ),
-    );
-  }
+  void changeLineDiscount(int rowId, double discount) {
+    _replaceItem(rowId, (item) {
+      final maxDiscount = item.quantity * item.unitPrice;
 
-  void changeLineDiscount(
-    int rowId,
-    double discount,
-  ) {
-    _replaceItem(
-      rowId,
-      (item) {
-        final maxDiscount =
-            item.quantity * item.unitPrice;
+      final clamped = discount < 0
+          ? 0.0
+          : discount > maxDiscount
+          ? maxDiscount
+          : discount;
 
-        final clamped = discount < 0
-            ? 0.0
-            : discount > maxDiscount
-            ? maxDiscount
-            : discount;
-
-        return item.copyWith(
-          discount: clamped,
-        );
-      },
-    );
+      return item.copyWith(discount: clamped);
+    });
   }
 
   void removeLine(int rowId) {
     state = state.copyWith(
-      items: state.items
-          .where((item) => item.rowId != rowId)
-          .toList(),
+      items: state.items.where((item) => item.rowId != rowId).toList(),
       clearSubmitError: true,
       clearRegisteredSale: true,
     );
@@ -517,28 +465,20 @@ class RegisterSaleController extends _$RegisterSaleController {
       return validationFailure;
     }
 
-    state = state.copyWith(
-      isSubmitting: true,
-      clearSubmitError: true,
-    );
+    state = state.copyWith(isSubmitting: true, clearSubmitError: true);
 
     // ----------------------------------------------------------
     // 2. Obtener usuario autenticado
     // ----------------------------------------------------------
 
-    final user = await ref.read(
-      getCurrentUserUseCaseProvider,
-    )();
+    final user = await ref.read(getCurrentUserUseCaseProvider)();
 
     if (user == null) {
       const failure = UnauthorizedFailure(
         message: 'No se pudo identificar al vendedor.',
       );
 
-      state = state.copyWith(
-        isSubmitting: false,
-        submitError: failure.message,
-      );
+      state = state.copyWith(isSubmitting: false, submitError: failure.message);
 
       return failure;
     }
@@ -547,22 +487,15 @@ class RegisterSaleController extends _$RegisterSaleController {
     // 3. Resolver vendedor
     // ----------------------------------------------------------
 
-    final sellerId = user.role == 'admin'
-        ? state.seller?.id
-        : user.id;
+    final sellerId = user.role == 'admin' ? state.seller?.id : user.id;
 
     if (sellerId == null) {
       const failure = ValidationFailure(
         message: 'Selecciona el vendedor de la venta.',
-        errors: {
-          'seller': 'Selecciona el vendedor de la venta.',
-        },
+        errors: {'seller': 'Selecciona el vendedor de la venta.'},
       );
 
-      state = state.copyWith(
-        isSubmitting: false,
-        submitError: failure.message,
-      );
+      state = state.copyWith(isSubmitting: false, submitError: failure.message);
 
       return failure;
     }
@@ -583,9 +516,7 @@ class RegisterSaleController extends _$RegisterSaleController {
     // 5. Registrar venta
     // ----------------------------------------------------------
 
-    final result = await ref.read(
-      registerSaleUseCaseProvider,
-    )(
+    final result = await ref.read(registerSaleUseCaseProvider)(
       client: state.client!,
       sellerId: sellerId,
       deliveryMode: state.deliveryMode,
@@ -617,9 +548,7 @@ class RegisterSaleController extends _$RegisterSaleController {
         return failure;
       },
       (sale) {
-        ref.invalidate(
-          salesHistoryProvider,
-        );
+        ref.invalidate(salesHistoryProvider);
 
         /*
          * HU-04:
@@ -644,6 +573,57 @@ class RegisterSaleController extends _$RegisterSaleController {
 
         _nextRowId = 0;
 
+        return null;
+      },
+    );
+  }
+
+  Future<Failure?> confirmRegisteredSalePayment() async {
+    final sale = state.registeredSale;
+
+    if (sale == null || sale.id == null || sale.id!.trim().isEmpty) {
+      const failure = ValidationFailure(
+        message: 'No se encontró la venta registrada.',
+        errors: {'sale': 'Registra una venta antes de confirmar el cobro.'},
+      );
+
+      state = state.copyWith(submitError: failure.message);
+
+      return failure;
+    }
+
+    if (!state.hasValidPartialPayment) {
+      const failure = ValidationFailure(
+        message: 'El abono debe ser mayor a Bs. 0 y menor al total.',
+        errors: {'amountPaid': 'Ingresa un abono válido.'},
+      );
+
+      state = state.copyWith(submitError: failure.message);
+
+      return failure;
+    }
+
+    state = state.copyWith(isRecordingPayment: true, clearSubmitError: true);
+
+    final result = await ref.read(updateSalePaymentUseCaseProvider)(
+      saleId: sale.id!.trim(),
+      paymentStatus: state.paymentStatus,
+      amountPaid: state.effectiveAmountPaid,
+      pendingAmount: state.pendingAmount,
+    );
+
+    return result.fold(
+      (failure) {
+        state = state.copyWith(
+          isRecordingPayment: false,
+          submitError: failure.message,
+        );
+
+        return failure;
+      },
+      (_) {
+        ref.invalidate(salesHistoryProvider);
+        reset();
         return null;
       },
     );

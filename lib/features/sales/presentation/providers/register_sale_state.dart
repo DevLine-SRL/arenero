@@ -46,8 +46,7 @@ class SaleLineItem {
       return 0;
     }
 
-    final value =
-        (quantity * unitPrice) - discount;
+    final value = (quantity * unitPrice) - discount;
 
     return value < 0 ? 0 : value;
   }
@@ -74,17 +73,11 @@ class SaleLineItem {
     return SaleLineItem(
       rowId: rowId,
 
-      productId: clearProduct
-          ? null
-          : (productId ?? this.productId),
+      productId: clearProduct ? null : (productId ?? this.productId),
 
-      productName: clearProductName
-          ? null
-          : (productName ?? this.productName),
+      productName: clearProductName ? null : (productName ?? this.productName),
 
-      unit: clearUnit
-          ? null
-          : (unit ?? this.unit),
+      unit: clearUnit ? null : (unit ?? this.unit),
 
       productUnitId: clearProductUnitId
           ? null
@@ -96,8 +89,7 @@ class SaleLineItem {
 
       discount: discount ?? this.discount,
 
-      availableUnits:
-          availableUnits ?? this.availableUnits,
+      availableUnits: availableUnits ?? this.availableUnits,
     );
   }
 }
@@ -149,24 +141,23 @@ class RegisterSaleState {
 
   final bool isSubmitting;
 
+  final bool isRecordingPayment;
+
   final String? submitError;
 
   const RegisterSaleState({
     this.seller,
     this.client,
 
-    this.deliveryMode =
-        SaleDeliveryMode.customerPickup,
+    this.deliveryMode = SaleDeliveryMode.customerPickup,
 
     this.vehiclePlate = '',
 
     this.freightAmount = 0,
 
-    this.paymentMethod =
-        SalePaymentMethod.cash,
+    this.paymentMethod = SalePaymentMethod.cash,
 
-    this.paymentStatus =
-        SalePaymentStatus.pending,
+    this.paymentStatus = SalePaymentStatus.pending,
 
     this.amountPaid = 0,
 
@@ -180,6 +171,8 @@ class RegisterSaleState {
 
     this.isSubmitting = false,
 
+    this.isRecordingPayment = false,
+
     this.submitError,
   });
 
@@ -188,9 +181,7 @@ class RegisterSaleState {
   // ============================================================
 
   List<SaleLineItem> get completedItems {
-    return items
-        .where((item) => item.isComplete)
-        .toList();
+    return items.where((item) => item.isComplete).toList();
   }
 
   bool get hasIncompleteItems {
@@ -198,10 +189,7 @@ class RegisterSaleState {
   }
 
   double get subtotal {
-    return items.fold<double>(
-      0,
-      (sum, item) => sum + item.subtotal,
-    );
+    return items.fold<double>(0, (sum, item) => sum + item.subtotal);
   }
 
   // ============================================================
@@ -229,8 +217,7 @@ class RegisterSaleState {
   /// El flete únicamente afecta la venta cuando la modalidad
   /// es domicilio.
   double get effectiveFreightAmount {
-    if (deliveryMode !=
-        SaleDeliveryMode.companyDelivery) {
+    if (deliveryMode != SaleDeliveryMode.companyDelivery) {
       return 0;
     }
 
@@ -246,10 +233,7 @@ class RegisterSaleState {
   // ============================================================
 
   double get total {
-    final value =
-        subtotal -
-        effectiveDiscountAmount +
-        effectiveFreightAmount;
+    final value = subtotal - effectiveDiscountAmount + effectiveFreightAmount;
 
     return value < 0 ? 0 : value;
   }
@@ -290,8 +274,7 @@ class RegisterSaleState {
 
   /// Saldo pendiente calculado automáticamente.
   double get pendingAmount {
-    final value =
-        paymentTotal - effectiveAmountPaid;
+    final value = paymentTotal - effectiveAmountPaid;
 
     return value < 0 ? 0 : value;
   }
@@ -307,8 +290,7 @@ class RegisterSaleState {
       return true;
     }
 
-    return amountPaid > 0 &&
-        amountPaid < paymentTotal;
+    return amountPaid > 0 && amountPaid < paymentTotal;
   }
 
   // ============================================================
@@ -337,6 +319,14 @@ class RegisterSaleState {
     }
 
     return true;
+  }
+
+  bool get canConfirmPayment {
+    if (registeredSale == null || isRecordingPayment) {
+      return false;
+    }
+
+    return hasValidPartialPayment;
   }
 
   // ============================================================
@@ -373,55 +363,43 @@ class RegisterSaleState {
 
     bool? isSubmitting,
 
+    bool? isRecordingPayment,
+
     String? submitError,
     bool clearSubmitError = false,
   }) {
     return RegisterSaleState(
-      seller: clearSeller
-          ? null
-          : (seller ?? this.seller),
+      seller: clearSeller ? null : (seller ?? this.seller),
 
-      client: clearClient
-          ? null
-          : (client ?? this.client),
+      client: clearClient ? null : (client ?? this.client),
 
-      deliveryMode:
-          deliveryMode ?? this.deliveryMode,
+      deliveryMode: deliveryMode ?? this.deliveryMode,
 
-      vehiclePlate:
-          vehiclePlate ?? this.vehiclePlate,
+      vehiclePlate: vehiclePlate ?? this.vehiclePlate,
 
-      freightAmount:
-          freightAmount ?? this.freightAmount,
+      freightAmount: freightAmount ?? this.freightAmount,
 
-      paymentMethod:
-          paymentMethod ?? this.paymentMethod,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
 
-      paymentStatus:
-          paymentStatus ?? this.paymentStatus,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
 
-      amountPaid:
-          amountPaid ?? this.amountPaid,
+      amountPaid: amountPaid ?? this.amountPaid,
 
       registeredSale: clearRegisteredSale
           ? null
           : (registeredSale ?? this.registeredSale),
 
-      discountAmount:
-          discountAmount ?? this.discountAmount,
+      discountAmount: discountAmount ?? this.discountAmount,
 
-      notes:
-          notes ?? this.notes,
+      notes: notes ?? this.notes,
 
-      items:
-          items ?? this.items,
+      items: items ?? this.items,
 
-      isSubmitting:
-          isSubmitting ?? this.isSubmitting,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
 
-      submitError: clearSubmitError
-          ? null
-          : (submitError ?? this.submitError),
+      isRecordingPayment: isRecordingPayment ?? this.isRecordingPayment,
+
+      submitError: clearSubmitError ? null : (submitError ?? this.submitError),
     );
   }
 }

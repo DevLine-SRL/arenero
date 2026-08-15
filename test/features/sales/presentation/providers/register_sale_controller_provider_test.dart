@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../../support/builders/client_builder.dart';
+import '../../../../support/builders/sale_builder.dart';
 import '../../../../support/fakes/fake_sales_repository.dart';
 
 void main() {
@@ -33,7 +34,7 @@ void main() {
 
       final state = container.read(registerSaleControllerProvider);
       expect(state.subtotal, 40);
-      expect(state.discountAmount, 100);
+      expect(state.discountAmount, 40);
       expect(state.total, 0);
     });
 
@@ -49,11 +50,11 @@ void main() {
       notifier.changeLineProduct(0, _product(unitPrice: 20));
       notifier.changeLineQuantity(0, 2);
       notifier.onDiscountAmountChanged(5);
-      notifier.onFreightAmountChanged(12);
 
       expect(container.read(registerSaleControllerProvider).total, 35);
 
       notifier.onDeliveryModeChanged(SaleDeliveryMode.companyDelivery);
+      notifier.onFreightAmountChanged(12);
 
       expect(container.read(registerSaleControllerProvider).total, 47);
     });
@@ -95,6 +96,86 @@ void main() {
       expect(failure, isNull);
       expect(sales.lastRegisteredSellerId, 'seller-1');
     });
+
+    test(
+      'keeps the registered sale to continue with the payment step',
+      () async {
+        final sales = FakeSalesRepository();
+        sales.registerResult = Right(buildSale(total: 100, pendingAmount: 100));
+        final container = _container(user: _sellerUser(), sales: sales);
+        addTearDown(container.dispose);
+
+        final notifier = container.read(
+          registerSaleControllerProvider.notifier,
+        );
+        _fillMinimumSale(notifier);
+
+        final failure = await notifier.submit();
+
+        final state = container.read(registerSaleControllerProvider);
+        expect(failure, isNull);
+        expect(state.registeredSale, isNotNull);
+        expect(state.paymentTotal, 100);
+        expect(state.paymentStatus, SalePaymentStatus.pending);
+      },
+    );
+
+    test(
+      'records a valid partial payment after registering the sale',
+      () async {
+        final sales = FakeSalesRepository();
+        sales.registerResult = Right(buildSale(total: 100, pendingAmount: 100));
+        final container = _container(user: _sellerUser(), sales: sales);
+        addTearDown(container.dispose);
+
+        final notifier = container.read(
+          registerSaleControllerProvider.notifier,
+        );
+        _fillMinimumSale(notifier);
+        await notifier.submit();
+
+        notifier.onPaymentStatusChanged(SalePaymentStatus.partial);
+        notifier.onAmountPaidChanged(40);
+        final failure = await notifier.confirmRegisteredSalePayment();
+
+        expect(failure, isNull);
+        expect(sales.lastUpdatedPaymentSaleId, 'sale-1');
+        expect(sales.lastUpdatedPaymentStatus, SalePaymentStatus.partial);
+        expect(sales.lastUpdatedAmountPaid, 40);
+        expect(sales.lastUpdatedPendingAmount, 60);
+        expect(
+          container.read(registerSaleControllerProvider).registeredSale,
+          isNull,
+        );
+      },
+    );
+
+    test(
+      'rejects a partial payment that is not lower than the total',
+      () async {
+        final sales = FakeSalesRepository();
+        sales.registerResult = Right(buildSale(total: 100, pendingAmount: 100));
+        final container = _container(user: _sellerUser(), sales: sales);
+        addTearDown(container.dispose);
+
+        final notifier = container.read(
+          registerSaleControllerProvider.notifier,
+        );
+        _fillMinimumSale(notifier);
+        await notifier.submit();
+
+        notifier.onPaymentStatusChanged(SalePaymentStatus.partial);
+        notifier.onAmountPaidChanged(100);
+        final failure = await notifier.confirmRegisteredSalePayment();
+
+        expect(failure, isA<ValidationFailure>());
+        expect(sales.lastUpdatedPaymentSaleId, isNull);
+        expect(
+          container.read(registerSaleControllerProvider).registeredSale,
+          isNotNull,
+        );
+      },
+    );
   });
 }
 

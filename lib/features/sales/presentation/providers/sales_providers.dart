@@ -8,6 +8,7 @@ import '../../domain/usecases/get_sale_detail_usecase.dart';
 import '../../domain/usecases/get_sales_history_usecase.dart';
 import '../../domain/usecases/get_sales_usecase.dart';
 import '../../domain/usecases/register_sale_usecase.dart';
+import '../../domain/usecases/update_sale_payment_usecase.dart';
 import '../../domain/usecases/void_sale_usecase.dart';
 
 part 'sales_providers.g.dart';
@@ -25,6 +26,11 @@ SalesRepository salesRepository(Ref ref) {
 @riverpod
 RegisterSaleUseCase registerSaleUseCase(Ref ref) {
   return RegisterSaleUseCase(ref.watch(salesRepositoryProvider));
+}
+
+@riverpod
+UpdateSalePaymentUseCase updateSalePaymentUseCase(Ref ref) {
+  return UpdateSalePaymentUseCase(ref.watch(salesRepositoryProvider));
 }
 
 @riverpod

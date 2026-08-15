@@ -3,59 +3,33 @@ import 'sale_detail.dart';
 import 'sale_delivery.dart';
 
 enum SaleDeliveryMode {
-  customerPickup(
-    dbValue: 'customer_pickup',
-    label: 'Recoge en planta',
-  ),
-  companyDelivery(
-    dbValue: 'company_delivery',
-    label: 'Domicilio',
-  );
+  customerPickup(dbValue: 'customer_pickup', label: 'Recoge en planta'),
+  companyDelivery(dbValue: 'company_delivery', label: 'Domicilio');
 
   final String dbValue;
   final String label;
 
-  const SaleDeliveryMode({
-    required this.dbValue,
-    required this.label,
-  });
+  const SaleDeliveryMode({required this.dbValue, required this.label});
 
-  static SaleDeliveryMode fromDatabase(
-    String value,
-  ) {
+  static SaleDeliveryMode fromDatabase(String value) {
     return SaleDeliveryMode.values.firstWhere(
       (mode) => mode.dbValue == value,
-      orElse: () =>
-          SaleDeliveryMode.customerPickup,
+      orElse: () => SaleDeliveryMode.customerPickup,
     );
   }
 }
 
 enum SalePaymentMethod {
-  cash(
-    dbValue: 'cash',
-    label: 'Efectivo',
-  ),
-  transfer(
-    dbValue: 'transfer',
-    label: 'Transferencia',
-  ),
-  qr(
-    dbValue: 'qr',
-    label: 'QR',
-  );
+  cash(dbValue: 'cash', label: 'Efectivo'),
+  transfer(dbValue: 'transfer', label: 'Transferencia'),
+  qr(dbValue: 'qr', label: 'QR');
 
   final String dbValue;
   final String label;
 
-  const SalePaymentMethod({
-    required this.dbValue,
-    required this.label,
-  });
+  const SalePaymentMethod({required this.dbValue, required this.label});
 
-  static SalePaymentMethod fromDatabase(
-    String value,
-  ) {
+  static SalePaymentMethod fromDatabase(String value) {
     return SalePaymentMethod.values.firstWhere(
       (method) => method.dbValue == value,
       orElse: () => SalePaymentMethod.cash,
@@ -68,30 +42,16 @@ enum SalePaymentMethod {
 /// Este enum representa el estado del COBRO,
 /// no el método de pago.
 enum SalePaymentStatus {
-  paidInFull(
-    dbValue: 'paid_in_full',
-    label: 'Cobrado completo',
-  ),
-  partial(
-    dbValue: 'partial',
-    label: 'Abono parcial',
-  ),
-  pending(
-    dbValue: 'pending',
-    label: 'Pendiente',
-  );
+  paidInFull(dbValue: 'paid_in_full', label: 'Cobrado completo'),
+  partial(dbValue: 'partial', label: 'Abono parcial'),
+  pending(dbValue: 'pending', label: 'Pendiente');
 
   final String dbValue;
   final String label;
 
-  const SalePaymentStatus({
-    required this.dbValue,
-    required this.label,
-  });
+  const SalePaymentStatus({required this.dbValue, required this.label});
 
-  static SalePaymentStatus fromDatabase(
-    String value,
-  ) {
+  static SalePaymentStatus fromDatabase(String value) {
     return SalePaymentStatus.values.firstWhere(
       (status) => status.dbValue == value,
       orElse: () => SalePaymentStatus.pending,
@@ -100,26 +60,15 @@ enum SalePaymentStatus {
 }
 
 enum SaleStatus {
-  registered(
-    dbValue: 'registered',
-    label: 'Registrada',
-  ),
-  void_(
-    dbValue: 'void',
-    label: 'Anulada',
-  );
+  registered(dbValue: 'registered', label: 'Registrada'),
+  void_(dbValue: 'void', label: 'Anulada');
 
   final String dbValue;
   final String label;
 
-  const SaleStatus({
-    required this.dbValue,
-    required this.label,
-  });
+  const SaleStatus({required this.dbValue, required this.label});
 
-  static SaleStatus fromDatabase(
-    String value,
-  ) {
+  static SaleStatus fromDatabase(String value) {
     return SaleStatus.values.firstWhere(
       (status) => status.dbValue == value,
       orElse: () => SaleStatus.registered,
@@ -205,16 +154,11 @@ class Sale {
       (sum, detail) => sum + detail.subtotal,
     );
 
-    final effectiveFreight =
-        deliveryMode ==
-            SaleDeliveryMode.companyDelivery
+    final effectiveFreight = deliveryMode == SaleDeliveryMode.companyDelivery
         ? freightAmount
         : 0.0;
 
-    final result =
-        detailSubtotal -
-        discountAmount +
-        effectiveFreight;
+    final result = detailSubtotal - discountAmount + effectiveFreight;
 
     return result < 0 ? 0 : result;
   }
@@ -251,32 +195,20 @@ class Sale {
       number: number ?? this.number,
       client: client ?? this.client,
       sellerId: sellerId ?? this.sellerId,
-      sellerName:
-          sellerName ?? this.sellerName,
+      sellerName: sellerName ?? this.sellerName,
       saleDate: saleDate ?? this.saleDate,
-      deliveryMode:
-          deliveryMode ?? this.deliveryMode,
-      paymentMethod:
-          paymentMethod ?? this.paymentMethod,
-      paymentStatus:
-          paymentStatus ?? this.paymentStatus,
+      deliveryMode: deliveryMode ?? this.deliveryMode,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
       status: status ?? this.status,
       total: total ?? this.total,
-      discountAmount:
-          discountAmount ?? this.discountAmount,
-      freightAmount:
-          freightAmount ?? this.freightAmount,
-      amountPaid:
-          amountPaid ?? this.amountPaid,
-      pendingAmount:
-          pendingAmount ?? this.pendingAmount,
-      notes: clearNotes
-          ? null
-          : (notes ?? this.notes),
+      discountAmount: discountAmount ?? this.discountAmount,
+      freightAmount: freightAmount ?? this.freightAmount,
+      amountPaid: amountPaid ?? this.amountPaid,
+      pendingAmount: pendingAmount ?? this.pendingAmount,
+      notes: clearNotes ? null : (notes ?? this.notes),
       details: details ?? this.details,
-      delivery: clearDelivery
-          ? null
-          : (delivery ?? this.delivery),
+      delivery: clearDelivery ? null : (delivery ?? this.delivery),
     );
   }
 }

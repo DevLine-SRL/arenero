@@ -9,12 +9,10 @@ class SaleDeliveryFields extends ConsumerStatefulWidget {
   const SaleDeliveryFields({super.key});
 
   @override
-  ConsumerState<SaleDeliveryFields> createState() =>
-      _SaleDeliveryFieldsState();
+  ConsumerState<SaleDeliveryFields> createState() => _SaleDeliveryFieldsState();
 }
 
-class _SaleDeliveryFieldsState
-    extends ConsumerState<SaleDeliveryFields> {
+class _SaleDeliveryFieldsState extends ConsumerState<SaleDeliveryFields> {
   late final TextEditingController _vehiclePlateController;
   late final TextEditingController _freightController;
 
@@ -51,9 +49,7 @@ class _SaleDeliveryFieldsState
   @override
   Widget build(BuildContext context) {
     ref.listen<SaleDeliveryMode>(
-      registerSaleControllerProvider.select(
-        (state) => state.deliveryMode,
-      ),
+      registerSaleControllerProvider.select((state) => state.deliveryMode),
       (previous, next) {
         if (next == SaleDeliveryMode.customerPickup) {
           _clearDeliveryFields();
@@ -62,18 +58,14 @@ class _SaleDeliveryFieldsState
     );
 
     final mode = ref.watch(
-      registerSaleControllerProvider.select(
-        (state) => state.deliveryMode,
-      ),
+      registerSaleControllerProvider.select((state) => state.deliveryMode),
     );
 
     if (mode != SaleDeliveryMode.companyDelivery) {
       return const SizedBox.shrink();
     }
 
-    final controller = ref.read(
-      registerSaleControllerProvider.notifier,
-    );
+    final controller = ref.read(registerSaleControllerProvider.notifier);
 
     return Padding(
       padding: const EdgeInsets.only(top: 12),
@@ -87,9 +79,7 @@ class _SaleDeliveryFieldsState
               decoration: const InputDecoration(
                 labelText: 'Placa del vehículo',
                 hintText: 'Ej: ABC-123',
-                prefixIcon: Icon(
-                  Icons.directions_car_outlined,
-                ),
+                prefixIcon: Icon(Icons.directions_car_outlined),
                 isDense: true,
               ),
               textCapitalization: TextCapitalization.characters,
@@ -101,18 +91,13 @@ class _SaleDeliveryFieldsState
                 decimal: true,
               ),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                  RegExp(r'[0-9,.]'),
-                ),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
               ],
               decoration: const InputDecoration(
                 labelText: 'Valor del flete',
-                helperText:
-                    'Vacío o Bs. 0 no modifica el total',
+                helperText: 'Vacío o Bs. 0 no modifica el total',
                 prefixText: 'Bs. ',
-                prefixIcon: Icon(
-                  Icons.local_shipping_outlined,
-                ),
+                prefixIcon: Icon(Icons.local_shipping_outlined),
                 isDense: true,
               ),
               onChanged: _onFreightChanged,
@@ -132,11 +117,7 @@ class _SaleDeliveryFieldsState
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              fields[0],
-              const SizedBox(height: 12),
-              fields[1],
-            ],
+            children: [fields[0], const SizedBox(height: 12), fields[1]],
           );
         },
       ),

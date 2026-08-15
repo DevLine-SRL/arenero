@@ -13,9 +13,7 @@ class SaleDeliverySelector extends ConsumerWidget {
       registerSaleControllerProvider.select((state) => state.deliveryMode),
     );
 
-    final controller = ref.read(
-      registerSaleControllerProvider.notifier,
-    );
+    final controller = ref.read(registerSaleControllerProvider.notifier);
 
     final theme = Theme.of(context);
 
@@ -71,11 +69,7 @@ class SaleDeliverySelector extends ConsumerWidget {
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                options[0],
-                const SizedBox(height: 10),
-                options[1],
-              ],
+              children: [options[0], const SizedBox(height: 10), options[1]],
             );
           },
         ),
@@ -124,10 +118,7 @@ class _DeliveryOption extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: theme.colorScheme.primary,
-            ),
+            Icon(icon, color: theme.colorScheme.primary),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

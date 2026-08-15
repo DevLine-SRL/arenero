@@ -15,6 +15,10 @@ class FakeSalesRemoteDataSource implements SalesRemoteDataSource {
   Object? errorToThrow;
   double? lastRegisteredDiscountAmount;
   double? lastRegisteredFreightAmount;
+  String? lastUpdatedPaymentSaleId;
+  SalePaymentStatus? lastUpdatedPaymentStatus;
+  double? lastUpdatedAmountPaid;
+  double? lastUpdatedPendingAmount;
 
   String? lastRequestedSaleId;
   int getSaleByIdCallCount = 0;
@@ -73,6 +77,21 @@ class FakeSalesRemoteDataSource implements SalesRemoteDataSource {
   Future<void> voidSale(String saleId) async {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> updateSalePayment({
+    required String saleId,
+    required SalePaymentStatus paymentStatus,
+    required double amountPaid,
+    required double pendingAmount,
+  }) async {
+    lastUpdatedPaymentSaleId = saleId;
+    lastUpdatedPaymentStatus = paymentStatus;
+    lastUpdatedAmountPaid = amountPaid;
+    lastUpdatedPendingAmount = pendingAmount;
+    final error = errorToThrow;
+    if (error != null) throw error;
+  }
 }
 
 SaleModel buildSaleModel({
@@ -82,6 +101,9 @@ SaleModel buildSaleModel({
   double total = 20,
   double discountAmount = 0,
   double freightAmount = 0,
+  SalePaymentStatus paymentStatus = SalePaymentStatus.pending,
+  double amountPaid = 0,
+  double pendingAmount = 20,
   List<SaleDetailModel>? details,
 }) {
   return SaleModel(
@@ -98,9 +120,12 @@ SaleModel buildSaleModel({
     saleDate: DateTime(2026, 8, 10),
     deliveryMode: SaleDeliveryMode.customerPickup,
     paymentMethod: SalePaymentMethod.cash,
+    paymentStatus: paymentStatus,
     total: total,
     discountAmount: discountAmount,
     freightAmount: freightAmount,
+    amountPaid: amountPaid,
+    pendingAmount: pendingAmount,
     details:
         details ??
         const [

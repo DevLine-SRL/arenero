@@ -1,5 +1,4 @@
-import 'package:supabase_flutter/supabase_flutter.dart'
-    as supabase;
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../domain/entities/sale.dart';
 import '../models/sale_detail_model.dart';
@@ -125,26 +124,19 @@ abstract class SalesRemoteDataSource {
     DateTime? to,
   });
 
-  Future<SaleModel> getSaleById(
-    String saleId,
-  );
+  Future<SaleModel> getSaleById(String saleId);
 
-  Future<void> voidSale(
-    String saleId,
-  );
+  Future<void> voidSale(String saleId);
 }
 
 // ============================================================
 // IMPLEMENTACIÓN SUPABASE
 // ============================================================
 
-class SalesRemoteDataSourceImpl
-    implements SalesRemoteDataSource {
+class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
   final supabase.SupabaseClient client;
 
-  const SalesRemoteDataSourceImpl(
-    this.client,
-  );
+  const SalesRemoteDataSourceImpl(this.client);
 
   // ============================================================
   // REGISTRAR VENTA
@@ -176,15 +168,11 @@ class SalesRemoteDataSourceImpl
     // ----------------------------------------------------------
 
     final effectiveFreight =
-        deliveryMode ==
-                SaleDeliveryMode.companyDelivery &&
-            freightAmount > 0
+        deliveryMode == SaleDeliveryMode.companyDelivery && freightAmount > 0
         ? freightAmount
         : 0.0;
 
-    final effectiveDelivery =
-        deliveryMode ==
-            SaleDeliveryMode.companyDelivery
+    final effectiveDelivery = deliveryMode == SaleDeliveryMode.companyDelivery
         ? delivery
         : null;
 
@@ -199,29 +187,19 @@ class SalesRemoteDataSourceImpl
 
         'p_seller_id': sellerId,
 
-        'p_delivery_mode':
-            deliveryMode.dbValue,
+        'p_delivery_mode': deliveryMode.dbValue,
 
-        'p_payment_method':
-            paymentMethod.dbValue,
+        'p_payment_method': paymentMethod.dbValue,
 
-        'p_discount_amount':
-            discountAmount < 0
-            ? 0
-            : discountAmount,
+        'p_discount_amount': discountAmount < 0 ? 0 : discountAmount,
 
-        'p_freight_amount':
-            effectiveFreight,
+        'p_freight_amount': effectiveFreight,
 
         'p_notes': notes,
 
-        'p_delivery':
-            effectiveDelivery?.toJson(),
+        'p_delivery': effectiveDelivery?.toJson(),
 
-        'p_details': [
-          for (final detail in details)
-            detail.toJson(),
-        ],
+        'p_details': [for (final detail in details) detail.toJson()],
       },
     );
 
@@ -229,15 +207,12 @@ class SalesRemoteDataSourceImpl
     // Validar resultado del RPC
     // ----------------------------------------------------------
 
-    if (rawSaleId is! String ||
-        rawSaleId.trim().isEmpty) {
+    if (rawSaleId is! String || rawSaleId.trim().isEmpty) {
       throw supabase.PostgrestException(
-        message:
-            'No se recibió el identificador de la venta registrada.',
+        message: 'No se recibió el identificador de la venta registrada.',
         code: 'INVALID_SALE_ID',
         details: rawSaleId?.toString() ?? '',
-        hint:
-            'Verifica que el RPC register_sale retorne el UUID de la venta.',
+        hint: 'Verifica que el RPC register_sale retorne el UUID de la venta.',
       );
     }
 
@@ -245,9 +220,7 @@ class SalesRemoteDataSourceImpl
     // Recuperar venta completa
     // ----------------------------------------------------------
 
-    return getSaleById(
-      rawSaleId.trim(),
-    );
+    return getSaleById(rawSaleId.trim());
   }
 
   // ============================================================
@@ -265,21 +238,16 @@ class SalesRemoteDataSourceImpl
 
     if (normalizedSaleId.isEmpty) {
       throw supabase.PostgrestException(
-        message:
-            'El identificador de la venta es obligatorio.',
+        message: 'El identificador de la venta es obligatorio.',
         code: 'INVALID_SALE_ID',
         details: '',
         hint: '',
       );
     }
 
-    final safeAmountPaid =
-        amountPaid < 0 ? 0.0 : amountPaid;
+    final safeAmountPaid = amountPaid < 0 ? 0.0 : amountPaid;
 
-    final safePendingAmount =
-        pendingAmount < 0
-        ? 0.0
-        : pendingAmount;
+    final safePendingAmount = pendingAmount < 0 ? 0.0 : pendingAmount;
 
     /*
      * La aplicación envía amountPaid y pendingAmount,
@@ -292,17 +260,13 @@ class SalesRemoteDataSourceImpl
     await client.rpc(
       'update_sale_payment',
       params: {
-        'p_sale_id':
-            normalizedSaleId,
+        'p_sale_id': normalizedSaleId,
 
-        'p_payment_status':
-            paymentStatus.dbValue,
+        'p_payment_status': paymentStatus.dbValue,
 
-        'p_amount_paid':
-            safeAmountPaid,
+        'p_amount_paid': safeAmountPaid,
 
-        'p_pending_amount':
-            safePendingAmount,
+        'p_pending_amount': safePendingAmount,
       },
     );
   }
@@ -317,40 +281,23 @@ class SalesRemoteDataSourceImpl
     DateTime? from,
     DateTime? to,
   }) async {
-    var query = client
-        .from('sales')
-        .select(_saleSelect);
+    var query = client.from('sales').select(_saleSelect);
 
     if (status != null) {
-      query = query.eq(
-        'status',
-        status.dbValue,
-      );
+      query = query.eq('status', status.dbValue);
     }
 
     if (from != null) {
-      query = query.gte(
-        'sale_date',
-        from.toIso8601String(),
-      );
+      query = query.gte('sale_date', from.toIso8601String());
     }
 
     if (to != null) {
-      query = query.lte(
-        'sale_date',
-        to.toIso8601String(),
-      );
+      query = query.lte('sale_date', to.toIso8601String());
     }
 
-    final rows = await query.order(
-      'sale_date',
-      ascending: false,
-    );
+    final rows = await query.order('sale_date', ascending: false);
 
-    return [
-      for (final row in rows)
-        SaleModel.fromJson(row),
-    ];
+    return [for (final row in rows) SaleModel.fromJson(row)];
   }
 
   // ============================================================
@@ -362,42 +309,21 @@ class SalesRemoteDataSourceImpl
     DateTime? from,
     DateTime? to,
   }) async {
-    var query = client
-        .from('v_sales')
-        .select();
+    var query = client.from('v_sales').select();
 
     if (from != null) {
-      query = query.gte(
-        'sale_date',
-        from.toIso8601String(),
-      );
+      query = query.gte('sale_date', from.toIso8601String());
     }
 
     if (to != null) {
-      final endOfDay = DateTime(
-        to.year,
-        to.month,
-        to.day,
-        23,
-        59,
-        59,
-      );
+      final endOfDay = DateTime(to.year, to.month, to.day, 23, 59, 59);
 
-      query = query.lte(
-        'sale_date',
-        endOfDay.toIso8601String(),
-      );
+      query = query.lte('sale_date', endOfDay.toIso8601String());
     }
 
-    final rows = await query.order(
-      'sale_date',
-      ascending: false,
-    );
+    final rows = await query.order('sale_date', ascending: false);
 
-    return [
-      for (final row in rows)
-        SaleHistoryItemModel.fromJson(row),
-    ];
+    return [for (final row in rows) SaleHistoryItemModel.fromJson(row)];
   }
 
   // ============================================================
@@ -405,29 +331,19 @@ class SalesRemoteDataSourceImpl
   // ============================================================
 
   @override
-  Future<void> voidSale(
-    String saleId,
-  ) async {
-    final normalizedSaleId =
-        saleId.trim();
+  Future<void> voidSale(String saleId) async {
+    final normalizedSaleId = saleId.trim();
 
     if (normalizedSaleId.isEmpty) {
       throw supabase.PostgrestException(
-        message:
-            'El identificador de la venta es obligatorio.',
+        message: 'El identificador de la venta es obligatorio.',
         code: 'INVALID_SALE_ID',
         details: '',
         hint: '',
       );
     }
 
-    await client.rpc(
-      'void_sale',
-      params: {
-        'p_sale_id':
-            normalizedSaleId,
-      },
-    );
+    await client.rpc('void_sale', params: {'p_sale_id': normalizedSaleId});
   }
 
   // ============================================================
@@ -435,16 +351,12 @@ class SalesRemoteDataSourceImpl
   // ============================================================
 
   @override
-  Future<SaleModel> getSaleById(
-    String saleId,
-  ) async {
-    final normalizedSaleId =
-        saleId.trim();
+  Future<SaleModel> getSaleById(String saleId) async {
+    final normalizedSaleId = saleId.trim();
 
     if (normalizedSaleId.isEmpty) {
       throw supabase.PostgrestException(
-        message:
-            'El identificador de la venta es obligatorio.',
+        message: 'El identificador de la venta es obligatorio.',
         code: 'INVALID_SALE_ID',
         details: '',
         hint: '',
@@ -454,10 +366,7 @@ class SalesRemoteDataSourceImpl
     final rows = await client
         .from('sales')
         .select(_saleSelect)
-        .eq(
-          'id',
-          normalizedSaleId,
-        );
+        .eq('id', normalizedSaleId);
 
     if (rows.isEmpty) {
       throw supabase.PostgrestException(
@@ -468,8 +377,6 @@ class SalesRemoteDataSourceImpl
       );
     }
 
-    return SaleModel.fromJson(
-      rows.first,
-    );
+    return SaleModel.fromJson(rows.first);
   }
 }

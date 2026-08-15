@@ -142,4 +142,65 @@ void main() {
       expect(dataSource.lastRegisteredFreightAmount, 15);
     });
   });
+
+  group('updateSalePayment', () {
+    test(
+      'forwards the payment status and amounts to the data source',
+      () async {
+        final result = await repository.updateSalePayment(
+          saleId: 'sale-1',
+          paymentStatus: SalePaymentStatus.partial,
+          amountPaid: 30,
+          pendingAmount: 70,
+        );
+
+        result.fold(
+          (failure) => fail('expected a Right, got $failure'),
+          (_) {},
+        );
+
+        expect(dataSource.lastUpdatedPaymentSaleId, 'sale-1');
+        expect(dataSource.lastUpdatedPaymentStatus, SalePaymentStatus.partial);
+        expect(dataSource.lastUpdatedAmountPaid, 30);
+        expect(dataSource.lastUpdatedPendingAmount, 70);
+      },
+    );
+
+    test('maps an invalid payment to a ValidationFailure', () async {
+      dataSource.errorToThrow = supabase.PostgrestException(
+        message: 'El abono parcial debe ser menor al total.',
+        code: 'P0001',
+      );
+
+      final failure = _failureOf(
+        await repository.updateSalePayment(
+          saleId: 'sale-1',
+          paymentStatus: SalePaymentStatus.partial,
+          amountPaid: 100,
+          pendingAmount: 0,
+        ),
+      );
+
+      expect(failure, isA<ValidationFailure>());
+      expect(failure.message, contains('cobro'));
+    });
+
+    test('maps a missing sale to a NotFoundFailure', () async {
+      dataSource.errorToThrow = supabase.PostgrestException(
+        message: 'La venta indicada no existe.',
+        code: 'P0002',
+      );
+
+      final failure = _failureOf(
+        await repository.updateSalePayment(
+          saleId: 'sale-1',
+          paymentStatus: SalePaymentStatus.pending,
+          amountPaid: 0,
+          pendingAmount: 100,
+        ),
+      );
+
+      expect(failure, isA<NotFoundFailure>());
+    });
+  });
 }
