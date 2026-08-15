@@ -13,6 +13,12 @@ import 'package:arenero/features/sales/domain/entities/sale.dart';
 class FakeSalesRemoteDataSource implements SalesRemoteDataSource {
   SaleModel? saleToReturn;
   Object? errorToThrow;
+  double? lastRegisteredDiscountAmount;
+  double? lastRegisteredFreightAmount;
+  String? lastUpdatedPaymentSaleId;
+  SalePaymentStatus? lastUpdatedPaymentStatus;
+  double? lastUpdatedAmountPaid;
+  double? lastUpdatedPendingAmount;
 
   String? lastRequestedSaleId;
   int getSaleByIdCallCount = 0;
@@ -32,11 +38,22 @@ class FakeSalesRemoteDataSource implements SalesRemoteDataSource {
     required String sellerId,
     required SaleDeliveryMode deliveryMode,
     required SalePaymentMethod paymentMethod,
+    required double discountAmount,
+    required double freightAmount,
     String? notes,
     SaleDeliveryModel? delivery,
     required List<SaleDetailModel> details,
   }) async {
-    throw UnimplementedError();
+    lastRegisteredDiscountAmount = discountAmount;
+    lastRegisteredFreightAmount = freightAmount;
+    final error = errorToThrow;
+    if (error != null) throw error;
+    return saleToReturn ??
+        buildSaleModel(
+          total: 100,
+          discountAmount: discountAmount,
+          freightAmount: freightAmount,
+        );
   }
 
   @override
@@ -60,6 +77,21 @@ class FakeSalesRemoteDataSource implements SalesRemoteDataSource {
   Future<void> voidSale(String saleId) async {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> updateSalePayment({
+    required String saleId,
+    required SalePaymentStatus paymentStatus,
+    required double amountPaid,
+    required double pendingAmount,
+  }) async {
+    lastUpdatedPaymentSaleId = saleId;
+    lastUpdatedPaymentStatus = paymentStatus;
+    lastUpdatedAmountPaid = amountPaid;
+    lastUpdatedPendingAmount = pendingAmount;
+    final error = errorToThrow;
+    if (error != null) throw error;
+  }
 }
 
 SaleModel buildSaleModel({
@@ -67,6 +99,11 @@ SaleModel buildSaleModel({
   int? number = 12,
   String? sellerName = 'Ana Vendedora',
   double total = 20,
+  double discountAmount = 0,
+  double freightAmount = 0,
+  SalePaymentStatus paymentStatus = SalePaymentStatus.pending,
+  double amountPaid = 0,
+  double pendingAmount = 20,
   List<SaleDetailModel>? details,
 }) {
   return SaleModel(
@@ -83,7 +120,12 @@ SaleModel buildSaleModel({
     saleDate: DateTime(2026, 8, 10),
     deliveryMode: SaleDeliveryMode.customerPickup,
     paymentMethod: SalePaymentMethod.cash,
+    paymentStatus: paymentStatus,
     total: total,
+    discountAmount: discountAmount,
+    freightAmount: freightAmount,
+    amountPaid: amountPaid,
+    pendingAmount: pendingAmount,
     details:
         details ??
         const [

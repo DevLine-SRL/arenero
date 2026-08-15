@@ -8,17 +8,19 @@ import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/products/presentation/pages/products_page.dart';
 import '../../features/sales/presentation/pages/register_sale_page.dart';
 import '../../features/sales/presentation/pages/sale_detail_page.dart';
+import '../../features/sales/presentation/pages/sales_payments_page.dart';
 import '../../features/sales/presentation/pages/sales_history_page.dart';
 import '../../features/sellers/presentation/pages/sellers_management_page.dart';
 import '../../shared/widgets/forbidden_page.dart';
 import '../layouts/main_layout.dart';
 import 'route_paths.dart';
 
-const adminBranchStart = 3;
+const adminBranchStart = 4;
 
 const branchTitles = <String, String>{
   RoutePaths.salesHistory: 'Ventas',
   RoutePaths.registerSale: 'Registrar Venta',
+  RoutePaths.salesPayments: 'Cobros',
   RoutePaths.clients: 'Clientes',
   RoutePaths.dashboard: 'Panel',
   RoutePaths.sellersManagement: 'Gestión de Vendedores',
@@ -71,6 +73,15 @@ final protectedRoutes = StatefulShellRoute.indexedStack(
           path: RoutePaths.registerSale,
           name: RouteNames.registerSale,
           builder: (context, state) => const RegisterSalePage(),
+        ),
+      ],
+    ),
+    StatefulShellBranch(
+      routes: [
+        GoRoute(
+          path: RoutePaths.salesPayments,
+          name: RouteNames.salesPayments,
+          builder: (context, state) => const SalesPaymentsPage(),
         ),
       ],
     ),

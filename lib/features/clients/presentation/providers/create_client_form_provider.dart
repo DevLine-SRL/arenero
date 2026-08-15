@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../shared/validators/validators.dart';
+import '../../domain/entities/client.dart';
 import 'clients_providers.dart';
 import 'clients_search_provider.dart';
 import 'create_client_form_state.dart';
@@ -16,6 +17,13 @@ part 'create_client_form_provider.g.dart';
 class CreateClientForm extends _$CreateClientForm {
   @override
   CreateClientFormState build() => const CreateClientFormState();
+
+  void reset({String initialName = ''}) {
+    state = const CreateClientFormState();
+    if (initialName.trim().isNotEmpty) {
+      onNameChanged(initialName);
+    }
+  }
 
   void onNameChanged(String value) {
     state = state.copyWith(
@@ -99,7 +107,11 @@ class CreateClientForm extends _$CreateClientForm {
   }
 
   Future<bool> submit() async {
-    if (!_validateAll() || state.isSubmitting) return false;
+    return await submitClient() != null;
+  }
+
+  Future<Client?> submitClient() async {
+    if (!_validateAll() || state.isSubmitting) return null;
 
     state = state.copyWith(
       nameError: state.nameError,
@@ -127,12 +139,12 @@ class CreateClientForm extends _$CreateClientForm {
           isSubmitting: false,
           submitError: failure.message,
         );
-        return false;
+        return null;
       },
-      (_) {
+      (client) {
         state = const CreateClientFormState();
         ref.invalidate(clientsSearchProvider);
-        return true;
+        return client;
       },
     );
   }
