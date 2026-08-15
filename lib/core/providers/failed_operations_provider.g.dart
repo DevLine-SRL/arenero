@@ -8,20 +8,13 @@ part of 'failed_operations_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Número de operaciones del outbox en estado `error` para el usuario actual.
-/// Se actualiza reactivamente cuando cambia la tabla.
 
 @ProviderFor(failedOperationsCount)
 final failedOperationsCountProvider = FailedOperationsCountProvider._();
 
-/// Número de operaciones del outbox en estado `error` para el usuario actual.
-/// Se actualiza reactivamente cuando cambia la tabla.
-
 final class FailedOperationsCountProvider
     extends $FunctionalProvider<AsyncValue<int>, int, Stream<int>>
     with $FutureModifier<int>, $StreamProvider<int> {
-  /// Número de operaciones del outbox en estado `error` para el usuario actual.
-  /// Se actualiza reactivamente cuando cambia la tabla.
   FailedOperationsCountProvider._()
     : super(
         from: null,

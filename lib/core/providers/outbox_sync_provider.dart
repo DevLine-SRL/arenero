@@ -50,4 +50,9 @@ class OutboxSync extends _$OutboxSync {
     if (ref.read(authSessionProvider).value == null) return;
     await _drain();
   }
+
+  Future<void> syncNow() async {
+    if (ref.read(authSessionProvider).value == null) return;
+    await _drain();
+  }
 }

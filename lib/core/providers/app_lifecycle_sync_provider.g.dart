@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'outbox_sync_provider.dart';
+part of 'app_lifecycle_sync_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -8,28 +8,32 @@ part of 'outbox_sync_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// Refresca la data y el outbox cuando la app vuelve al primer plano.
 
-@ProviderFor(OutboxSync)
-final outboxSyncProvider = OutboxSyncProvider._();
+@ProviderFor(AppLifecycleSync)
+final appLifecycleSyncProvider = AppLifecycleSyncProvider._();
 
-final class OutboxSyncProvider extends $NotifierProvider<OutboxSync, void> {
-  OutboxSyncProvider._()
+/// Refresca la data y el outbox cuando la app vuelve al primer plano.
+final class AppLifecycleSyncProvider
+    extends $NotifierProvider<AppLifecycleSync, void> {
+  /// Refresca la data y el outbox cuando la app vuelve al primer plano.
+  AppLifecycleSyncProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'outboxSyncProvider',
+        name: r'appLifecycleSyncProvider',
         isAutoDispose: false,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$outboxSyncHash();
+  String debugGetCreateSourceHash() => _$appLifecycleSyncHash();
 
   @$internal
   @override
-  OutboxSync create() => OutboxSync();
+  AppLifecycleSync create() => AppLifecycleSync();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(void value) {
@@ -40,9 +44,11 @@ final class OutboxSyncProvider extends $NotifierProvider<OutboxSync, void> {
   }
 }
 
-String _$outboxSyncHash() => r'185d9993bee475e08bdc3193e77dc90dbf61f8bd';
+String _$appLifecycleSyncHash() => r'f872cf81ab1b6616eb288e9538c076b85bbd7096';
 
-abstract class _$OutboxSync extends $Notifier<void> {
+/// Refresca la data y el outbox cuando la app vuelve al primer plano.
+
+abstract class _$AppLifecycleSync extends $Notifier<void> {
   void build();
   @$mustCallSuper
   @override
