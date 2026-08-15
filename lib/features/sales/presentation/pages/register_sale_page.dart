@@ -20,91 +20,174 @@ class RegisterSalePage extends ConsumerWidget {
 
   bool _hasProductWithAvailableUnit(
     Product product,
-    Map<String, Set<ProductUnitOfMeasure>> usedUnitsByProduct,
+    Map<String, Set<ProductUnitOfMeasure>>
+        usedUnitsByProduct,
   ) {
-    if (!product.active) return false;
+    if (!product.active) {
+      return false;
+    }
 
     final used =
-        usedUnitsByProduct[product.id] ?? const <ProductUnitOfMeasure>{};
+        usedUnitsByProduct[product.id] ??
+        const <ProductUnitOfMeasure>{};
+
     return product.units.any(
-      (unit) => unit.active && !used.contains(unit.unit),
+      (unit) =>
+          unit.active &&
+          !used.contains(unit.unit),
     );
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authSessionProvider).value;
-    final isAdmin = user?.role == 'admin';
-    final items = ref.watch(
-      registerSaleControllerProvider.select((s) => s.items),
-    );
-    final products =
-        ref.watch(productsControllerProvider).value ?? const <Product>[];
+  Widget build(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
+    final user =
+        ref.watch(authSessionProvider).value;
 
-    final usedUnitsByProduct = <String, Set<ProductUnitOfMeasure>>{};
+    final isAdmin = user?.role == 'admin';
+
+    final items = ref.watch(
+      registerSaleControllerProvider.select(
+        (state) => state.items,
+      ),
+    );
+
+    final products =
+        ref
+            .watch(productsControllerProvider)
+            .value ??
+        const <Product>[];
+
+    final usedUnitsByProduct =
+        <String, Set<ProductUnitOfMeasure>>{};
+
     for (final item in items) {
-      if (item.isComplete && item.productId != null && item.unit != null) {
+      if (item.isComplete &&
+          item.productId != null &&
+          item.unit != null) {
         usedUnitsByProduct
-            .putIfAbsent(item.productId!, () => {})
+            .putIfAbsent(
+              item.productId!,
+              () => {},
+            )
             .add(item.unit!);
       }
     }
 
-    final allItemsComplete = items.every((item) => item.isComplete);
-    final hasProductsToAdd = products.any(
-      (product) => _hasProductWithAvailableUnit(product, usedUnitsByProduct),
-    );
-    final canAddProduct = allItemsComplete && hasProductsToAdd;
+    final allItemsComplete =
+        items.every(
+          (item) => item.isComplete,
+        );
+
+    final hasProductsToAdd =
+        products.any(
+          (product) =>
+              _hasProductWithAvailableUnit(
+                product,
+                usedUnitsByProduct,
+              ),
+        );
+
+    final canAddProduct =
+        allItemsComplete &&
+        hasProductsToAdd;
+
     final addProduct = canAddProduct
-        ? () => ref.read(registerSaleControllerProvider.notifier).addLine()
+        ? () => ref
+              .read(
+                registerSaleControllerProvider
+                    .notifier,
+              )
+              .addLine()
         : null;
 
     String step(int adminStep) {
-      final number = isAdmin ? adminStep : adminStep - 1;
+      final number =
+          isAdmin
+          ? adminStep
+          : adminStep - 1;
+
       return 'Paso $number';
     }
 
     Widget deliveryAndPayment() {
       return LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 620;
+        builder: (
+          context,
+          constraints,
+        ) {
+          final wide =
+              constraints.maxWidth >= 620;
+
           final fields = [
             const SalePaymentSelector(),
             const SaleDiscountField(),
           ];
+
           final deliveryCard = Material(
-            color: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.48),
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceContainerHighest
+                .withValues(
+                  alpha: 0.48,
+                ),
+            borderRadius:
+                BorderRadius.circular(12),
+            child: const Padding(
+              padding: EdgeInsets.all(12),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: const [SaleDeliverySelector(), SaleDeliveryFields()],
+                crossAxisAlignment:
+                    CrossAxisAlignment.stretch,
+                children: [
+                  SaleDeliverySelector(),
+                  SaleDeliveryFields(),
+                ],
               ),
             ),
           );
 
           return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment:
+                CrossAxisAlignment.stretch,
             children: [
               if (wide)
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
-                    for (var index = 0; index < fields.length; index++) ...[
-                      if (index > 0) const SizedBox(width: 12),
-                      Expanded(child: fields[index]),
+                    for (
+                      var index = 0;
+                      index < fields.length;
+                      index++
+                    ) ...[
+                      if (index > 0)
+                        const SizedBox(
+                          width: 12,
+                        ),
+                      Expanded(
+                        child:
+                            fields[index],
+                      ),
                     ],
                   ],
                 )
               else
                 Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  crossAxisAlignment:
+                      CrossAxisAlignment
+                          .stretch,
                   children: [
-                    for (var index = 0; index < fields.length; index++) ...[
-                      if (index > 0) const SizedBox(height: 12),
+                    for (
+                      var index = 0;
+                      index < fields.length;
+                      index++
+                    ) ...[
+                      if (index > 0)
+                        const SizedBox(
+                          height: 12,
+                        ),
                       fields[index],
                     ],
                   ],
@@ -120,33 +203,49 @@ class RegisterSalePage extends ConsumerWidget {
     }
 
     final sections = <Widget>[
-      _Header(isAdmin: isAdmin),
-      _StepSection(
-        stepLabel: isAdmin ? 'Paso 1 - Vendedor' : 'Vendedor asignado',
-        title: isAdmin ? '¿Quién realiza esta venta?' : 'Venta a tu nombre',
-        required: true,
-        child: const SaleSellerSelector(),
+      _Header(
+        isAdmin: isAdmin,
       ),
       _StepSection(
-        stepLabel: '${step(2)} - Cliente',
+        stepLabel: isAdmin
+            ? 'Paso 1 - Vendedor'
+            : 'Vendedor asignado',
+        title: isAdmin
+            ? '¿Quién realiza esta venta?'
+            : 'Venta a tu nombre',
+        required: true,
+        child:
+            const SaleSellerSelector(),
+      ),
+      _StepSection(
+        stepLabel:
+            '${step(2)} - Cliente',
         title: 'Cliente',
         required: true,
-        child: const SaleClientSelector(),
+        child:
+            const SaleClientSelector(),
       ),
       _StepSection(
-        stepLabel: '${step(3)} - Productos',
+        stepLabel:
+            '${step(3)} - Productos',
         title: 'Productos',
         required: true,
         trailing: TextButton.icon(
           onPressed: addProduct,
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('Agregar'),
+          icon:
+              const Icon(Icons.add_rounded),
+          label:
+              const Text('Agregar'),
         ),
-        child: SaleCartSection(onAddProduct: addProduct),
+        child: SaleCartSection(
+          onAddProduct: addProduct,
+        ),
       ),
       _StepSection(
-        stepLabel: '${step(4)} - Pago y entrega',
-        title: 'Pago, entrega y descuento',
+        stepLabel:
+            '${step(4)} - Pago y entrega',
+        title:
+            'Pago, entrega y descuento',
         required: true,
         child: deliveryAndPayment(),
       ),
@@ -155,12 +254,17 @@ class RegisterSalePage extends ConsumerWidget {
 
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding:
+            const EdgeInsets.all(16),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 720),
+            constraints:
+                const BoxConstraints(
+              maxWidth: 720,
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment:
+                  CrossAxisAlignment.stretch,
               spacing: 24,
               children: sections,
             ),
@@ -174,26 +278,37 @@ class RegisterSalePage extends ConsumerWidget {
 class _Header extends StatelessWidget {
   final bool isAdmin;
 
-  const _Header({required this.isAdmin});
+  const _Header({
+    required this.isAdmin,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme =
+        Theme.of(context);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
       children: [
         Text(
           'Registrar Venta',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w800,
+          style:
+              theme.textTheme.headlineSmall
+                  ?.copyWith(
+            fontWeight:
+                FontWeight.w800,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           '${isAdmin ? '4 pasos' : '3 pasos'} para registrar la venta',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
+          style:
+              theme.textTheme.bodyMedium
+                  ?.copyWith(
+            color: theme
+                .colorScheme
+                .onSurfaceVariant,
           ),
         ),
       ],
@@ -201,7 +316,8 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _StepSection extends StatelessWidget {
+class _StepSection
+    extends StatelessWidget {
   final String stepLabel;
   final String title;
   final bool required;
@@ -218,27 +334,39 @@ class _StepSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme =
+        Theme.of(context);
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      crossAxisAlignment:
+          CrossAxisAlignment.stretch,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment:
+              CrossAxisAlignment.center,
           children: [
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
                 children: [
                   Text(
                     stepLabel,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w800,
+                    style: theme
+                        .textTheme
+                        .labelSmall
+                        ?.copyWith(
+                      color: theme
+                          .colorScheme
+                          .onSurfaceVariant,
+                      fontWeight:
+                          FontWeight.w800,
                       letterSpacing: 0,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(
+                    height: 4,
+                  ),
                   Text.rich(
                     TextSpan(
                       text: title,
@@ -246,12 +374,21 @@ class _StepSection extends StatelessWidget {
                         if (required)
                           TextSpan(
                             text: ' *',
-                            style: TextStyle(color: theme.colorScheme.error),
+                            style:
+                                TextStyle(
+                              color: theme
+                                  .colorScheme
+                                  .error,
+                            ),
                           ),
                       ],
                     ),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
+                    style: theme
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(
+                      fontWeight:
+                          FontWeight.w800,
                     ),
                   ),
                 ],

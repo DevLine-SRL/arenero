@@ -12,7 +12,11 @@ class SaleDeliverySelector extends ConsumerWidget {
     final mode = ref.watch(
       registerSaleControllerProvider.select((state) => state.deliveryMode),
     );
-    final controller = ref.read(registerSaleControllerProvider.notifier);
+
+    final controller = ref.read(
+      registerSaleControllerProvider.notifier,
+    );
+
     final theme = Theme.of(context);
 
     return Column(
@@ -29,24 +33,29 @@ class SaleDeliverySelector extends ConsumerWidget {
         LayoutBuilder(
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= 420;
+
             final options = [
               _DeliveryOption(
                 icon: Icons.storefront_outlined,
                 title: 'Recoge en planta',
                 subtitle: 'Sin placa ni flete',
                 selected: mode == SaleDeliveryMode.customerPickup,
-                onTap: () => controller.onDeliveryModeChanged(
-                  SaleDeliveryMode.customerPickup,
-                ),
+                onTap: () {
+                  controller.onDeliveryModeChanged(
+                    SaleDeliveryMode.customerPickup,
+                  );
+                },
               ),
               _DeliveryOption(
                 icon: Icons.local_shipping_outlined,
                 title: 'Domicilio',
                 subtitle: 'Agrega placa y flete',
                 selected: mode == SaleDeliveryMode.companyDelivery,
-                onTap: () => controller.onDeliveryModeChanged(
-                  SaleDeliveryMode.companyDelivery,
-                ),
+                onTap: () {
+                  controller.onDeliveryModeChanged(
+                    SaleDeliveryMode.companyDelivery,
+                  );
+                },
               ),
             ];
 
@@ -62,7 +71,11 @@ class SaleDeliverySelector extends ConsumerWidget {
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [options[0], const SizedBox(height: 10), options[1]],
+              children: [
+                options[0],
+                const SizedBox(height: 10),
+                options[1],
+              ],
             );
           },
         ),
@@ -111,7 +124,10 @@ class _DeliveryOption extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, color: theme.colorScheme.primary),
+            Icon(
+              icon,
+              color: theme.colorScheme.primary,
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Column(

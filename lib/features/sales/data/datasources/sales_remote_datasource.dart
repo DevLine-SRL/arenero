@@ -1,4 +1,5 @@
-import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+import 'package:supabase_flutter/supabase_flutter.dart'
+    as supabase;
 
 import '../../domain/entities/sale.dart';
 import '../models/sale_detail_model.dart';
@@ -6,18 +7,58 @@ import '../models/sale_delivery_model.dart';
 import '../models/sale_history_item_model.dart';
 import '../models/sale_model.dart';
 
-// El precio de cada línea se lee de sale_details.unit_price, que es el precio
-// congelado al registrar la venta. Este select no pide product_units.unit_price
-// a propósito: hacerlo mostraría el precio actual del catálogo en ventas
-// pasadas.
+// El precio de cada línea se lee de
+// sale_details.unit_price.
+//
+// Es el precio congelado al registrar la venta.
+// No se consulta product_units.unit_price porque
+// eso mostraría el precio actual del catálogo en
+// ventas históricas.
 const String _saleSelect = '''
-  id, number, client_id, seller_id, sale_date, delivery_mode, payment_method,
-  status, total, discount_amount, freight_amount, notes,
-  client:clients(id, name, phone, ci, nit, active),
-  seller:profiles(id, name, email),
-  sale_details(id, sale_id, product_unit_id, quantity, unit_price, discount,
-    product_unit:product_units(unit, product:products(name))),
-  sale_deliveries(id, sale_id, delivery_address, vehicle_plate, delivery_date)
+  id,
+  number,
+  client_id,
+  seller_id,
+  sale_date,
+  delivery_mode,
+  payment_method,
+  status,
+  total,
+  discount_amount,
+  freight_amount,
+  notes,
+  client:clients(
+    id,
+    name,
+    phone,
+    ci,
+    nit,
+    active
+  ),
+  seller:profiles(
+    id,
+    name,
+    email
+  ),
+  sale_details(
+    id,
+    sale_id,
+    product_unit_id,
+    quantity,
+    unit_price,
+    discount,
+    product_unit:product_units(
+      unit,
+      product:products(name)
+    )
+  ),
+  sale_deliveries(
+    id,
+    sale_id,
+    delivery_address,
+    vehicle_plate,
+    delivery_date
+  )
 ''';
 
 abstract class SalesRemoteDataSource {
@@ -33,26 +74,45 @@ abstract class SalesRemoteDataSource {
     required List<SaleDetailModel> details,
   });
 
+  /// HU-04:
+  ///
+  /// Guarda el estado del cobro después
+  /// de registrar la venta.
+  Future<void> updateSalePayment({
+    required String saleId,
+    required SalePaymentStatus paymentStatus,
+    required double amountPaid,
+    required double pendingAmount,
+  });
+
   Future<List<SaleModel>> getSales({
     SaleStatus? status,
     DateTime? from,
     DateTime? to,
   });
 
-  Future<List<SaleHistoryItemModel>> getSalesHistory({
+  Future<List<SaleHistoryItemModel>>
+      getSalesHistory({
     DateTime? from,
     DateTime? to,
   });
 
-  Future<SaleModel> getSaleById(String saleId);
+  Future<SaleModel> getSaleById(
+    String saleId,
+  );
 
-  Future<void> voidSale(String saleId);
+  Future<void> voidSale(
+    String saleId,
+  );
 }
 
-class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
+class SalesRemoteDataSourceImpl
+    implements SalesRemoteDataSource {
   final supabase.SupabaseClient client;
 
-  const SalesRemoteDataSourceImpl(this.client);
+  const SalesRemoteDataSourceImpl(
+    this.client,
+  );
 
   @override
   Future<SaleModel> registerSale({
@@ -66,22 +126,83 @@ class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
     SaleDeliveryModel? delivery,
     required List<SaleDetailModel> details,
   }) async {
+    /// HU-02:
+    /// Segunda protección además del frontend.
+    ///
+    /// Recoge en planta siempre manda flete 0
+    /// y delivery null.
+    final effectiveFreight =
+        deliveryMode ==
+            SaleDeliveryMode.companyDelivery
+        ? freightAmount
+        : 0.0;
+
+    final effectiveDelivery =
+        deliveryMode ==
+            SaleDeliveryMode.companyDelivery
+        ? delivery
+        : null;
+
     final saleId = await client.rpc(
       'register_sale',
       params: {
         'p_client_id': clientId,
         'p_seller_id': sellerId,
-        'p_delivery_mode': deliveryMode.dbValue,
-        'p_payment_method': paymentMethod.dbValue,
-        'p_discount_amount': discountAmount,
-        'p_freight_amount': freightAmount,
+        'p_delivery_mode':
+            deliveryMode.dbValue,
+        'p_payment_method':
+            paymentMethod.dbValue,
+        'p_discount_amount':
+            discountAmount,
+        'p_freight_amount':
+            effectiveFreight < 0
+            ? 0
+            : effectiveFreight,
         'p_notes': notes,
-        'p_delivery': delivery?.toJson(),
-        'p_details': [for (final detail in details) detail.toJson()],
+        'p_delivery':
+            effectiveDelivery?.toJson(),
+        'p_details': [
+          for (final detail in details)
+            detail.toJson(),
+        ],
       },
     );
 
-    return getSaleById(saleId as String);
+    return getSaleById(
+      saleId as String,
+    );
+  }
+
+  /// HU-04:
+  /// Actualiza el estado de cobro de una venta
+  /// que ya fue registrada.
+  @override
+  Future<void> updateSalePayment({
+    required String saleId,
+    required SalePaymentStatus paymentStatus,
+    required double amountPaid,
+    required double pendingAmount,
+  }) async {
+    final safeAmountPaid =
+        amountPaid < 0 ? 0.0 : amountPaid;
+
+    final safePendingAmount =
+        pendingAmount < 0
+        ? 0.0
+        : pendingAmount;
+
+    await client.rpc(
+      'update_sale_payment',
+      params: {
+        'p_sale_id': saleId,
+        'p_payment_status':
+            paymentStatus.dbValue,
+        'p_amount_paid':
+            safeAmountPaid,
+        'p_pending_amount':
+            safePendingAmount,
+      },
+    );
   }
 
   @override
@@ -90,56 +211,122 @@ class SalesRemoteDataSourceImpl implements SalesRemoteDataSource {
     DateTime? from,
     DateTime? to,
   }) async {
-    var query = client.from('sales').select(_saleSelect);
+    var query = client
+        .from('sales')
+        .select(_saleSelect);
 
-    if (status != null) query = query.eq('status', status.dbValue);
-    if (from != null) query = query.gte('sale_date', from.toIso8601String());
-    if (to != null) query = query.lte('sale_date', to.toIso8601String());
+    if (status != null) {
+      query = query.eq(
+        'status',
+        status.dbValue,
+      );
+    }
 
-    final rows = await query.order('sale_date', ascending: false);
-    return [for (final row in rows) SaleModel.fromJson(row)];
+    if (from != null) {
+      query = query.gte(
+        'sale_date',
+        from.toIso8601String(),
+      );
+    }
+
+    if (to != null) {
+      query = query.lte(
+        'sale_date',
+        to.toIso8601String(),
+      );
+    }
+
+    final rows = await query.order(
+      'sale_date',
+      ascending: false,
+    );
+
+    return [
+      for (final row in rows)
+        SaleModel.fromJson(row),
+    ];
   }
 
   @override
-  Future<List<SaleHistoryItemModel>> getSalesHistory({
+  Future<List<SaleHistoryItemModel>>
+      getSalesHistory({
     DateTime? from,
     DateTime? to,
   }) async {
-    var query = client.from('v_sales').select();
+    var query = client
+        .from('v_sales')
+        .select();
 
     if (from != null) {
-      query = query.gte('sale_date', from.toIso8601String());
+      query = query.gte(
+        'sale_date',
+        from.toIso8601String(),
+      );
     }
+
     if (to != null) {
-      final endOfDay = DateTime(to.year, to.month, to.day, 23, 59, 59);
-      query = query.lte('sale_date', endOfDay.toIso8601String());
+      final endOfDay = DateTime(
+        to.year,
+        to.month,
+        to.day,
+        23,
+        59,
+        59,
+      );
+
+      query = query.lte(
+        'sale_date',
+        endOfDay.toIso8601String(),
+      );
     }
 
-    final rows = await query.order('sale_date', ascending: false);
-    return [for (final row in rows) SaleHistoryItemModel.fromJson(row)];
+    final rows = await query.order(
+      'sale_date',
+      ascending: false,
+    );
+
+    return [
+      for (final row in rows)
+        SaleHistoryItemModel.fromJson(row),
+    ];
   }
 
   @override
-  Future<void> voidSale(String saleId) async {
-    await client.rpc('void_sale', params: {'p_sale_id': saleId});
+  Future<void> voidSale(
+    String saleId,
+  ) async {
+    await client.rpc(
+      'void_sale',
+      params: {
+        'p_sale_id': saleId,
+      },
+    );
   }
 
   @override
-  Future<SaleModel> getSaleById(String saleId) async {
+  Future<SaleModel> getSaleById(
+    String saleId,
+  ) async {
     final rows = await client
         .from('sales')
         .select(_saleSelect)
-        .eq('id', saleId);
+        .eq(
+          'id',
+          saleId,
+        );
 
     if (rows.isEmpty) {
       throw supabase.PostgrestException(
-        message: 'La venta no existe.',
+        message:
+            'La venta no existe.',
         code: 'PGRST116',
         details: '',
         hint: '',
       );
     }
 
-    return SaleModel.fromJson(rows.first);
+    return SaleModel.fromJson(
+      rows.first,
+    );
   }
 }

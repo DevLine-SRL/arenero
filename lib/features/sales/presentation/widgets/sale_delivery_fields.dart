@@ -9,55 +9,87 @@ class SaleDeliveryFields extends ConsumerStatefulWidget {
   const SaleDeliveryFields({super.key});
 
   @override
-  ConsumerState<SaleDeliveryFields> createState() => _SaleDeliveryFieldsState();
+  ConsumerState<SaleDeliveryFields> createState() =>
+      _SaleDeliveryFieldsState();
 }
 
-class _SaleDeliveryFieldsState extends ConsumerState<SaleDeliveryFields> {
+class _SaleDeliveryFieldsState
+    extends ConsumerState<SaleDeliveryFields> {
+  late final TextEditingController _vehiclePlateController;
   late final TextEditingController _freightController;
 
   @override
   void initState() {
     super.initState();
+
+    _vehiclePlateController = TextEditingController();
     _freightController = TextEditingController();
   }
 
   @override
   void dispose() {
+    _vehiclePlateController.dispose();
     _freightController.dispose();
     super.dispose();
   }
 
   void _onFreightChanged(String raw) {
-    final normalized = raw.replaceAll(',', '.');
+    final normalized = raw.trim().replaceAll(',', '.');
+
     final value = double.tryParse(normalized) ?? 0;
+
     ref
         .read(registerSaleControllerProvider.notifier)
         .onFreightAmountChanged(value);
   }
 
+  void _clearDeliveryFields() {
+    _vehiclePlateController.clear();
+    _freightController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
+    ref.listen<SaleDeliveryMode>(
+      registerSaleControllerProvider.select(
+        (state) => state.deliveryMode,
+      ),
+      (previous, next) {
+        if (next == SaleDeliveryMode.customerPickup) {
+          _clearDeliveryFields();
+        }
+      },
+    );
+
     final mode = ref.watch(
-      registerSaleControllerProvider.select((state) => state.deliveryMode),
+      registerSaleControllerProvider.select(
+        (state) => state.deliveryMode,
+      ),
     );
 
     if (mode != SaleDeliveryMode.companyDelivery) {
       return const SizedBox.shrink();
     }
 
-    final controller = ref.read(registerSaleControllerProvider.notifier);
+    final controller = ref.read(
+      registerSaleControllerProvider.notifier,
+    );
 
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final wide = constraints.maxWidth >= 520;
+
           final fields = [
             TextField(
+              controller: _vehiclePlateController,
               decoration: const InputDecoration(
                 labelText: 'Placa del vehículo',
                 hintText: 'Ej: ABC-123',
-                prefixIcon: Icon(Icons.directions_car_outlined),
+                prefixIcon: Icon(
+                  Icons.directions_car_outlined,
+                ),
                 isDense: true,
               ),
               textCapitalization: TextCapitalization.characters,
@@ -69,13 +101,18 @@ class _SaleDeliveryFieldsState extends ConsumerState<SaleDeliveryFields> {
                 decimal: true,
               ),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+                FilteringTextInputFormatter.allow(
+                  RegExp(r'[0-9,.]'),
+                ),
               ],
               decoration: const InputDecoration(
                 labelText: 'Valor del flete',
-                helperText: 'Costo del transporte',
+                helperText:
+                    'Vacío o Bs. 0 no modifica el total',
                 prefixText: 'Bs. ',
-                prefixIcon: Icon(Icons.local_shipping_outlined),
+                prefixIcon: Icon(
+                  Icons.local_shipping_outlined,
+                ),
                 isDense: true,
               ),
               onChanged: _onFreightChanged,
@@ -95,7 +132,11 @@ class _SaleDeliveryFieldsState extends ConsumerState<SaleDeliveryFields> {
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [fields[0], const SizedBox(height: 12), fields[1]],
+            children: [
+              fields[0],
+              const SizedBox(height: 12),
+              fields[1],
+            ],
           );
         },
       ),
