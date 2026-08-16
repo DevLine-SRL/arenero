@@ -7,6 +7,7 @@ import '../../domain/repositories/sellers_repository.dart';
 import '../../domain/usecases/create_seller_usecase.dart';
 import '../../domain/usecases/get_sellers_usecase.dart';
 import '../../domain/usecases/set_sellers_active_usecase.dart';
+import '../../domain/usecases/update_seller_usecase.dart';
 
 part 'sellers_providers.g.dart';
 
@@ -33,4 +34,9 @@ SetSellersActiveUseCase setSellersActiveUseCase(Ref ref) {
 @riverpod
 CreateSellerUseCase createSellerUseCase(Ref ref) {
   return CreateSellerUseCase(ref.watch(sellersRepositoryProvider));
+}
+
+@riverpod
+UpdateSellerUseCase updateSellerUseCase(Ref ref) {
+  return UpdateSellerUseCase(ref.watch(sellersRepositoryProvider));
 }

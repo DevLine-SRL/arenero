@@ -14,4 +14,10 @@ abstract class SellersRepository {
     required Email email,
     required Password password,
   });
+
+  Future<Either<Failure, Unit>> updateSeller({
+    required String id,
+    required FullName name,
+    required Email email,
+  });
 }

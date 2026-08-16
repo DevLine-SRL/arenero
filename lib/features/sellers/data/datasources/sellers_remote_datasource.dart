@@ -14,6 +14,12 @@ abstract class SellersRemoteDataSource {
     required String email,
     required String password,
   });
+
+  Future<void> updateSeller({
+    required String id,
+    required String name,
+    required String email,
+  });
 }
 
 class SellersRemoteDataSourceImpl implements SellersRemoteDataSource {
@@ -61,6 +67,18 @@ class SellersRemoteDataSourceImpl implements SellersRemoteDataSource {
         status: e.status,
       );
     }
+  }
+
+  @override
+  Future<void> updateSeller({
+    required String id,
+    required String name,
+    required String email,
+  }) async {
+    await client
+        .from('profiles')
+        .update({'name': name, 'email': email})
+        .eq('id', id);
   }
 
   String? _extractErrorCode(Object? details) {

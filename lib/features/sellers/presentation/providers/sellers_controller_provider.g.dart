@@ -33,7 +33,7 @@ final class SellersControllerProvider
   SellersController create() => SellersController();
 }
 
-String _$sellersControllerHash() => r'2aa6578b254fe7d3dd050c3c2544a125c93786d0';
+String _$sellersControllerHash() => r'fdf8cc9ec9bf2ea6d9d8c1c1e308e9535d576616';
 
 abstract class _$SellersController extends $AsyncNotifier<List<Seller>> {
   FutureOr<List<Seller>> build();

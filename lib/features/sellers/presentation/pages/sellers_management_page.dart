@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
+import '../../domain/entities/seller.dart';
 import '../providers/sellers_controller_provider.dart';
+import '../widgets/edit_seller_dialog.dart';
 import '../widgets/seller_list_item.dart';
 import '../widgets/sellers_actions_bar.dart';
 import '../widgets/sellers_empty_state.dart';
@@ -56,6 +58,23 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
         .read(sellersControllerProvider.notifier)
         .setActive(_selected, active);
     setState(_selected.clear);
+  }
+
+  Future<void> _editSeller(Seller seller, List<Seller> sellers) async {
+    final saved = await EditSellerDialog.show(
+      context,
+      seller: seller,
+      sellers: sellers,
+    );
+
+    if (saved != true || !mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('Vendedor guardado')),
+      );
+    ref.invalidate(sellersControllerProvider);
   }
 
   @override
@@ -135,6 +154,7 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
                               isSelected: _selected.contains(seller.id),
                               onToggle: (selected) =>
                                   _toggleSelected(seller.id, selected),
+                              onEdit: () => _editSeller(seller, sellers),
                             );
                           },
                         ),
