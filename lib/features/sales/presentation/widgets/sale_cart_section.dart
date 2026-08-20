@@ -7,7 +7,9 @@ import '../providers/register_sale_controller_provider.dart';
 import 'sale_line_item_card.dart';
 
 class SaleCartSection extends ConsumerWidget {
-  const SaleCartSection({super.key});
+  final VoidCallback? onAddProduct;
+
+  const SaleCartSection({super.key, this.onAddProduct});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -23,28 +25,37 @@ class SaleCartSection extends ConsumerWidget {
         (product) => product.active && product.units.any((unit) => unit.active),
       );
 
-      return SizedBox(
-        width: double.infinity,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+      return InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: hasProducts ? onAddProduct : null,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: theme.colorScheme.outline.withValues(alpha: 0.32),
+            ),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Icon(
                 hasProducts
-                    ? Icons.shopping_cart_outlined
+                    ? Icons.add_shopping_cart_rounded
                     : Icons.inventory_2_outlined,
-                size: 40,
+                size: 36,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
               const SizedBox(height: 8),
               Text(
                 hasProducts
-                    ? 'No hay productos agregados'
+                    ? 'Haz clic para agregar un producto'
                     : 'No hay productos en el catálogo',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],

@@ -1,21 +1,26 @@
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/forgot_password_page.dart';
+import '../../features/auth/presentation/pages/change_password_page.dart';
 import '../../features/clients/presentation/pages/clients_page.dart';
 import '../../features/dashboard/presentation/pages/dashboard_page.dart';
 import '../../features/products/presentation/pages/products_page.dart';
 import '../../features/sales/presentation/pages/register_sale_page.dart';
+import '../../features/sales/presentation/pages/sale_detail_page.dart';
+import '../../features/sales/presentation/pages/sales_payments_page.dart';
 import '../../features/sales/presentation/pages/sales_history_page.dart';
 import '../../features/sellers/presentation/pages/sellers_management_page.dart';
 import '../../shared/widgets/forbidden_page.dart';
 import '../layouts/main_layout.dart';
 import 'route_paths.dart';
 
-const adminBranchStart = 3;
+const adminBranchStart = 4;
 
 const branchTitles = <String, String>{
   RoutePaths.salesHistory: 'Ventas',
   RoutePaths.registerSale: 'Registrar Venta',
+  RoutePaths.salesPayments: 'Cobros',
   RoutePaths.clients: 'Clientes',
   RoutePaths.dashboard: 'Panel',
   RoutePaths.sellersManagement: 'Gestión de Vendedores',
@@ -34,6 +39,11 @@ final publicRoutes = <RouteBase>[
     name: RouteNames.login,
     builder: (context, state) => const LoginPage(),
   ),
+  GoRoute(
+    path: RoutePaths.forgotPassword,
+    name: RouteNames.forgotPassword,
+    builder: (context, state) => const ForgotPasswordPage(),
+  ),
 ];
 
 final protectedRoutes = StatefulShellRoute.indexedStack(
@@ -46,6 +56,14 @@ final protectedRoutes = StatefulShellRoute.indexedStack(
           path: RoutePaths.salesHistory,
           name: RouteNames.salesHistory,
           builder: (context, state) => const SalesHistoryPage(),
+          routes: [
+            GoRoute(
+              path: ':id',
+              name: RouteNames.saleDetail,
+              builder: (context, state) =>
+                  SaleDetailPage(saleId: state.pathParameters['id']!),
+            ),
+          ],
         ),
       ],
     ),
@@ -55,6 +73,15 @@ final protectedRoutes = StatefulShellRoute.indexedStack(
           path: RoutePaths.registerSale,
           name: RouteNames.registerSale,
           builder: (context, state) => const RegisterSalePage(),
+        ),
+      ],
+    ),
+    StatefulShellBranch(
+      routes: [
+        GoRoute(
+          path: RoutePaths.salesPayments,
+          name: RouteNames.salesPayments,
+          builder: (context, state) => const SalesPaymentsPage(),
         ),
       ],
     ),
@@ -99,6 +126,11 @@ final protectedRoutes = StatefulShellRoute.indexedStack(
 
 final routes = <RouteBase>[
   ...publicRoutes,
+  GoRoute(
+    path: RoutePaths.changePassword,
+    name: RouteNames.changePassword,
+    builder: (context, state) => const ChangePasswordPage(),
+  ),
   GoRoute(
     path: RoutePaths.forbidden,
     name: RouteNames.forbidden,

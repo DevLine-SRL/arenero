@@ -18,7 +18,6 @@ class SaleLineItemCard extends ConsumerStatefulWidget {
 }
 
 class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
-  late final TextEditingController _discountController;
   late final TextEditingController _quantityController;
 
   SaleLineItem get item => widget.item;
@@ -26,15 +25,11 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
   @override
   void initState() {
     super.initState();
-    _discountController = TextEditingController(
-      text: item.discount.toStringAsFixed(2),
-    );
     _quantityController = TextEditingController(text: item.quantity.toString());
   }
 
   @override
   void dispose() {
-    _discountController.dispose();
     _quantityController.dispose();
     super.dispose();
   }
@@ -75,28 +70,9 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
   void _onQuantityText(String raw) {
     final value = double.tryParse(raw.replaceAll(',', '.'));
     if (value == null) return;
-    if (value < 1) {
-      ref
-          .read(registerSaleControllerProvider.notifier)
-          .changeLineQuantity(item.rowId, 1);
-      return;
-    }
     ref
         .read(registerSaleControllerProvider.notifier)
-        .changeLineQuantity(item.rowId, value);
-  }
-
-  void _changeDiscount(String raw) {
-    final value = double.tryParse(raw.replaceAll(',', '.'));
-    if (value == null) return;
-    final maxDiscount = item.quantity * item.unitPrice;
-    final clamped = value.clamp(0.0, maxDiscount).toDouble();
-    if (clamped != value) {
-      _discountController.text = clamped.toStringAsFixed(2);
-    }
-    ref
-        .read(registerSaleControllerProvider.notifier)
-        .changeLineDiscount(item.rowId, clamped);
+        .changeLineQuantity(item.rowId, value < 1 ? 1 : value);
   }
 
   @override
@@ -139,7 +115,7 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
           product,
     ];
 
-    final linePrice = item.isComplete ? item.quantity * item.unitPrice : null;
+    final subtotal = item.isComplete ? item.subtotal : null;
 
     return Material(
       color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
@@ -149,148 +125,227 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<Product>(
-                    key: ValueKey('product-${item.rowId}-${item.productId}'),
-                    initialValue: selectedProduct,
-                    isExpanded: true,
-                    decoration: InputDecoration(
-                      labelText: 'Producto',
-                      prefixIcon: const Icon(Icons.inventory_2_outlined),
-                      isDense: true,
-                      helperText: productsAsync.isLoading
-                          ? 'Cargando productos…'
-                          : productsAsync.hasError
-                          ? 'No se pudieron cargar los productos'
-                          : null,
-                    ),
-                    items: [
-                      for (final product in selectableProducts)
-                        DropdownMenuItem(
-                          value: product,
-                          child: Text(
-                            product.name,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                    ],
-                    onChanged: productsAsync.hasValue
-                        ? (product) {
-                            if (product != null) {
-                              controller.changeLineProduct(item.rowId, product);
-                            }
-                          }
-                        : null,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded),
-                    tooltip: 'Quitar producto',
-                    color: theme.colorScheme.error,
-                    onPressed: () => controller.removeLine(item.rowId),
-                  ),
-                ),
-              ],
+            _ProductSelector(
+              item: item,
+              productsAsync: productsAsync,
+              selectableProducts: selectableProducts,
+              selectedProduct: selectedProduct,
+              onChanged: (product) =>
+                  controller.changeLineProduct(item.rowId, product),
+              onRemove: () => controller.removeLine(item.rowId),
             ),
             const SizedBox(height: 12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<ProductUnitOfMeasure>(
-                    key: ValueKey('unit-${item.rowId}-${item.unit}'),
-                    initialValue: item.unit,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Unidad',
-                      prefixIcon: Icon(Icons.straighten_rounded),
-                      isDense: true,
-                    ),
-                    items: [
-                      for (final entry in availableUnits)
-                        DropdownMenuItem(
-                          value: entry.unit,
-                          child: Text(
-                            '${entry.unit.label} · ${formatAmount(entry.unitPrice)}',
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                    ],
-                    onChanged: hasProduct
-                        ? (unit) {
-                            if (unit != null) {
-                              controller.changeLineUnit(item.rowId, unit);
-                            }
-                          }
-                        : null,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Padding(
-                  padding: const EdgeInsets.only(top: 6),
-                  child: QuantityStepper(
-                    controller: _quantityController,
-                    onDecrement: () => _stepQuantity(item.quantity - 1),
-                    onIncrement: () => _stepQuantity(item.quantity + 1),
-                    onChanged: _onQuantityText,
-                  ),
-                ),
-              ],
+            _UnitAndQuantityRow(
+              item: item,
+              availableUnits: availableUnits,
+              hasProduct: hasProduct,
+              quantityController: _quantityController,
+              onUnitChanged: (unit) =>
+                  controller.changeLineUnit(item.rowId, unit),
+              onQuantityChanged: _onQuantityText,
+              onDecrement: () => _stepQuantity(item.quantity - 1),
+              onIncrement: () => _stepQuantity(item.quantity + 1),
             ),
             const SizedBox(height: 12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ReadOnlyAmount(
-                    label: 'Precio',
-                    value: linePrice == null ? '—' : formatAmount(linePrice),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Descuento',
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      TextField(
-                        controller: _discountController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: const InputDecoration(
-                          prefixText: '\$ ',
-                          isDense: true,
-                        ),
-                        onChanged: _changeDiscount,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ReadOnlyAmount(
-                    label: 'Subtotal',
-                    value: item.isComplete ? formatAmount(item.subtotal) : '—',
-                  ),
-                ),
-              ],
-            ),
+            _AmountsRow(item: item, subtotal: subtotal),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ProductSelector extends StatelessWidget {
+  final SaleLineItem item;
+  final AsyncValue<List<Product>> productsAsync;
+  final List<Product> selectableProducts;
+  final Product? selectedProduct;
+  final ValueChanged<Product> onChanged;
+  final VoidCallback onRemove;
+
+  const _ProductSelector({
+    required this.item,
+    required this.productsAsync,
+    required this.selectableProducts,
+    required this.selectedProduct,
+    required this.onChanged,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<Product>(
+            key: ValueKey('product-${item.rowId}-${item.productId}'),
+            initialValue: selectedProduct,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: 'Producto',
+              prefixIcon: const Icon(Icons.inventory_2_outlined),
+              isDense: true,
+              helperText: productsAsync.isLoading
+                  ? 'Cargando productos...'
+                  : productsAsync.hasError
+                  ? 'No se pudieron cargar los productos'
+                  : null,
+            ),
+            items: [
+              for (final product in selectableProducts)
+                DropdownMenuItem(
+                  value: product,
+                  child: Text(product.name, overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: productsAsync.hasValue
+                ? (product) {
+                    if (product != null) onChanged(product);
+                  }
+                : null,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: IconButton(
+            icon: const Icon(Icons.delete_outline_rounded),
+            tooltip: 'Quitar producto',
+            color: theme.colorScheme.error,
+            onPressed: onRemove,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _UnitAndQuantityRow extends StatelessWidget {
+  final SaleLineItem item;
+  final List<ProductUnitPrice> availableUnits;
+  final bool hasProduct;
+  final TextEditingController quantityController;
+  final ValueChanged<ProductUnitOfMeasure> onUnitChanged;
+  final ValueChanged<String> onQuantityChanged;
+  final VoidCallback onDecrement;
+  final VoidCallback onIncrement;
+
+  const _UnitAndQuantityRow({
+    required this.item,
+    required this.availableUnits,
+    required this.hasProduct,
+    required this.quantityController,
+    required this.onUnitChanged,
+    required this.onQuantityChanged,
+    required this.onDecrement,
+    required this.onIncrement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 520;
+        final unitField = DropdownButtonFormField<ProductUnitOfMeasure>(
+          key: ValueKey('unit-${item.rowId}-${item.unit}'),
+          initialValue: item.unit,
+          isExpanded: true,
+          decoration: const InputDecoration(
+            labelText: 'Unidad',
+            prefixIcon: Icon(Icons.straighten_rounded),
+            isDense: true,
+          ),
+          items: [
+            for (final entry in availableUnits)
+              DropdownMenuItem(
+                value: entry.unit,
+                child: Text(
+                  '${entry.unit.label} - ${formatAmount(entry.unitPrice)}',
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+          ],
+          onChanged: hasProduct
+              ? (unit) {
+                  if (unit != null) onUnitChanged(unit);
+                }
+              : null,
+        );
+        final quantityField = QuantityStepper(
+          controller: quantityController,
+          onDecrement: onDecrement,
+          onIncrement: onIncrement,
+          onChanged: onQuantityChanged,
+        );
+
+        if (wide) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: unitField),
+              const SizedBox(width: 12),
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: quantityField,
+              ),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            unitField,
+            const SizedBox(height: 12),
+            Align(alignment: Alignment.centerLeft, child: quantityField),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AmountsRow extends StatelessWidget {
+  final SaleLineItem item;
+  final double? subtotal;
+
+  const _AmountsRow({required this.item, required this.subtotal});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 420;
+        final fields = [
+          ReadOnlyAmount(
+            label: 'Precio unitario',
+            value: item.isComplete ? formatAmount(item.unitPrice) : '-',
+          ),
+          ReadOnlyAmount(
+            label: 'Subtotal',
+            value: subtotal == null ? '-' : formatAmount(subtotal!),
+          ),
+        ];
+
+        if (wide) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: fields[0]),
+              const SizedBox(width: 12),
+              Expanded(child: fields[1]),
+            ],
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [fields[0], const SizedBox(height: 12), fields[1]],
+        );
+      },
     );
   }
 }

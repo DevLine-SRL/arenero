@@ -101,7 +101,9 @@ class ProductsRepositoryImpl implements ProductsRepository {
       );
     } catch (_) {
       return const dartz.Left(
-        UnexpectedFailure(message: 'Error inesperado al modificar el producto.'),
+        UnexpectedFailure(
+          message: 'Error inesperado al modificar el producto.',
+        ),
       );
     }
   }

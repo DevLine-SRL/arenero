@@ -8,6 +8,7 @@ class ForbiddenPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final from = GoRouterState.of(context).uri.queryParameters['from'];
     return Scaffold(
       appBar: AppBar(title: const Text('403')),
       body: Center(
@@ -17,14 +18,22 @@ class ForbiddenPage extends StatelessWidget {
             Icon(
               Icons.lock_outline,
               size: 64,
-              color: Theme.of(context).colorScheme.errorContainer
+              color: Theme.of(context).colorScheme.errorContainer,
             ),
             const SizedBox(height: 16),
             const Text('Acceso denegado'),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () => context.go(RoutePaths.dashboard),
-              child: const Text('Ir al panel'),
+              onPressed: () {
+                if (from != null && from.isNotEmpty) {
+                  context.go(from);
+                } else if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(RoutePaths.home);
+                }
+              },
+              child: const Text('Volver atrás'),
             ),
           ],
         ),

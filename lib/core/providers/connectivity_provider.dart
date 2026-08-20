@@ -55,8 +55,8 @@ ConnectionStatus _resolve(bool hasNetwork, bool hasInternet) {
 bool _hasNetwork(List<ConnectivityResult> results) {
   return results.any(
     (result) =>
-      result == ConnectivityResult.wifi ||
-      result == ConnectivityResult.mobile ||
-      result == ConnectivityResult.ethernet,
+        result == ConnectivityResult.wifi ||
+        result == ConnectivityResult.mobile ||
+        result == ConnectivityResult.ethernet,
   );
 }

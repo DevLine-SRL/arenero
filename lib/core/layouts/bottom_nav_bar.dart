@@ -9,6 +9,7 @@ const _navBarDestinations = <Widget>[
     icon: Icon(Icons.point_of_sale_rounded),
     label: 'Registrar Venta',
   ),
+  NavigationDestination(icon: Icon(Icons.credit_card_rounded), label: 'Cobros'),
   NavigationDestination(
     icon: Icon(Icons.person_add_rounded),
     label: 'Clientes',

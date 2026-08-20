@@ -8,11 +8,12 @@ class Password {
   const Password._(this.value);
 
   static Either<Failure, Password> create(String input) {
-    final regex = RegExp(r'^(?=.*[A-Za-z])(?=.*\d).{8,}$');
+    final regex = RegExp(r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[^A-Za-z0-9]).{8,}$');
     if (!regex.hasMatch(input)) {
       return const Left(
         ValidationFailure(
-          message: 'La contraseña debe tener al menos 8 caracteres, incluir letras y números',
+          message:
+              'La contraseña debe tener al menos 8 caracteres, incluir mayúscula, minúscula y un carácter especial',
         ),
       );
     }

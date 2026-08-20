@@ -8,9 +8,15 @@ abstract class AuthRemoteDataSource {
   Stream<UserModel?> watchAuthState();
   Future<UserModel?> currentUser();
   Future<DateTime?> touchLastSeen();
-  Future<Map<String, dynamic>> getLoginLock({required String email});
-  Future<Map<String, dynamic>> registerFailedLogin({required String email});
-  Future<void> resetLoginAttempts({required String email});
+  Future<Map<String, dynamic>> getLoginLock();
+  Future<Map<String, dynamic>> registerFailedLogin();
+  Future<void> resetLoginAttempts();
+  Future<void> sendPasswordResetCode({required String email});
+  Future<void> verifyPasswordResetCode({
+    required String email,
+    required String code,
+  });
+  Future<void> changePassword({required String password});
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -34,9 +40,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
 
     final profile = await _fetchProfile(user.id);
-    if (profile == null || profile['active'] == false) {
+    if (profile == null) {
       await client.auth.signOut();
-      throw const supabase.AuthException('Credenciales inválidas.');
+      throw const AccountDisabledRemoteException();
     }
 
     await client.rpc('touch_last_seen');
@@ -83,28 +89,20 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>> getLoginLock({required String email}) async {
-    final result = await client.rpc(
-      'get_login_lock',
-      params: {'p_email': email},
-    );
+  Future<Map<String, dynamic>> getLoginLock() async {
+    final result = await client.rpc('get_login_lock');
     return _asLockMap(result);
   }
 
   @override
-  Future<Map<String, dynamic>> registerFailedLogin({
-    required String email,
-  }) async {
-    final result = await client.rpc(
-      'register_failed_login',
-      params: {'p_email': email},
-    );
+  Future<Map<String, dynamic>> registerFailedLogin() async {
+    final result = await client.rpc('register_failed_login');
     return _asLockMap(result);
   }
 
   @override
-  Future<void> resetLoginAttempts({required String email}) async {
-    await client.rpc('reset_login_attempts', params: {'p_email': email});
+  Future<void> resetLoginAttempts() async {
+    await client.rpc('reset_login_attempts');
   }
 
   Map<String, dynamic> _asLockMap(dynamic result) {
@@ -118,11 +116,40 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     };
   }
 
+  @override
+  Future<void> sendPasswordResetCode({required String email}) async {
+    await client.auth.resetPasswordForEmail(email);
+  }
+
+  @override
+  Future<void> verifyPasswordResetCode({
+    required String email,
+    required String code,
+  }) async {
+    await client.auth.verifyOTP(
+      email: email,
+      token: code,
+      type: supabase.OtpType.recovery,
+    );
+  }
+
+  @override
+  Future<void> changePassword({required String password}) async {
+    await client.auth.updateUser(supabase.UserAttributes(password: password));
+  }
+
   Future<Map<String, dynamic>?> _fetchProfile(String userId) async {
     return client
         .from('profiles')
-        .select('role, active, last_seen_at')
+        .select('name, role, active, last_seen_at')
         .eq('id', userId)
         .maybeSingle();
   }
+}
+
+class AccountDisabledRemoteException implements Exception {
+  const AccountDisabledRemoteException();
+
+  @override
+  String toString() => 'AccountDisabledRemoteException';
 }

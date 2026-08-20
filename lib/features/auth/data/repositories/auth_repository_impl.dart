@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 import '../../../../core/errors/failures.dart';
 import '../../../../shared/value_objects/email.dart';
+import '../../../../shared/value_objects/password.dart';
 import '../../domain/entities/login_lock_status.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -26,6 +27,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return Right(user);
     } on supabase.AuthRetryableFetchException {
       return const Left(NetworkFailure());
+    } on AccountDisabledRemoteException {
+      return const Left(AccountDisabledFailure());
     } on supabase.AuthException catch (e) {
       return Left(_mapAuthException(e));
     } catch (e) {
@@ -63,27 +66,19 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, LoginLockStatus>> getLoginLock({
-    required Email email,
-  }) async {
-    return _rpcLock(() => remoteDataSource.getLoginLock(email: email.value));
+  Future<Either<Failure, LoginLockStatus>> getLoginLock() async {
+    return _rpcLock(() => remoteDataSource.getLoginLock());
   }
 
   @override
-  Future<Either<Failure, LoginLockStatus>> registerFailedLogin({
-    required Email email,
-  }) async {
-    return _rpcLock(
-      () => remoteDataSource.registerFailedLogin(email: email.value),
-    );
+  Future<Either<Failure, LoginLockStatus>> registerFailedLogin() async {
+    return _rpcLock(() => remoteDataSource.registerFailedLogin());
   }
 
   @override
-  Future<Either<Failure, Unit>> resetLoginAttempts({
-    required Email email,
-  }) async {
+  Future<Either<Failure, Unit>> resetLoginAttempts() async {
     try {
-      await remoteDataSource.resetLoginAttempts(email: email.value);
+      await remoteDataSource.resetLoginAttempts();
       return const Right(unit);
     } on supabase.PostgrestException catch (e) {
       return Left(
@@ -92,6 +87,30 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (_) {
       return const Left(
         UnexpectedFailure(message: 'Error inesperado al registrar intentos.'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> sendPasswordResetCode({
+    required Email email,
+  }) async {
+    try {
+      await remoteDataSource.sendPasswordResetCode(email: email.value);
+      return const Right(unit);
+    } on supabase.AuthRetryableFetchException {
+      return const Left(NetworkFailure());
+    } on supabase.AuthException {
+      return const Left(
+        NotFoundFailure(
+          message: 'Si el correo está registrado, recibirás el código',
+        ),
+      );
+    } catch (e) {
+      return const Left(
+        UnexpectedFailure(
+          message: 'No pudimos enviar el código. Inténtalo de nuevo.',
+        ),
       );
     }
   }
@@ -109,6 +128,50 @@ class AuthRepositoryImpl implements AuthRepository {
     } catch (_) {
       return const Left(
         UnexpectedFailure(message: 'Error inesperado al consultar el bloqueo.'),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> verifyPasswordResetCode({
+    required Email email,
+    required String code,
+  }) async {
+    try {
+      await remoteDataSource.verifyPasswordResetCode(
+        email: email.value,
+        code: code,
+      );
+      return const Right(unit);
+    } on supabase.AuthRetryableFetchException {
+      return const Left(NetworkFailure());
+    } on supabase.AuthException catch (e) {
+      return Left(_mapAuthException(e));
+    } catch (e) {
+      return const Left(
+        UnexpectedFailure(
+          message: 'Código inválido o vencido. Inténtalo de nuevo.',
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> changePassword({
+    required Password password,
+  }) async {
+    try {
+      await remoteDataSource.changePassword(password: password.value);
+      return const Right(unit);
+    } on supabase.AuthRetryableFetchException {
+      return const Left(NetworkFailure());
+    } on supabase.AuthException catch (e) {
+      return Left(_mapAuthException(e));
+    } catch (e) {
+      return const Left(
+        UnexpectedFailure(
+          message: 'No se pudo cambiar la contraseña. Inténtalo de nuevo.',
+        ),
       );
     }
   }

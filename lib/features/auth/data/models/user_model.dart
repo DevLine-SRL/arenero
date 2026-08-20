@@ -20,7 +20,9 @@ class UserModel extends User {
     return UserModel(
       id: supabaseUser.id,
       email: supabaseUser.email ?? '',
-      name: supabaseUser.userMetadata?['name'] as String?,
+      name:
+          profile['name'] as String? ??
+          supabaseUser.userMetadata?['name'] as String?,
       role: profile['role'] as String,
       active: profile['active'] as bool,
       lastSeenAt: lastSeenAt is String ? DateTime.tryParse(lastSeenAt) : null,

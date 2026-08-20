@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
+import '../../domain/entities/seller.dart';
 import '../providers/sellers_controller_provider.dart';
+import '../widgets/edit_seller_dialog.dart';
 import '../widgets/seller_list_item.dart';
 import '../widgets/sellers_actions_bar.dart';
 import '../widgets/sellers_empty_state.dart';
@@ -14,7 +16,8 @@ class SellersManagementPage extends ConsumerStatefulWidget {
   const SellersManagementPage({super.key});
 
   @override
-  ConsumerState<SellersManagementPage> createState() => _SellersManagementPageState();
+  ConsumerState<SellersManagementPage> createState() =>
+      _SellersManagementPageState();
 }
 
 class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
@@ -45,14 +48,33 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
       context: context,
       title: active ? 'Habilitar vendedores' : 'Deshabilitar vendedores',
       content: active
-        ? '¿Estás seguro de que deseas habilitar ${_selected.length == 1 ? 'el vendedor seleccionado' : 'los ${_selected.length} vendedores seleccionados'}?'
-        : '¿Estás seguro de que deseas deshabilitar ${_selected.length == 1 ? 'el vendedor seleccionado' : 'los ${_selected.length} vendedores seleccionados'}?',
+          ? '¿Estás seguro de que deseas habilitar ${_selected.length == 1 ? 'el vendedor seleccionado' : 'los ${_selected.length} vendedores seleccionados'}?'
+          : '¿Estás seguro de que deseas deshabilitar ${_selected.length == 1 ? 'el vendedor seleccionado' : 'los ${_selected.length} vendedores seleccionados'}?',
       confirmLabel: active ? 'Si, habilitar' : 'si, deshabilitar',
     );
     if (!confirmed) return;
 
-    await ref.read(sellersControllerProvider.notifier).setActive(_selected, active);
+    await ref
+        .read(sellersControllerProvider.notifier)
+        .setActive(_selected, active);
     setState(_selected.clear);
+  }
+
+  Future<void> _editSeller(Seller seller, List<Seller> sellers) async {
+    final saved = await EditSellerDialog.show(
+      context,
+      seller: seller,
+      sellers: sellers,
+    );
+
+    if (saved != true || !mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(content: Text('Vendedor guardado')),
+      );
+    ref.invalidate(sellersControllerProvider);
   }
 
   @override
@@ -82,22 +104,21 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
             final inactiveCount = sellers.length - activeCount;
 
             final visibleSellers = switch (_filter) {
-              SellerStatusFilter.active => sellers
-                  .where((s) => s.active)
-                  .toList(),
-              SellerStatusFilter.inactive => sellers
-                  .where((s) => !s.active)
-                  .toList(),
+              SellerStatusFilter.active =>
+                sellers.where((s) => s.active).toList(),
+              SellerStatusFilter.inactive =>
+                sellers.where((s) => !s.active).toList(),
               SellerStatusFilter.all => sellers,
             };
 
             final emptyMessage = sellers.isEmpty
-              ? 'Aún no hay vendedores registrados'
-              : switch (_filter) {
-                  SellerStatusFilter.active => 'No hay vendedores activos',
-                  SellerStatusFilter.inactive => 'No hay vendedores inactivos',
-                  SellerStatusFilter.all => 'No hay vendedores',
-                };
+                ? 'Aún no hay vendedores registrados'
+                : switch (_filter) {
+                    SellerStatusFilter.active => 'No hay vendedores activos',
+                    SellerStatusFilter.inactive =>
+                      'No hay vendedores inactivos',
+                    SellerStatusFilter.all => 'No hay vendedores',
+                  };
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -121,20 +142,22 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
                 const SizedBox(height: 16),
                 Expanded(
                   child: visibleSellers.isEmpty
-                    ? SellersEmptyState(message: emptyMessage)
-                    : ListView.separated(
-                        padding: EdgeInsets.zero,
-                        itemCount: visibleSellers.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 8),
-                        itemBuilder: (context, index) {
-                          final seller = visibleSellers[index];
-                          return SellerListItem(
-                            seller: seller,
-                            isSelected: _selected.contains(seller.id),
-                            onToggle: (selected) => _toggleSelected(seller.id, selected),
-                          );
-                        },
-                      ),
+                      ? SellersEmptyState(message: emptyMessage)
+                      : ListView.separated(
+                          padding: EdgeInsets.zero,
+                          itemCount: visibleSellers.length,
+                          separatorBuilder: (_, _) => const SizedBox(height: 8),
+                          itemBuilder: (context, index) {
+                            final seller = visibleSellers[index];
+                            return SellerListItem(
+                              seller: seller,
+                              isSelected: _selected.contains(seller.id),
+                              onToggle: (selected) =>
+                                  _toggleSelected(seller.id, selected),
+                              onEdit: () => _editSeller(seller, sellers),
+                            );
+                          },
+                        ),
                 ),
               ],
             );

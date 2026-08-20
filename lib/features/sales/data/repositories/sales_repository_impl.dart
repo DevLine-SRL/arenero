@@ -22,6 +22,8 @@ class SalesRepositoryImpl implements SalesRepository {
     required String sellerId,
     required SaleDeliveryMode deliveryMode,
     required SalePaymentMethod paymentMethod,
+    required double discountAmount,
+    required double freightAmount,
     String? notes,
     SaleDelivery? delivery,
     required List<SaleDetail> details,
@@ -32,6 +34,8 @@ class SalesRepositoryImpl implements SalesRepository {
         sellerId: sellerId,
         deliveryMode: deliveryMode,
         paymentMethod: paymentMethod,
+        discountAmount: discountAmount,
+        freightAmount: freightAmount,
         notes: notes,
         delivery: delivery == null
             ? null
@@ -137,6 +141,76 @@ class SalesRepositoryImpl implements SalesRepository {
       ),
       _ => UnexpectedFailure(
         message: 'No se pudo obtener el historial de ventas.',
+        code: e.code,
+      ),
+    };
+  }
+
+  @override
+  Future<dartz.Either<Failure, Sale>> getSaleById(String saleId) async {
+    try {
+      final sale = await remoteDataSource.getSaleById(saleId);
+      return dartz.Right(sale);
+    } on supabase.PostgrestException catch (e) {
+      return dartz.Left(_mapDetailError(e));
+    } catch (_) {
+      return const dartz.Left(
+        UnexpectedFailure(
+          message: 'No se pudo obtener el detalle de la venta.',
+        ),
+      );
+    }
+  }
+
+  Failure _mapDetailError(supabase.PostgrestException e) {
+    return switch (e.code) {
+      'PGRST116' => const NotFoundFailure(message: 'La venta no existe.'),
+      '42501' => const UnauthorizedFailure(
+        message: 'No tienes permisos para ver esta venta.',
+      ),
+      _ => UnexpectedFailure(
+        message: 'No se pudo obtener el detalle de la venta.',
+        code: e.code,
+      ),
+    };
+  }
+
+  @override
+  Future<dartz.Either<Failure, dartz.Unit>> updateSalePayment({
+    required String saleId,
+    required SalePaymentStatus paymentStatus,
+    required double amountPaid,
+    required double pendingAmount,
+  }) async {
+    try {
+      await remoteDataSource.updateSalePayment(
+        saleId: saleId,
+        paymentStatus: paymentStatus,
+        amountPaid: amountPaid,
+        pendingAmount: pendingAmount,
+      );
+      return const dartz.Right(dartz.unit);
+    } on supabase.PostgrestException catch (e) {
+      return dartz.Left(_mapPaymentError(e));
+    } catch (_) {
+      return const dartz.Left(
+        UnexpectedFailure(message: 'No se pudo registrar el cobro.'),
+      );
+    }
+  }
+
+  Failure _mapPaymentError(supabase.PostgrestException e) {
+    return switch (e.code) {
+      'P0002' ||
+      'PGRST116' => const NotFoundFailure(message: 'La venta no existe.'),
+      'P0001' || '23514' => const ValidationFailure(
+        message: 'No se pudo registrar el cobro: revisa el monto recibido.',
+      ),
+      '42501' => const UnauthorizedFailure(
+        message: 'No tienes permisos para registrar el cobro.',
+      ),
+      _ => UnexpectedFailure(
+        message: 'No se pudo registrar el cobro.',
         code: e.code,
       ),
     };

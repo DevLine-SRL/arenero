@@ -4,9 +4,11 @@ import '../../../../core/providers/supabase_client_provider.dart';
 import '../../data/datasources/sales_remote_datasource.dart';
 import '../../data/repositories/sales_repository_impl.dart';
 import '../../domain/repositories/sales_repository.dart';
+import '../../domain/usecases/get_sale_detail_usecase.dart';
 import '../../domain/usecases/get_sales_history_usecase.dart';
 import '../../domain/usecases/get_sales_usecase.dart';
 import '../../domain/usecases/register_sale_usecase.dart';
+import '../../domain/usecases/update_sale_payment_usecase.dart';
 import '../../domain/usecases/void_sale_usecase.dart';
 
 part 'sales_providers.g.dart';
@@ -27,6 +29,11 @@ RegisterSaleUseCase registerSaleUseCase(Ref ref) {
 }
 
 @riverpod
+UpdateSalePaymentUseCase updateSalePaymentUseCase(Ref ref) {
+  return UpdateSalePaymentUseCase(ref.watch(salesRepositoryProvider));
+}
+
+@riverpod
 GetSalesUseCase getSalesUseCase(Ref ref) {
   return GetSalesUseCase(ref.watch(salesRepositoryProvider));
 }
@@ -34,6 +41,11 @@ GetSalesUseCase getSalesUseCase(Ref ref) {
 @riverpod
 GetSalesHistoryUseCase getSalesHistoryUseCase(Ref ref) {
   return GetSalesHistoryUseCase(ref.watch(salesRepositoryProvider));
+}
+
+@riverpod
+GetSaleDetailUseCase getSaleDetailUseCase(Ref ref) {
+  return GetSaleDetailUseCase(ref.watch(salesRepositoryProvider));
 }
 
 @riverpod

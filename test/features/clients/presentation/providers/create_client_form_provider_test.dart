@@ -130,6 +130,17 @@ void main() {
   });
 
   group('submit', () {
+    test('returns the created client for inline sale registration', () async {
+      notifier().reset(initialName: 'Constructora Norte');
+      notifier().onCiChanged('9876543');
+
+      final client = await notifier().submitClient();
+
+      expect(client, isNotNull);
+      expect(client!.name, 'Constructora Norte');
+      expect(repository.lastCreatedName, 'Constructora Norte');
+    });
+
     test(
       'refuses to submit an invalid form without calling the repository',
       () async {

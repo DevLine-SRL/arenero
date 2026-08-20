@@ -3,6 +3,7 @@ import '../../domain/entities/sale_history_item.dart';
 
 class SaleHistoryItemModel extends SaleHistoryItem {
   const SaleHistoryItemModel({
+    required super.id,
     required super.number,
     required super.clientName,
     required super.clientCi,
@@ -13,6 +14,7 @@ class SaleHistoryItemModel extends SaleHistoryItem {
 
   factory SaleHistoryItemModel.fromJson(Map<String, dynamic> json) {
     return SaleHistoryItemModel(
+      id: json['id'] as String,
       number: json['number'] as int,
       clientName: json['client_name'] as String,
       clientCi: json['client_ci'] as String,

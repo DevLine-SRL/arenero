@@ -4,6 +4,7 @@ import '../widgets/login_button.dart';
 import '../widgets/login_form.dart';
 import '../widgets/login_error_banner.dart';
 import '../widgets/login_header.dart';
+import '../widgets/forgot_password_button.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -39,6 +40,7 @@ class LoginPage extends StatelessWidget {
                         LoginFormWidget(),
                         LoginErrorBanner(),
                         LoginButton(),
+                        ForgotPasswordButton(),
                       ],
                     ),
                   ),

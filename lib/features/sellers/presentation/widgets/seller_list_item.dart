@@ -7,12 +7,14 @@ class SellerListItem extends StatelessWidget {
   final Seller seller;
   final bool isSelected;
   final ValueChanged<bool> onToggle;
+  final VoidCallback? onEdit;
 
   const SellerListItem({
     super.key,
     required this.seller,
     required this.isSelected,
     required this.onToggle,
+    this.onEdit,
   });
 
   @override
@@ -31,8 +33,8 @@ class SellerListItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected
-                ? theme.colorScheme.primary
-                : theme.colorScheme.outline.withValues(alpha: 0.4),
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.outline.withValues(alpha: 0.4),
               width: isSelected ? 1.5 : 1,
             ),
           ),
@@ -73,6 +75,13 @@ class SellerListItem extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               SellerStatusBadge(active: seller.active),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: 'Editar vendedor',
+                visualDensity: VisualDensity.compact,
+              ),
             ],
           ),
         ),

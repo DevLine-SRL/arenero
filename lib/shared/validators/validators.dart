@@ -1,5 +1,6 @@
 export 'ci.dart';
 export 'email.dart';
+export 'full_name.dart';
 export 'has_length.dart';
 export 'is_number.dart';
 export 'matches.dart';
@@ -7,3 +8,4 @@ export 'nit.dart';
 export 'phone.dart';
 export 'required.dart';
 export 'validator_type.dart';
+export 'verification_code.dart';

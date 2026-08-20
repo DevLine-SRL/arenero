@@ -41,7 +41,7 @@ final class LoginFormProvider
   }
 }
 
-String _$loginFormHash() => r'5425d082dae1c83cb2ba2e4f2d10c8bbc49a2505';
+String _$loginFormHash() => r'9005cfda973c7ad934d218311fd049cf3208ff96';
 
 abstract class _$LoginForm extends $Notifier<LoginFormState> {
   LoginFormState build();

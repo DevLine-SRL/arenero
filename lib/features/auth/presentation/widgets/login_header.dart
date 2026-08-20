@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class LoginHeader extends StatelessWidget {
-  const LoginHeader({super.key});
+  final String subtitle;
+
+  const LoginHeader({super.key, this.subtitle = 'Bienvenido de vuelta'});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class LoginHeader extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Bienvenido de vuelta',
+          subtitle,
           style: theme.textTheme.bodyLarge?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),

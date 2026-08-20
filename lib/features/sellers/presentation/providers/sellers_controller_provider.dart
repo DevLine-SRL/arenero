@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/errors/failures.dart';
 import '../../domain/entities/seller.dart';
 import 'sellers_providers.dart';
 
@@ -12,10 +13,7 @@ class SellersController extends _$SellersController {
     final useCase = ref.watch(getSellersUseCaseProvider);
     final result = await useCase();
 
-    return result.fold(
-      (failure) => throw failure,
-      (sellers) => sellers,
-    );
+    return result.fold((failure) => throw failure, (sellers) => sellers);
   }
 
   Future<void> setActive(Set<String> ids, bool active) async {
@@ -42,5 +40,34 @@ class SellersController extends _$SellersController {
         return;
       }
     }
+  }
+
+  Future<Failure?> updateSeller(
+    Seller seller,
+    String name,
+    String email,
+  ) async {
+    final previous = state.value;
+    final currentSellers = previous ?? const <Seller>[];
+
+    final result = await ref.read(updateSellerUseCaseProvider)(
+      id: seller.id,
+      name: name,
+      rawEmail: email,
+      existingSellers: currentSellers,
+    );
+
+    return result.fold((failure) => failure, (_) {
+      state = state.whenData(
+        (sellers) => [
+          for (final current in sellers)
+            if (current.id == seller.id)
+              current.copyWith(name: name, email: email)
+            else
+              current,
+        ],
+      );
+      return null;
+    });
   }
 }

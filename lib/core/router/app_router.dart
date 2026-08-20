@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../shared/widgets/not_found_page.dart';
+import '../providers/supabase_client_provider.dart';
 import 'route_definitions.dart';
 import 'route_paths.dart';
 
@@ -25,19 +26,38 @@ GoRouter appRouter(Ref ref) {
     redirect: (BuildContext context, GoRouterState state) {
       final authState = ref.read(authSessionProvider);
       final user = authState.value;
-      final isLoggedIn = user != null;
+      final hasActiveSession =
+          ref.read(supabaseClientProvider).auth.currentSession != null;
+      final isLoggedIn = user != null || hasActiveSession;
+      final isPublicRoute =
+          state.matchedLocation == RoutePaths.login ||
+          state.matchedLocation == RoutePaths.forgotPassword;
       final isLoggingIn = state.matchedLocation == RoutePaths.login;
 
-      if (!isLoggedIn && !isLoggingIn) return RoutePaths.login;
+      if (!isLoggedIn && !isPublicRoute) return RoutePaths.login;
       if (isLoggedIn && isLoggingIn) {
-        return user.role == 'admin'
+        return user?.role == 'admin'
+            ? RoutePaths.dashboard
+            : RoutePaths.salesHistory;
+      }
+      if (isLoggedIn && state.matchedLocation == RoutePaths.home) {
+        return user?.role == 'admin'
             ? RoutePaths.dashboard
             : RoutePaths.salesHistory;
       }
 
       final isAdminRoute = adminOnlyRoutes.contains(state.matchedLocation);
-      if (isLoggedIn && isAdminRoute && user.role != 'admin') {
-        return RoutePaths.forbidden;
+      if (isLoggedIn && isAdminRoute && user?.role != 'admin') {
+        final currentConfiguration = GoRouter.of(
+          context,
+        ).routerDelegate.currentConfiguration;
+        final from = currentConfiguration.isNotEmpty
+            ? currentConfiguration.uri.path
+            : null;
+        return Uri(
+          path: RoutePaths.forbidden,
+          queryParameters: {if (from != null && from.isNotEmpty) 'from': from},
+        ).toString();
       }
       return null;
     },

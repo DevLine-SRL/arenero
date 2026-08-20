@@ -16,7 +16,16 @@ const _esMonths = [
 String formatAmount(double value) {
   final negative = value < 0;
   final abs = value.abs().toStringAsFixed(2);
-  return '${negative ? '-' : ''}\$${_addThousandsSeparator(abs)}';
+  return '${negative ? '-' : ''}Bs. ${_addThousandsSeparator(abs)}';
+}
+
+/// Cantidad sin decimales cuando es entera: `2` en vez de `2.00`, pero `2.5`
+/// se conserva.
+String formatQuantity(double value) {
+  final fixed = value.toStringAsFixed(2);
+  if (fixed.endsWith('.00')) return fixed.substring(0, fixed.length - 3);
+  if (fixed.endsWith('0')) return fixed.substring(0, fixed.length - 1);
+  return fixed;
 }
 
 String _addThousandsSeparator(String amount) {
