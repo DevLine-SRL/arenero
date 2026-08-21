@@ -153,6 +153,35 @@ void main() {
       expect(state().nitError, 'Este NIT ya está registrado');
     });
 
+    // Sin restricción de unicidad en la base, el submit tiene que consultar por
+    // su cuenta: al pulsar Guardar con el foco todavía en el NIT, la consulta
+    // del blur y el alta corren en paralelo y el duplicado se colaba.
+    test(
+      'blocks the submit for a duplicated nit never checked on blur',
+      () async {
+        repository.existsByNitResult = const Right(true);
+        fillValidForm();
+
+        final submitted = await notifier().submit();
+
+        expect(submitted, isFalse);
+        expect(repository.createCallCount, 0);
+        expect(repository.existsByNitCallCount, 1);
+        expect(state().nitError, 'Este NIT ya está registrado');
+        expect(state().isSubmitting, isFalse);
+      },
+    );
+
+    test('submits when the nit is free', () async {
+      repository.existsByNitResult = const Right(false);
+      fillValidForm();
+
+      final submitted = await notifier().submit();
+
+      expect(submitted, isTrue);
+      expect(repository.createCallCount, 1);
+    });
+
     test('does not query the repository for an empty nit', () async {
       notifier().onNitChanged('');
 

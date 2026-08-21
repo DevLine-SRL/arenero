@@ -162,6 +162,29 @@ class CreateClientForm extends _$CreateClientForm {
       submitError: null,
     );
 
+    // El aviso al salir del campo no alcanza: si se pulsa Guardar con el foco
+    // todavía en el NIT, la consulta del blur y el alta corren en paralelo. Sin
+    // restricción de unicidad en la base, esta comprobación es la barrera.
+    final rawNit = state.nit;
+    if (rawNit.trim().isNotEmpty && nit(rawNit) == null) {
+      final taken = await CheckNitAvailableUseCase(
+        ref.read(clientsRepositoryProvider),
+      )(rawNit);
+
+      final duplicated = taken.fold((_) => false, (available) => !available);
+      if (duplicated) {
+        state = state.copyWith(
+          nameError: state.nameError,
+          ciError: state.ciError,
+          phoneError: state.phoneError,
+          nitError: 'Este NIT ya está registrado',
+          isSubmitting: false,
+          isCheckingNit: false,
+        );
+        return null;
+      }
+    }
+
     final result = await ref.read(createClientUseCaseProvider)(
       name: state.name,
       rawCi: state.ci,
