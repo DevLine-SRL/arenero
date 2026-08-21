@@ -129,6 +129,83 @@ void main() {
     });
   });
 
+  // BUG-CLI-001: el NIT repetido tiene que avisar igual que la cédula.
+  group('nit duplicate warning', () {
+    test('warns when the nit already belongs to another client', () async {
+      repository.existsByNitResult = const Right(true);
+      fillValidForm();
+
+      await notifier().checkNitAvailability();
+
+      expect(state().nitError, 'Este NIT ya está registrado');
+      expect(state().canSubmit, isFalse);
+    });
+
+    test('keeps the warning when submitting without editing the nit', () async {
+      repository.existsByNitResult = const Right(true);
+      fillValidForm();
+      await notifier().checkNitAvailability();
+
+      final submitted = await notifier().submit();
+
+      expect(submitted, isFalse);
+      expect(repository.createCallCount, 0);
+      expect(state().nitError, 'Este NIT ya está registrado');
+    });
+
+    test('does not query the repository for an empty nit', () async {
+      notifier().onNitChanged('');
+
+      await notifier().checkNitAvailability();
+
+      expect(repository.existsByNitCallCount, 0);
+    });
+
+    test('does not query the repository for a malformed nit', () async {
+      notifier().onNitChanged('12A45');
+
+      await notifier().checkNitAvailability();
+
+      expect(repository.existsByNitCallCount, 0);
+    });
+
+    test('drops the warning as soon as the user edits the nit', () async {
+      repository.existsByNitResult = const Right(true);
+      notifier().onNitChanged('12345');
+      await notifier().checkNitAvailability();
+
+      notifier().onNitChanged('54321');
+
+      expect(state().nitError, isNull);
+    });
+
+    test('stays silent when the check itself fails', () async {
+      repository.existsByNitResult = const Left(UnexpectedFailure());
+      notifier().onNitChanged('12345');
+
+      await notifier().checkNitAvailability();
+
+      expect(state().nitError, isNull);
+      expect(state().isCheckingNit, isFalse);
+    });
+
+    test('surfaces the constraint violation raised on submit', () async {
+      repository.createResult = const Left(
+        ValidationFailure(
+          message: 'Ya existe un cliente registrado con ese NIT.',
+          errors: {'nit': 'Este NIT ya está registrado'},
+          code: '23505',
+        ),
+      );
+      fillValidForm();
+
+      final submitted = await notifier().submit();
+
+      expect(submitted, isFalse);
+      expect(state().nitError, 'Este NIT ya está registrado');
+    });
+  });
+
   group('submit', () {
     test('returns the created client for inline sale registration', () async {
       notifier().reset(initialName: 'Constructora Norte');

@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../shared/validators/validators.dart';
 import '../../domain/entities/client.dart';
+import '../../domain/usecases/check_nit_available_usecase.dart';
 import 'clients_providers.dart';
 import 'clients_search_provider.dart';
 import 'create_client_form_state.dart';
@@ -62,12 +63,15 @@ class CreateClientForm extends _$CreateClientForm {
   }
 
   void onNitChanged(String value) {
+    // Igual que con la cédula, el aviso de duplicado deja de aplicar en cuanto
+    // cambia el valor: el error se recalcula solo desde el formato.
     state = state.copyWith(
       nit: value,
       nameError: state.nameError,
       ciError: state.ciError,
       phoneError: state.phoneError,
       nitError: nit(value),
+      isCheckingNit: false,
       submitError: null,
     );
   }
@@ -103,6 +107,42 @@ class CreateClientForm extends _$CreateClientForm {
       phoneError: state.phoneError,
       nitError: state.nitError,
       isCheckingCi: false,
+    );
+  }
+
+  /// Tarea #40: mismo aviso que [checkCiAvailability], para el NIT.
+  ///
+  /// El NIT es opcional, así que un campo vacío no consulta nada. Si la
+  /// consulta falla no se muestra nada y el alta sigue adelante: la base no
+  /// impide el NIT repetido.
+  Future<void> checkNitAvailability() async {
+    final value = state.nit;
+    if (value.trim().isEmpty || nit(value) != null) return;
+
+    state = state.copyWith(
+      nameError: state.nameError,
+      ciError: state.ciError,
+      phoneError: state.phoneError,
+      nitError: state.nitError,
+      isCheckingNit: true,
+    );
+
+    final result = await CheckNitAvailableUseCase(
+      ref.read(clientsRepositoryProvider),
+    )(value);
+
+    // El usuario pudo seguir escribiendo mientras se consultaba.
+    if (state.nit != value) return;
+
+    state = state.copyWith(
+      nameError: state.nameError,
+      ciError: state.ciError,
+      phoneError: state.phoneError,
+      nitError: result.fold(
+        (_) => state.nitError,
+        (available) => available ? null : 'Este NIT ya está registrado',
+      ),
+      isCheckingNit: false,
     );
   }
 
@@ -153,14 +193,15 @@ class CreateClientForm extends _$CreateClientForm {
     final nameError = required(state.name);
     final ciFormatError = ci(state.ci);
     final phoneError = phone(state.phone);
-    final nitError = nit(state.nit);
+    final nitFormatError = nit(state.nit);
 
     state = state.copyWith(
       nameError: nameError,
       // Con el formato correcto, un aviso previo de duplicado sigue vigente.
       ciError: ciFormatError ?? state.ciError,
       phoneError: phoneError,
-      nitError: nitError,
+      // Con el formato correcto, un aviso previo de duplicado sigue vigente.
+      nitError: nitFormatError ?? state.nitError,
       submitError: null,
     );
 
