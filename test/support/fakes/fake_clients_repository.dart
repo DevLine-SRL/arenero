@@ -12,6 +12,7 @@ class FakeClientsRepository implements ClientsRepository {
   Either<Failure, Client>? createResult;
   Either<Failure, List<Client>>? searchResult;
   Either<Failure, bool>? existsResult;
+  Either<Failure, bool>? existsByNitResult;
   Either<Failure, Client>? updateResult;
   Either<Failure, Unit>? setActiveResult;
 
@@ -22,8 +23,10 @@ class FakeClientsRepository implements ClientsRepository {
   String? lastSearchQuery;
   bool? lastIncludeInactive;
   Ci? lastCheckedCi;
+  String? lastCheckedNit;
   int createCallCount = 0;
   int existsCallCount = 0;
+  int existsByNitCallCount = 0;
 
   @override
   Future<Either<Failure, Client>> createClient({
@@ -56,6 +59,13 @@ class FakeClientsRepository implements ClientsRepository {
     existsCallCount++;
     lastCheckedCi = ci;
     return existsResult ?? const Right(false);
+  }
+
+  @override
+  Future<Either<Failure, bool>> existsByNit(String nit) async {
+    existsByNitCallCount++;
+    lastCheckedNit = nit;
+    return existsByNitResult ?? const Right(false);
   }
 
   @override

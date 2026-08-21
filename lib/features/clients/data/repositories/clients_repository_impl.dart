@@ -74,6 +74,19 @@ class ClientsRepositoryImpl implements ClientsRepository {
   }
 
   @override
+  Future<Either<Failure, bool>> existsByNit(String nit) async {
+    try {
+      return Right(await remoteDataSource.existsByNit(nit.trim()));
+    } on supabase.PostgrestException catch (e) {
+      return Left(_mapPostgrestException(e, 'No se pudo verificar el NIT.'));
+    } catch (_) {
+      return const Left(
+        UnexpectedFailure(message: 'Error inesperado al verificar el NIT.'),
+      );
+    }
+  }
+
+  @override
   Future<Either<Failure, Client>> updateClient({
     required String id,
     required String name,
@@ -139,6 +152,14 @@ class ClientsRepositoryImpl implements ClientsRepository {
         errors: {'ci': 'Esta cédula ya está registrada'},
         code: '23505',
       ),
+      // Por si algún día se agrega un índice único sobre el NIT: hoy la base
+      // no lo tiene, así que esta rama no se dispara.
+      '23505' when _violates(e, 'clients_nit_unique') =>
+        const ValidationFailure(
+          message: 'Ya existe un cliente registrado con ese NIT.',
+          errors: {'nit': 'Este NIT ya está registrado'},
+          code: '23505',
+        ),
       '23505' => const ValidationFailure(
         message: 'Ya existe un registro con esos datos.',
         code: '23505',
