@@ -30,6 +30,12 @@ abstract class ClientsRepository {
   /// y [createClient] traduce su violación a un [ValidationFailure].
   Future<Either<Failure, bool>> existsByCi(Ci ci);
 
+  /// Tarea #40. Mismo criterio que [existsByCi], para el NIT.
+  ///
+  /// A diferencia de la cédula, el NIT no tiene restricción de unicidad en la
+  /// base, así que esta consulta es solo un aviso previo al alta.
+  Future<Either<Failure, bool>> existsByNit(String nit);
+
   /// Tarea #38.
   Future<Either<Failure, Client>> updateClient({
     required String id,
