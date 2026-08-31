@@ -7,6 +7,7 @@ abstract final class RoutePaths {
   static const registerSale = '/ventas/registrar';
   static const salesHistory = '/ventas/historial';
   static const saleDetail = '/ventas/historial/:id';
+  static const salesPayments = '/ventas/cobros';
   static const clients = '/clientes';
   static const products = '/productos';
   static const sellersManagement = '/vendedores';
@@ -21,6 +22,7 @@ abstract final class RouteNames {
   static const registerSale = 'registerSale';
   static const salesHistory = 'salesHistory';
   static const saleDetail = 'saleDetail';
+  static const salesPayments = 'salesPayments';
   static const clients = 'clients';
   static const products = 'products';
   static const sellersManagement = 'sellersManagement';

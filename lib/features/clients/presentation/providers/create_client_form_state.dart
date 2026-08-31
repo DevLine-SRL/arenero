@@ -12,6 +12,9 @@ class CreateClientFormState {
   /// no registrar mientras no se sabe.
   final bool isCheckingCi;
 
+  /// Igual que [isCheckingCi], para el NIT.
+  final bool isCheckingNit;
+
   final bool isSubmitting;
   final String? submitError;
 
@@ -25,6 +28,7 @@ class CreateClientFormState {
     this.phoneError,
     this.nitError,
     this.isCheckingCi = false,
+    this.isCheckingNit = false,
     this.isSubmitting = false,
     this.submitError,
   });
@@ -37,7 +41,8 @@ class CreateClientFormState {
       name.trim() != '' &&
       ci.trim() != '';
 
-  bool get canSubmit => isValid && !isSubmitting && !isCheckingCi;
+  bool get canSubmit =>
+      isValid && !isSubmitting && !isCheckingCi && !isCheckingNit;
 
   /// Los campos de error se asignan directo, sin `??`, para poder limpiarlos
   /// pasando `null`. Es el mismo criterio que `CreateSellerFormState`.
@@ -51,6 +56,7 @@ class CreateClientFormState {
     String? phoneError,
     String? nitError,
     bool? isCheckingCi,
+    bool? isCheckingNit,
     bool? isSubmitting,
     String? submitError,
   }) {
@@ -64,6 +70,7 @@ class CreateClientFormState {
       phoneError: phoneError,
       nitError: nitError,
       isCheckingCi: isCheckingCi ?? this.isCheckingCi,
+      isCheckingNit: isCheckingNit ?? this.isCheckingNit,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       submitError: submitError,
     );

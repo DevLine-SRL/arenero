@@ -117,11 +117,8 @@ void main() {
       repository.saleDetailResult = Right(
         buildSale(
           deliveryMode: SaleDeliveryMode.companyDelivery,
-          delivery: SaleDelivery(
-            deliveryAddress: 'Av. Siempre Viva 742',
-            vehiclePlate: '1234-ABC',
-            deliveryDate: DateTime(2026, 8, 11),
-          ),
+          freightAmount: 30,
+          delivery: const SaleDelivery(vehiclePlate: '1234-ABC'),
         ),
       );
 
@@ -131,14 +128,15 @@ void main() {
       // La tarjeta de entrega cae fuera del viewport de la prueba y el
       // ListView no la construye hasta que se desplaza.
       await tester.scrollUntilVisible(
-        find.text('Av. Siempre Viva 742'),
+        find.text('1234-ABC'),
         200,
         scrollable: find.byType(Scrollable).first,
       );
 
-      expect(find.text('Av. Siempre Viva 742'), findsOneWidget);
       expect(find.text('1234-ABC'), findsOneWidget);
-      expect(find.text('11 ago 2026'), findsOneWidget);
+      expect(find.text('+Bs. 30.00'), findsOneWidget);
+      expect(find.text('Fecha de entrega'), findsNothing);
+      expect(find.text('Dirección'), findsNothing);
     });
 
     testWidgets('hides the notes card when the sale has none', (tester) async {

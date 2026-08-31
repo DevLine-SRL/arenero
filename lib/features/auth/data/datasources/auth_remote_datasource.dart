@@ -141,7 +141,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<Map<String, dynamic>?> _fetchProfile(String userId) async {
     return client
         .from('profiles')
-        .select('role, active, last_seen_at')
+        .select('name, role, active, last_seen_at')
         .eq('id', userId)
         .maybeSingle();
   }

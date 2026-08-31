@@ -1,4 +1,5 @@
 import 'package:arenero/features/sales/data/models/sale_model.dart';
+import 'package:arenero/features/sales/domain/entities/sale.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Map<String, dynamic> _saleJson({Object? saleDeliveries}) {
@@ -10,8 +11,13 @@ Map<String, dynamic> _saleJson({Object? saleDeliveries}) {
     'sale_date': '2026-08-10T12:00:00Z',
     'delivery_mode': 'company_delivery',
     'payment_method': 'cash',
+    'payment_status': 'partial',
     'status': 'registered',
     'total': 20,
+    'discount_amount': 5,
+    'freight_amount': 8,
+    'amount_paid': 12,
+    'pending_amount': 8,
     'notes': null,
     'client': {
       'id': 'client-1',
@@ -89,6 +95,11 @@ void main() {
       expect(sale.details.single.unitPrice, 10);
       expect(sale.number, 12);
       expect(sale.sellerName, 'Ana Vendedora');
+      expect(sale.discountAmount, 5);
+      expect(sale.freightAmount, 8);
+      expect(sale.paymentStatus, SalePaymentStatus.partial);
+      expect(sale.amountPaid, 12);
+      expect(sale.pendingAmount, 8);
     });
 
     test('falls back to the seller email when the profile has no name', () {

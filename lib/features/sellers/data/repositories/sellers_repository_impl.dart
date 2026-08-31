@@ -88,4 +88,29 @@ class SellersRepositoryImpl implements SellersRepository {
       );
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> updateSeller({
+    required String id,
+    required FullName name,
+    required Email email,
+  }) async {
+    try {
+      await remoteDataSource.updateSeller(
+        id: id,
+        name: name.value,
+        email: email.value,
+      );
+      return const Right(unit);
+    } on supabase.PostgrestException catch (e) {
+      final message = e.message.contains('duplicate') || e.code == '23505'
+          ? 'Ya existe un vendedor registrado con ese correo electrónico.'
+          : 'No se pudo guardar los cambios del vendedor.';
+      return Left(ValidationFailure(message: message, code: e.code));
+    } catch (_) {
+      return const Left(
+        UnexpectedFailure(message: 'No se pudo guardar los cambios del vendedor.'),
+      );
+    }
+  }
 }

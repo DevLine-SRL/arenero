@@ -12,7 +12,18 @@ import '../builders/sale_builder.dart';
 /// configura lanzan `UnimplementedError`.
 class FakeSalesRepository implements SalesRepository {
   Either<Failure, Sale>? saleDetailResult;
+  Either<Failure, Sale>? registerResult;
+  Either<Failure, Unit>? updatePaymentResult;
   String? lastRequestedSaleId;
+  String? lastRegisteredClientId;
+  String? lastRegisteredSellerId;
+  double? lastRegisteredDiscountAmount;
+  double? lastRegisteredFreightAmount;
+  List<SaleDetail>? lastRegisteredDetails;
+  String? lastUpdatedPaymentSaleId;
+  SalePaymentStatus? lastUpdatedPaymentStatus;
+  double? lastUpdatedAmountPaid;
+  double? lastUpdatedPendingAmount;
 
   @override
   Future<Either<Failure, Sale>> getSaleById(String saleId) async {
@@ -26,11 +37,32 @@ class FakeSalesRepository implements SalesRepository {
     required String sellerId,
     required SaleDeliveryMode deliveryMode,
     required SalePaymentMethod paymentMethod,
+    required double discountAmount,
+    required double freightAmount,
     String? notes,
     SaleDelivery? delivery,
     required List<SaleDetail> details,
   }) async {
-    throw UnimplementedError();
+    lastRegisteredClientId = clientId;
+    lastRegisteredSellerId = sellerId;
+    lastRegisteredDiscountAmount = discountAmount;
+    lastRegisteredFreightAmount = freightAmount;
+    lastRegisteredDetails = details;
+    return registerResult ?? Right(buildSale(total: 100, pendingAmount: 100));
+  }
+
+  @override
+  Future<Either<Failure, Unit>> updateSalePayment({
+    required String saleId,
+    required SalePaymentStatus paymentStatus,
+    required double amountPaid,
+    required double pendingAmount,
+  }) async {
+    lastUpdatedPaymentSaleId = saleId;
+    lastUpdatedPaymentStatus = paymentStatus;
+    lastUpdatedAmountPaid = amountPaid;
+    lastUpdatedPendingAmount = pendingAmount;
+    return updatePaymentResult ?? const Right(unit);
   }
 
   @override

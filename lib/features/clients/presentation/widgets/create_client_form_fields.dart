@@ -17,6 +17,7 @@ class CreateClientFormFields extends ConsumerStatefulWidget {
 class _CreateClientFormFieldsState
     extends ConsumerState<CreateClientFormFields> {
   final _ciFocus = FocusNode();
+  final _nitFocus = FocusNode();
 
   @override
   void initState() {
@@ -28,11 +29,19 @@ class _CreateClientFormFieldsState
         ref.read(createClientFormProvider.notifier).checkCiAvailability();
       }
     });
+    // Mismo aviso para el NIT: también identifica al cliente y no puede
+    // repetirse (BUG-CLI-001).
+    _nitFocus.addListener(() {
+      if (!_nitFocus.hasFocus) {
+        ref.read(createClientFormProvider.notifier).checkNitAvailability();
+      }
+    });
   }
 
   @override
   void dispose() {
     _ciFocus.dispose();
+    _nitFocus.dispose();
     super.dispose();
   }
 
@@ -93,11 +102,23 @@ class _CreateClientFormFieldsState
         ),
         const SizedBox(height: 16),
         TextField(
+          focusNode: _nitFocus,
           decoration: InputDecoration(
             labelText: 'NIT',
             prefixIcon: const Icon(Icons.receipt_long_outlined),
             errorText: state.nitError,
+            errorMaxLines: 2,
             helperText: 'Opcional',
+            suffixIcon: state.isCheckingNit
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : null,
           ),
           keyboardType: TextInputType.number,
           textInputAction: TextInputAction.done,

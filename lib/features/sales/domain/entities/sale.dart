@@ -3,8 +3,8 @@ import 'sale_detail.dart';
 import 'sale_delivery.dart';
 
 enum SaleDeliveryMode {
-  customerPickup(dbValue: 'customer_pickup', label: 'Retiro en tienda'),
-  companyDelivery(dbValue: 'company_delivery', label: 'Entrega a domicilio');
+  customerPickup(dbValue: 'customer_pickup', label: 'Recoge en planta'),
+  companyDelivery(dbValue: 'company_delivery', label: 'Domicilio');
 
   final String dbValue;
   final String label;
@@ -37,6 +37,28 @@ enum SalePaymentMethod {
   }
 }
 
+/// HU-04:
+///
+/// Este enum representa el estado del COBRO,
+/// no el método de pago.
+enum SalePaymentStatus {
+  paidInFull(dbValue: 'paid_in_full', label: 'Cobrado completo'),
+  partial(dbValue: 'partial', label: 'Abono parcial'),
+  pending(dbValue: 'pending', label: 'Pendiente');
+
+  final String dbValue;
+  final String label;
+
+  const SalePaymentStatus({required this.dbValue, required this.label});
+
+  static SalePaymentStatus fromDatabase(String value) {
+    return SalePaymentStatus.values.firstWhere(
+      (status) => status.dbValue == value,
+      orElse: () => SalePaymentStatus.pending,
+    );
+  }
+}
+
 enum SaleStatus {
   registered(dbValue: 'registered', label: 'Registrada'),
   void_(dbValue: 'void', label: 'Anulada');
@@ -57,18 +79,47 @@ enum SaleStatus {
 class Sale {
   final String? id;
   final int? number;
+
   final Client client;
   final String sellerId;
 
-  /// Nombre del vendedor. Solo viene en la consulta de detalle.
+  /// Nombre del vendedor.
+  /// Solo viene en la consulta de detalle.
   final String? sellerName;
+
   final DateTime saleDate;
+
   final SaleDeliveryMode deliveryMode;
+
+  /// Efectivo, transferencia o QR.
   final SalePaymentMethod paymentMethod;
+
+  /// HU-04:
+  /// Completo, parcial o pendiente.
+  final SalePaymentStatus paymentStatus;
+
   final SaleStatus status;
+
   final double total;
+
+  final double discountAmount;
+
+  /// HU-02:
+  /// Flete de la venta.
+  final double freightAmount;
+
+  /// HU-04:
+  /// Dinero efectivamente abonado.
+  final double amountPaid;
+
+  /// HU-04:
+  /// Saldo todavía pendiente.
+  final double pendingAmount;
+
   final String? notes;
+
   final List<SaleDetail> details;
+
   final SaleDelivery? delivery;
 
   const Sale({
@@ -80,15 +131,40 @@ class Sale {
     required this.saleDate,
     required this.deliveryMode,
     required this.paymentMethod,
+    this.paymentStatus = SalePaymentStatus.pending,
     this.status = SaleStatus.registered,
     this.total = 0,
+    this.discountAmount = 0,
+    this.freightAmount = 0,
+    this.amountPaid = 0,
+    this.pendingAmount = 0,
     this.notes,
     this.details = const [],
     this.delivery,
   });
 
+  /// Total calculado a partir del detalle.
+  ///
+  /// HU-02:
+  /// El flete solamente se agrega si la venta
+  /// corresponde a domicilio.
   double get computedTotal {
-    return details.fold(0, (sum, detail) => sum + detail.subtotal);
+    final detailSubtotal = details.fold<double>(
+      0,
+      (sum, detail) => sum + detail.subtotal,
+    );
+
+    final effectiveFreight = deliveryMode == SaleDeliveryMode.companyDelivery
+        ? freightAmount
+        : 0.0;
+
+    final result = detailSubtotal - discountAmount + effectiveFreight;
+
+    return result < 0 ? 0 : result;
+  }
+
+  bool get hasPendingPayment {
+    return pendingAmount > 0;
   }
 
   Sale copyWith({
@@ -101,8 +177,13 @@ class Sale {
     DateTime? saleDate,
     SaleDeliveryMode? deliveryMode,
     SalePaymentMethod? paymentMethod,
+    SalePaymentStatus? paymentStatus,
     SaleStatus? status,
     double? total,
+    double? discountAmount,
+    double? freightAmount,
+    double? amountPaid,
+    double? pendingAmount,
     String? notes,
     bool clearNotes = false,
     List<SaleDetail>? details,
@@ -118,8 +199,13 @@ class Sale {
       saleDate: saleDate ?? this.saleDate,
       deliveryMode: deliveryMode ?? this.deliveryMode,
       paymentMethod: paymentMethod ?? this.paymentMethod,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
       status: status ?? this.status,
       total: total ?? this.total,
+      discountAmount: discountAmount ?? this.discountAmount,
+      freightAmount: freightAmount ?? this.freightAmount,
+      amountPaid: amountPaid ?? this.amountPaid,
+      pendingAmount: pendingAmount ?? this.pendingAmount,
       notes: clearNotes ? null : (notes ?? this.notes),
       details: details ?? this.details,
       delivery: clearDelivery ? null : (delivery ?? this.delivery),

@@ -246,3 +246,51 @@ final class CreateSellerUseCaseProvider
 
 String _$createSellerUseCaseHash() =>
     r'fddb11ad729755de0cdc0f05c95b736c2f509bd7';
+
+@ProviderFor(updateSellerUseCase)
+final updateSellerUseCaseProvider = UpdateSellerUseCaseProvider._();
+
+final class UpdateSellerUseCaseProvider
+    extends
+        $FunctionalProvider<
+          UpdateSellerUseCase,
+          UpdateSellerUseCase,
+          UpdateSellerUseCase
+        >
+    with $Provider<UpdateSellerUseCase> {
+  UpdateSellerUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'updateSellerUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$updateSellerUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<UpdateSellerUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UpdateSellerUseCase create(Ref ref) {
+    return updateSellerUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UpdateSellerUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UpdateSellerUseCase>(value),
+    );
+  }
+}
+
+String _$updateSellerUseCaseHash() =>
+    r'b04d62a525d9980320760b9701796cc7614d86e0';

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/sale.dart';
-import '../utils/sale_formatters.dart';
 import 'sale_section_card.dart';
 
 /// Datos de entrega. Solo tiene sentido cuando la venta se entregó a
@@ -15,17 +14,11 @@ class SaleDetailDeliveryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final delivery = sale.delivery;
-    final address = delivery?.deliveryAddress;
     final plate = delivery?.vehiclePlate;
-    final date = delivery?.deliveryDate;
 
     final rows = <Widget>[
-      if (address != null && address.trim().isNotEmpty)
-        _Field(label: 'Dirección', value: address),
       if (plate != null && plate.trim().isNotEmpty)
         _Field(label: 'Placa', value: plate),
-      if (date != null)
-        _Field(label: 'Fecha de entrega', value: formatDate(date)),
     ];
 
     return SaleSectionCard(
