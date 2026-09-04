@@ -137,23 +137,26 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
                   icon: Icons.groups_rounded,
                 ),
                 const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: FilledButton.icon(
-                    onPressed: _openCreateDialog,
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Agregar'),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SellersStatusFilter(
+                        value: _filter,
+                        activeCount: activeCount,
+                        inactiveCount: inactiveCount,
+                        total: sellers.length,
+                        onChanged: _onFilterChanged,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    FilledButton.icon(
+                      onPressed: _openCreateDialog,
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Agregar'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
-                SellersStatusFilter(
-                  value: _filter,
-                  activeCount: activeCount,
-                  inactiveCount: inactiveCount,
-                  total: sellers.length,
-                  onChanged: _onFilterChanged,
-                ),
-                const SizedBox(height: 16),
                 SellersActionsBar(
                   filter: _filter,
                   selectedCount: _selected.length,

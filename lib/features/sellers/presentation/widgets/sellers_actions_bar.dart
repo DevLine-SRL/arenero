@@ -27,32 +27,55 @@ class SellersActionsBar extends StatelessWidget {
     final showDisable =
         filter == SellerStatusFilter.active || filter == SellerStatusFilter.all;
 
+    final hasActions = showEnable || showDisable;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          spacing: 8,
-          children: [
-            if (showEnable)
-              OutlinedButton.icon(
-                onPressed: onEnable,
-                icon: const Icon(Icons.check_circle_outline_rounded),
-                label: const Text('Habilitar'),
-              ),
-            if (showDisable)
-              OutlinedButton.icon(
-                onPressed: onDisable,
-                icon: const Icon(Icons.block_rounded),
-                label: const Text('Deshabilitar'),
-              ),
-          ],
-        ),
+        if (hasActions)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (showEnable)
+                OutlinedButton.icon(
+                  onPressed: onEnable,
+                  icon: const Icon(Icons.check_circle_outline_rounded),
+                  label: const Text('Habilitar'),
+                ),
+              if (showDisable)
+                OutlinedButton.icon(
+                  onPressed: onDisable,
+                  icon: const Icon(Icons.block_rounded),
+                  label: const Text('Deshabilitar'),
+                ),
+            ],
+          ),
         if (hasSelection) ...[
           const SizedBox(height: 12),
-          Text(
-            '$selectedCount seleccionado${selectedCount == 1 ? '' : 's'}',
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.secondaryContainer,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.check_circle_rounded,
+                  size: 16,
+                  color: theme.colorScheme.onSecondaryContainer,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '$selectedCount seleccionado${selectedCount == 1 ? '' : 's'}',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: theme.colorScheme.onSecondaryContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

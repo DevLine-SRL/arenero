@@ -18,51 +18,66 @@ class SellersStatusFilter extends StatelessWidget {
     required this.onChanged,
   });
 
+  String _labelOf(SellerStatusFilter filter) => switch (filter) {
+        SellerStatusFilter.active => 'Activos ($activeCount)',
+        SellerStatusFilter.inactive => 'Inactivos ($inactiveCount)',
+        SellerStatusFilter.all => 'Todos ($total)',
+      };
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: SegmentedButton<SellerStatusFilter>(
-        showSelectedIcon: false,
-        style: ButtonStyle(
-          visualDensity: VisualDensity.compact,
-          backgroundColor: WidgetStateProperty.resolveWith(
-            (states) => states.contains(WidgetState.selected)
-                ? colorScheme.primary
-                : colorScheme.surface,
-          ),
-          foregroundColor: WidgetStateProperty.resolveWith(
-            (states) => states.contains(WidgetState.selected)
-                ? colorScheme.onPrimary
-                : colorScheme.onSurfaceVariant,
-          ),
-          side: WidgetStateProperty.resolveWith(
-            (states) => BorderSide(
-              color: states.contains(WidgetState.selected)
-                  ? colorScheme.primary
-                  : colorScheme.outline,
-            ),
-          ),
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colorScheme.outline),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<SellerStatusFilter>(
+          value: value,
+          isExpanded: true,
+          isDense: true,
+          icon: Icon(Icons.filter_list_rounded, color: colorScheme.primary),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface,
+              ),
+          borderRadius: BorderRadius.circular(8),
+          items: [
+            for (final filter in SellerStatusFilter.values)
+              DropdownMenuItem(
+                value: filter,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _iconOf(filter),
+                      size: 18,
+                      color: value == filter
+                          ? colorScheme.primary
+                          : colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(_labelOf(filter)),
+                  ],
+                ),
+              ),
+          ],
+          onChanged: (filter) {
+            if (filter != null) onChanged(filter);
+          },
         ),
-        segments: [
-          ButtonSegment(
-            value: SellerStatusFilter.active,
-            label: Text('Activos ($activeCount)'),
-          ),
-          ButtonSegment(
-            value: SellerStatusFilter.inactive,
-            label: Text('Inactivos ($inactiveCount)'),
-          ),
-          ButtonSegment(
-            value: SellerStatusFilter.all,
-            label: Text('Todos ($total)'),
-          ),
-        ],
-        selected: {value},
-        onSelectionChanged: (selection) => onChanged(selection.first),
       ),
     );
   }
+
+  IconData _iconOf(SellerStatusFilter filter) => switch (filter) {
+        SellerStatusFilter.active => Icons.check_circle_outline_rounded,
+        SellerStatusFilter.inactive => Icons.block_rounded,
+        SellerStatusFilter.all => Icons.people_rounded,
+      };
 }
