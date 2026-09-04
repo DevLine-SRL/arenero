@@ -31,7 +31,8 @@ GoRouter appRouter(Ref ref) {
       final isLoggedIn = user != null || hasActiveSession;
       final isPublicRoute =
           state.matchedLocation == RoutePaths.login ||
-          state.matchedLocation == RoutePaths.forgotPassword;
+          state.matchedLocation == RoutePaths.forgotPassword ||
+          state.matchedLocation == RoutePaths.changePassword;
       final isLoggingIn = state.matchedLocation == RoutePaths.login;
 
       if (!isLoggedIn && !isPublicRoute) return RoutePaths.login;
