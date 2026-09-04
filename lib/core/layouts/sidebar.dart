@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/domain/entities/user.dart';
 import '../router/route_definitions.dart';
 
 class Sidebar extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
+  final User user;
 
-  const Sidebar({super.key, required this.navigationShell});
+  const Sidebar({
+    super.key,
+    required this.navigationShell,
+    required this.user,
+  });
 
   int? _selectedIndex() {
     final index = navigationShell.currentIndex;
@@ -17,6 +23,7 @@ class Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final hasName = user.name != null && user.name!.isNotEmpty;
 
     return NavigationDrawer(
       selectedIndex: _selectedIndex(),
@@ -30,7 +37,24 @@ class Sidebar extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Text('Arenero', style: theme.textTheme.titleLarge),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (hasName)
+                      Text(
+                        user.name!,
+                        style: theme.textTheme.titleMedium,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    Text(
+                      user.email,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
               IconButton(
                 icon: const Icon(Icons.close_rounded),
@@ -41,7 +65,7 @@ class Sidebar extends StatelessWidget {
           ),
         ),
         const Divider(),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
         const NavigationDrawerDestination(
           icon: Icon(Icons.dashboard_rounded),
           label: Text('Panel'),

@@ -30,12 +30,10 @@ class MainLayout extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final path = GoRouter.of(context).state.uri.path;
-    final title = branchTitles[path] ?? 'Arenero';
-
     final currentIndex = navigationShell.currentIndex;
     final isAdminBranch = currentIndex >= adminBranchStart;
-    final isAdmin = ref.watch(authSessionProvider).value?.role == 'admin';
+    final user = ref.watch(authSessionProvider).value;
+    final isAdmin = user?.role == 'admin';
 
     return Scaffold(
       appBar: AppBar(
@@ -48,7 +46,7 @@ class MainLayout extends ConsumerWidget {
                 ),
               )
             : null,
-        title: Text(title),
+        title: const Text('Arenero'),
         actions: [
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 8),
@@ -61,7 +59,9 @@ class MainLayout extends ConsumerWidget {
           ),
         ],
       ),
-      drawer: isAdmin ? Sidebar(navigationShell: navigationShell) : null,
+      drawer: isAdmin && user != null
+          ? Sidebar(navigationShell: navigationShell, user: user)
+          : null,
       body: navigationShell,
       bottomNavigationBar: MainBottomNavBar(
         currentIndex: currentIndex,

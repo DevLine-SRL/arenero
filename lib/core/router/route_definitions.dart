@@ -17,16 +17,6 @@ import 'route_paths.dart';
 
 const adminBranchStart = 4;
 
-const branchTitles = <String, String>{
-  RoutePaths.salesHistory: 'Ventas',
-  RoutePaths.registerSale: 'Registrar Venta',
-  RoutePaths.salesPayments: 'Cobros',
-  RoutePaths.clients: 'Clientes',
-  RoutePaths.dashboard: 'Panel',
-  RoutePaths.sellersManagement: 'Gestión de Vendedores',
-  RoutePaths.products: 'Gestión de Productos',
-};
-
 const adminOnlyRoutes = <String>[
   RoutePaths.dashboard,
   RoutePaths.products,
