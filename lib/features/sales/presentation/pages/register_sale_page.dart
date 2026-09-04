@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../shared/widgets/page_header.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../../../products/domain/entities/product.dart';
 import '../../../products/presentation/providers/products_controller_provider.dart';
@@ -141,7 +142,11 @@ class RegisterSalePage extends ConsumerWidget {
     }
 
     final sections = <Widget>[
-      _Header(isAdmin: isAdmin),
+      const PageHeader(
+        title: 'Registrar Venta',
+        description: 'Registro y cobro de nuevas ventas',
+        icon: Icons.point_of_sale_rounded,
+      ),
       _StepSection(
         stepLabel: isAdmin ? 'Paso 1 - Vendedor' : 'Vendedor asignado',
         title: isAdmin ? '¿Quién realiza esta venta?' : 'Venta a tu nombre',
@@ -188,36 +193,6 @@ class RegisterSalePage extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  final bool isAdmin;
-
-  const _Header({required this.isAdmin});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Registrar Venta',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          '${isAdmin ? '4 pasos' : '3 pasos'} para registrar la venta',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-      ],
     );
   }
 }

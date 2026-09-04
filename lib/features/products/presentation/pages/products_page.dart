@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../shared/widgets/page_header.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/services/product_duplicate_guard.dart';
 import '../providers/products_controller_provider.dart';
@@ -106,9 +107,6 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
             ),
           ),
           data: (products) {
-            final activeCount = products
-                .where((product) => product.active)
-                .length;
             final visibleProducts = _filterProducts(products);
 
             final emptyMessage = products.isEmpty
@@ -120,39 +118,21 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Productos',
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '$activeCount activo${activeCount == 1 ? '' : 's'}',
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(color: const Color(0xFF7D5A3C)),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    FilledButton.icon(
-                      onPressed: () => _openCreateDialog(products),
-                      icon: const Icon(Icons.add_rounded),
-                      label: const Text('Nuevo'),
-                    ),
-                  ],
+                const PageHeader(
+                  title: 'Gestión de Productos',
+                  description: 'Materiales e insumos disponibles',
+                  icon: Icons.inventory_2_rounded,
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FilledButton.icon(
+                    onPressed: () => _openCreateDialog(products),
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Nuevo'),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: SizedBox(

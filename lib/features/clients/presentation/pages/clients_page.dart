@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../shared/widgets/page_header.dart';
 import '../providers/clients_search_provider.dart';
 import '../providers/clients_search_query_provider.dart';
 import '../widgets/client_list_item.dart';
@@ -23,6 +24,12 @@ class ClientsPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const PageHeader(
+              title: 'Gestión de Clientes',
+              description: 'Base de datos de clientes',
+              icon: Icons.people_rounded,
+            ),
+            const SizedBox(height: 16),
             const ClientsSearchField(),
             const SizedBox(height: 12),
             const ClientsActionsBar(),

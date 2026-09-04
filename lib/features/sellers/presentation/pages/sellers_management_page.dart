@@ -3,14 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
+import '../../../../shared/widgets/page_header.dart';
 import '../../domain/entities/seller.dart';
 import '../providers/sellers_controller_provider.dart';
 import '../widgets/edit_seller_dialog.dart';
 import '../widgets/seller_list_item.dart';
 import '../widgets/sellers_actions_bar.dart';
 import '../widgets/sellers_empty_state.dart';
-import '../widgets/sellers_header.dart';
 import '../widgets/sellers_status_filter.dart';
+import '../widgets/create_seller_dialog.dart';
 
 class SellersManagementPage extends ConsumerStatefulWidget {
   const SellersManagementPage({super.key});
@@ -77,6 +78,13 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
     ref.invalidate(sellersControllerProvider);
   }
 
+  Future<void> _openCreateDialog() async {
+    final created = await CreateSellerDialog.show(context);
+    if (created == true) {
+      ref.invalidate(sellersControllerProvider);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final sellersAsync = ref.watch(sellersControllerProvider);
@@ -123,7 +131,20 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SellersHeader(),
+                PageHeader(
+                  title: 'Gestión de Vendedores',
+                  description: 'Usuarios registrados en el sistema',
+                  icon: Icons.groups_rounded,
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FilledButton.icon(
+                    onPressed: _openCreateDialog,
+                    icon: const Icon(Icons.add_rounded),
+                    label: const Text('Agregar'),
+                  ),
+                ),
                 const SizedBox(height: 12),
                 SellersStatusFilter(
                   value: _filter,

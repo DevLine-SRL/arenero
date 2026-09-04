@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../shared/widgets/page_header.dart';
 import '../../domain/entities/sale.dart';
 import '../providers/pending_sales_provider.dart';
 import '../providers/sales_history_provider.dart';
@@ -80,43 +81,58 @@ class SalesPaymentsPage extends ConsumerWidget {
     final payments = ref.watch(pendingSalesProvider);
 
     return SafeArea(
-      child: payments.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text(
-              'No se pudieron cargar los cobros pendientes.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: PageHeader(
+              title: 'Cobros Pendientes',
+              description: 'Cobros pendientes de los clientes',
+              icon: Icons.credit_card_rounded,
             ),
           ),
-        ),
-        data: (sales) {
-          if (sales.isEmpty) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text('No hay cobros pendientes.'),
+          Expanded(
+            child: payments.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'No se pudieron cargar los cobros pendientes.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
               ),
-            );
-          }
+              data: (sales) {
+                if (sales.isEmpty) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text('No hay cobros pendientes.'),
+                    ),
+                  );
+                }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: sales.length,
-            separatorBuilder: (_, _) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final sale = sales[index];
-              return _PendingPaymentItem(
-                sale: sale,
-                onMarkPaid: () => _markPaid(context, ref, sale),
-                onRegisterPartial: () =>
-                    _registerPartialPayment(context, ref, sale),
-              );
-            },
-          );
-        },
+                return ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: sales.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final sale = sales[index];
+                    return _PendingPaymentItem(
+                      sale: sale,
+                      onMarkPaid: () => _markPaid(context, ref, sale),
+                      onRegisterPartial: () =>
+                          _registerPartialPayment(context, ref, sale),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

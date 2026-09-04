@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/widgets/page_header.dart';
 import '../widgets/reports_client_tab.dart';
 import '../widgets/reports_date_filter.dart';
 import '../widgets/reports_products_tab.dart';
@@ -17,6 +18,14 @@ class DashboardPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: PageHeader(
+                title: 'Panel',
+                description: 'Reportes y resumen general de ventas',
+                icon: Icons.dashboard_rounded,
+              ),
+            ),
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
               child: ReportsDateFilter(),

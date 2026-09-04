@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../shared/widgets/page_header.dart';
 import '../providers/sales_history_date_range_provider.dart';
 import '../providers/sales_history_provider.dart';
 import '../providers/sales_history_search_query_provider.dart';
@@ -28,6 +29,12 @@ class SalesHistoryPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const PageHeader(
+              title: 'Historial de Ventas',
+              description: 'Consulta y seguimiento de ventas realizadas',
+              icon: Icons.receipt_long_rounded,
+            ),
+            const SizedBox(height: 16),
             const SalesHistorySearchField(),
             const SizedBox(height: 8),
             const SalesHistoryDateFilter(),
