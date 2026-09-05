@@ -1,8 +1,11 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../widgets/client_status_filter.dart';
+
 part 'clients_search_query_provider.g.dart';
 
-/// Texto de búsqueda y filtro de inactivos. Vacío significa "todos".
+/// Texto de búsqueda y filtro de estado. `active` por defecto: coincide con el
+/// comportamiento previo (`includeInactive: false`).
 ///
 /// El rebote del teclado lo hace el campo de texto, no este provider, para que
 /// siga siendo puro y fácil de probar.
@@ -12,29 +15,29 @@ class ClientsSearchQuery extends _$ClientsSearchQuery {
   ClientsQuery build() => const ClientsQuery();
 
   void onTextChanged(String text) {
-    state = ClientsQuery(text: text, includeInactive: state.includeInactive);
+    state = ClientsQuery(text: text, status: state.status);
   }
 
-  void onIncludeInactiveChanged(bool includeInactive) {
-    state = ClientsQuery(text: state.text, includeInactive: includeInactive);
+  void onStatusChanged(ClientStatusFilter status) {
+    state = ClientsQuery(text: state.text, status: status);
   }
 
-  void clear() => state = ClientsQuery(includeInactive: state.includeInactive);
+  void clear() => state = ClientsQuery(status: state.status);
 }
 
 class ClientsQuery {
   final String text;
-  final bool includeInactive;
+  final ClientStatusFilter status;
 
-  const ClientsQuery({this.text = '', this.includeInactive = false});
+  const ClientsQuery({this.text = '', this.status = ClientStatusFilter.active});
 
   @override
   bool operator ==(Object other) {
     return other is ClientsQuery &&
         other.text == text &&
-        other.includeInactive == includeInactive;
+        other.status == status;
   }
 
   @override
-  int get hashCode => Object.hash(text, includeInactive);
+  int get hashCode => Object.hash(text, status);
 }

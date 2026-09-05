@@ -9,17 +9,32 @@ part of 'clients_search_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 /// Resultado de la consulta de clientes. Con el texto vacío devuelve la lista
-/// completa, así que también es la fuente de la pantalla al abrirla.
+/// completa del estado seleccionado, así que también es la fuente de la
+/// pantalla al abrirla.
+///
+/// `active` y `all` se resuelven en la base (`includeInactive` true/false); el
+/// caso `inactive` pide la lista completa y descarta los activos en memoria
+/// porque la base no filtra solo inactivos.
 
 @ProviderFor(ClientsSearch)
 final clientsSearchProvider = ClientsSearchProvider._();
 
 /// Resultado de la consulta de clientes. Con el texto vacío devuelve la lista
-/// completa, así que también es la fuente de la pantalla al abrirla.
+/// completa del estado seleccionado, así que también es la fuente de la
+/// pantalla al abrirla.
+///
+/// `active` y `all` se resuelven en la base (`includeInactive` true/false); el
+/// caso `inactive` pide la lista completa y descarta los activos en memoria
+/// porque la base no filtra solo inactivos.
 final class ClientsSearchProvider
     extends $AsyncNotifierProvider<ClientsSearch, List<Client>> {
   /// Resultado de la consulta de clientes. Con el texto vacío devuelve la lista
-  /// completa, así que también es la fuente de la pantalla al abrirla.
+  /// completa del estado seleccionado, así que también es la fuente de la
+  /// pantalla al abrirla.
+  ///
+  /// `active` y `all` se resuelven en la base (`includeInactive` true/false); el
+  /// caso `inactive` pide la lista completa y descarta los activos en memoria
+  /// porque la base no filtra solo inactivos.
   ClientsSearchProvider._()
     : super(
         from: null,
@@ -39,10 +54,15 @@ final class ClientsSearchProvider
   ClientsSearch create() => ClientsSearch();
 }
 
-String _$clientsSearchHash() => r'30fcf12a583f8712748c9969d375db5deb0f3587';
+String _$clientsSearchHash() => r'eadc17470a285e502fba4119f11bda9912a515fc';
 
 /// Resultado de la consulta de clientes. Con el texto vacío devuelve la lista
-/// completa, así que también es la fuente de la pantalla al abrirla.
+/// completa del estado seleccionado, así que también es la fuente de la
+/// pantalla al abrirla.
+///
+/// `active` y `all` se resuelven en la base (`includeInactive` true/false); el
+/// caso `inactive` pide la lista completa y descarta los activos en memoria
+/// porque la base no filtra solo inactivos.
 
 abstract class _$ClientsSearch extends $AsyncNotifier<List<Client>> {
   FutureOr<List<Client>> build();

@@ -6,9 +6,10 @@ import '../../../../shared/widgets/page_header.dart';
 import '../providers/clients_search_provider.dart';
 import '../providers/clients_search_query_provider.dart';
 import '../widgets/client_list_item.dart';
-import '../widgets/clients_actions_bar.dart';
+import '../widgets/client_status_filter.dart';
 import '../widgets/clients_empty_state.dart';
 import '../widgets/clients_search_field.dart';
+import '../widgets/create_client_dialog.dart';
 
 class ClientsPage extends ConsumerWidget {
   const ClientsPage({super.key});
@@ -30,9 +31,24 @@ class ClientsPage extends ConsumerWidget {
               icon: Icons.people_rounded,
             ),
             const SizedBox(height: 16),
-            const ClientsSearchField(),
-            const SizedBox(height: 12),
-            const ClientsActionsBar(),
+            Row(
+              children: [
+                Expanded(
+                  child: ClientsSearchField(
+                    value: query.status,
+                    onFilterChanged: ref
+                        .read(clientsSearchQueryProvider.notifier)
+                        .onStatusChanged,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                FilledButton.icon(
+                  onPressed: () => CreateClientDialog.show(context),
+                  icon: const Icon(Icons.person_add_alt_rounded),
+                  label: const Text('Registrar'),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
             Expanded(
               child: clientsAsync.when(
@@ -46,9 +62,16 @@ class ClientsPage extends ConsumerWidget {
                 data: (clients) {
                   if (clients.isEmpty) {
                     return ClientsEmptyState(
-                      message: query.text.isEmpty
-                          ? 'Aún no hay clientes registrados'
-                          : 'Ningún cliente coincide con "${query.text}"',
+                      message: query.text.isNotEmpty
+                          ? 'Ningún cliente coincide con "${query.text}"'
+                          : switch (query.status) {
+                              ClientStatusFilter.active =>
+                                'No hay clientes activos',
+                              ClientStatusFilter.inactive =>
+                                'No hay clientes inactivos',
+                              ClientStatusFilter.all =>
+                                'Aún no hay clientes registrados',
+                            },
                     );
                   }
 
