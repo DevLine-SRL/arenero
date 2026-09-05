@@ -9,10 +9,10 @@ part of 'sales_history_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(salesHistory)
-final salesHistoryProvider = SalesHistoryProvider._();
+@ProviderFor(salesHistoryData)
+final salesHistoryDataProvider = SalesHistoryDataProvider._();
 
-final class SalesHistoryProvider
+final class SalesHistoryDataProvider
     extends
         $FunctionalProvider<
           AsyncValue<List<SaleHistoryItem>>,
@@ -22,6 +22,45 @@ final class SalesHistoryProvider
     with
         $FutureModifier<List<SaleHistoryItem>>,
         $FutureProvider<List<SaleHistoryItem>> {
+  SalesHistoryDataProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'salesHistoryDataProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$salesHistoryDataHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<SaleHistoryItem>> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<SaleHistoryItem>> create(Ref ref) {
+    return salesHistoryData(ref);
+  }
+}
+
+String _$salesHistoryDataHash() => r'9cdf2497f4cc9b574816172a21aef693c803ab3a';
+
+@ProviderFor(salesHistory)
+final salesHistoryProvider = SalesHistoryProvider._();
+
+final class SalesHistoryProvider
+    extends
+        $FunctionalProvider<
+          List<SaleHistoryItem>,
+          List<SaleHistoryItem>,
+          List<SaleHistoryItem>
+        >
+    with $Provider<List<SaleHistoryItem>> {
   SalesHistoryProvider._()
     : super(
         from: null,
@@ -38,14 +77,22 @@ final class SalesHistoryProvider
 
   @$internal
   @override
-  $FutureProviderElement<List<SaleHistoryItem>> $createElement(
+  $ProviderElement<List<SaleHistoryItem>> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $ProviderElement(pointer);
 
   @override
-  FutureOr<List<SaleHistoryItem>> create(Ref ref) {
+  List<SaleHistoryItem> create(Ref ref) {
     return salesHistory(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(List<SaleHistoryItem> value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<List<SaleHistoryItem>>(value),
+    );
   }
 }
 
-String _$salesHistoryHash() => r'13e6592c55775dbf953356f00ccc88034733b9c4';
+String _$salesHistoryHash() => r'4fd55f2b81ec995fc485cc1698cbd1afac839ff5';

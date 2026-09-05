@@ -548,7 +548,7 @@ class RegisterSaleController extends _$RegisterSaleController {
         return failure;
       },
       (sale) {
-        ref.invalidate(salesHistoryProvider);
+        ref.invalidate(salesHistoryDataProvider);
 
         /*
          * HU-04:
