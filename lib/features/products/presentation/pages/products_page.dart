@@ -6,11 +6,14 @@ import '../../../../shared/widgets/page_header.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/services/product_duplicate_guard.dart';
 import '../providers/products_controller_provider.dart';
+import '../providers/products_search_query_provider.dart';
 import '../widgets/products_empty_state.dart';
 import '../widgets/create_product_dialog.dart';
 import '../widgets/edit_product_dialog.dart';
 import '../widgets/update_product_price_dialog.dart';
+import '../widgets/products_search_field.dart';
 import '../widgets/products_table.dart';
+import '../widgets/product_status_filter.dart';
 
 class ProductsPage extends ConsumerStatefulWidget {
   const ProductsPage({super.key});
@@ -20,7 +23,11 @@ class ProductsPage extends ConsumerStatefulWidget {
 }
 
 class _ProductsPageState extends ConsumerState<ProductsPage> {
-  String _query = '';
+  ProductStatusFilter _filter = ProductStatusFilter.active;
+
+  void _onFilterChanged(ProductStatusFilter filter) {
+    setState(() => _filter = filter);
+  }
 
   void _showFailure(Failure failure) {
     ScaffoldMessenger.of(context)
@@ -107,13 +114,22 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
             ),
           ),
           data: (products) {
-            final visibleProducts = _filterProducts(products);
+            final activeCount = products.where((p) => p.active).length;
+            final inactiveCount = products.length - activeCount;
+
+            final query = ref.watch(productsSearchQueryProvider);
+            final visibleProducts = _filterProducts(products, query);
 
             final emptyMessage = products.isEmpty
                 ? 'Aun no hay productos registrados'
-                : visibleProducts.isEmpty && _query.trim().isNotEmpty
+                : visibleProducts.isEmpty && query.trim().isNotEmpty
                 ? 'No se encontraron productos para esa busqueda'
-                : 'No hay productos';
+                : switch (_filter) {
+                    ProductStatusFilter.active => 'No hay productos activos',
+                    ProductStatusFilter.inactive =>
+                      'No hay productos inactivos',
+                    ProductStatusFilter.all => 'No hay productos',
+                  };
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -124,47 +140,26 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                   icon: Icons.inventory_2_rounded,
                 ),
                 const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: FilledButton.icon(
-                    onPressed: () => _openCreateDialog(products),
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('Nuevo'),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ProductsSearchField(
+                        value: _filter,
+                        activeCount: activeCount,
+                        inactiveCount: inactiveCount,
+                        total: products.length,
+                        onFilterChanged: _onFilterChanged,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    FilledButton.icon(
+                      onPressed: () => _openCreateDialog(products),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('Nuevo'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: SizedBox(
-                    width: 375,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Buscar en productos...',
-                        prefixIcon: const Icon(Icons.search_rounded),
-                        filled: true,
-                        fillColor: const Color(0xFFF3E8D6),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(7),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFD7C7AE),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(7),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF7B4318),
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) => setState(() => _query = value),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
                 Expanded(
                   child: visibleProducts.isEmpty
                       ? ProductsEmptyState(message: emptyMessage)
@@ -187,10 +182,17 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     );
   }
 
-  List<Product> _filterProducts(List<Product> products) {
-    final normalizedQuery = normalizeProductName(_query);
+  List<Product> _filterProducts(List<Product> products, String query) {
+    final normalizedQuery = normalizeProductName(query);
 
     return products.where((product) {
+      final matchesFilter = switch (_filter) {
+        ProductStatusFilter.active => product.active,
+        ProductStatusFilter.inactive => !product.active,
+        ProductStatusFilter.all => true,
+      };
+      if (!matchesFilter) return false;
+
       if (normalizedQuery.isEmpty) return true;
       return normalizeProductName(product.name).contains(normalizedQuery);
     }).toList();

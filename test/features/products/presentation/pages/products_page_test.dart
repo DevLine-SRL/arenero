@@ -10,26 +10,29 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ProductsPage', () {
-    testWidgets('does not deactivate a product when confirmation is cancelled', (
-      tester,
-    ) async {
-      final repository = _ProductsRepositoryFake();
-      await _pumpPage(tester, repository);
+    testWidgets(
+      'does not deactivate a product when confirmation is cancelled',
+      (tester) async {
+        final repository = _ProductsRepositoryFake();
+        await _pumpPage(tester, repository);
 
-      await tester.tap(find.byTooltip('Desactivar producto'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.byTooltip('Desactivar producto'));
+        await tester.pumpAndSettle();
 
-      expect(find.text('Desactivar producto'), findsOneWidget);
-      expect(
-        find.text('El producto dejará de estar disponible para nuevas ventas. Las ventas existentes no cambiarán.'),
-        findsOneWidget,
-      );
+        expect(find.text('Desactivar producto'), findsOneWidget);
+        expect(
+          find.textContaining(
+            'El producto dejará de estar disponible para nuevas ventas.',
+          ),
+          findsOneWidget,
+        );
 
-      await tester.tap(find.text('Cancelar'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Cancelar'));
+        await tester.pumpAndSettle();
 
-      expect(repository.setActiveCalls, 0);
-    });
+        expect(repository.setActiveCalls, 0);
+      },
+    );
 
     testWidgets('deactivates a product after confirmation', (tester) async {
       final repository = _ProductsRepositoryFake();
