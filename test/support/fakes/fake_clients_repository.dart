@@ -27,6 +27,13 @@ class FakeClientsRepository implements ClientsRepository {
   int createCallCount = 0;
   int existsCallCount = 0;
   int existsByNitCallCount = 0;
+  String? lastUpdatedId;
+  String? lastUpdatedName;
+  String? lastUpdatedCi;
+  String? lastUpdatedPhone;
+  String? lastUpdatedNit;
+  int updateCallCount = 0;
+  int setActiveCallCount = 0;
 
   @override
   Future<Either<Failure, Client>> createClient({
@@ -76,12 +83,19 @@ class FakeClientsRepository implements ClientsRepository {
     String? phone,
     String? nit,
   }) async {
+    updateCallCount++;
+    lastUpdatedId = id;
+    lastUpdatedName = name;
+    lastUpdatedCi = ci.value;
+    lastUpdatedPhone = phone;
+    lastUpdatedNit = nit;
     return updateResult ??
         Right(buildClient(id: id, name: name, ci: ci.value, nit: nit));
   }
 
   @override
   Future<Either<Failure, Unit>> setActive(String id, bool active) async {
+    setActiveCallCount++;
     return setActiveResult ?? const Right(unit);
   }
 }

@@ -54,7 +54,7 @@ final class ClientsSearchProvider
   ClientsSearch create() => ClientsSearch();
 }
 
-String _$clientsSearchHash() => r'eadc17470a285e502fba4119f11bda9912a515fc';
+String _$clientsSearchHash() => r'38572a0266effc75f8b7bba45b11eb7da1d3f69b';
 
 /// Resultado de la consulta de clientes. Con el texto vacío devuelve la lista
 /// completa del estado seleccionado, así que también es la fuente de la

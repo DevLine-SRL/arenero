@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/widgets/status_badge.dart';
 import '../../domain/entities/product.dart';
-import 'product_status_badge.dart';
 
 class ProductListItem extends StatelessWidget {
   final Product product;
@@ -81,7 +81,7 @@ class ProductListItem extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            ProductStatusBadge(active: product.active),
+            StatusBadge(active: product.active, activeLabel: 'Disponible'),
             const SizedBox(width: 8),
             Switch(value: product.active, onChanged: onActiveChanged),
           ],

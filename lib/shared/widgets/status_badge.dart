@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../core/theme/app_colors.dart';
 
-class SellerStatusBadge extends StatelessWidget {
+/// Distintivo de estado activo/inactivo, compartido por vendedores, clientes y
+/// productos para que los colores sean idénticos en todas las pantallas.
+///
+/// Activo en verde (`AppColors.success`), inactivo en ámbar
+/// (`AppColors.warning`), con el punto indicador y píldora translúcida.
+class StatusBadge extends StatelessWidget {
   final bool active;
+  final String activeLabel;
+  final String inactiveLabel;
 
-  const SellerStatusBadge({super.key, required this.active});
+  const StatusBadge({
+    super.key,
+    required this.active,
+    this.activeLabel = 'Activo',
+    this.inactiveLabel = 'Inactivo',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +39,7 @@ class SellerStatusBadge extends StatelessWidget {
           ),
           const SizedBox(width: 6),
           Text(
-            active ? 'Activo' : 'Inactivo',
+            active ? activeLabel : inactiveLabel,
             style: Theme.of(
               context,
             ).textTheme.labelMedium?.copyWith(color: color),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../shared/widgets/status_badge.dart';
 import '../../domain/entities/seller.dart';
-import 'seller_status_badge.dart';
 
 class SellerListItem extends StatelessWidget {
   final Seller seller;
@@ -74,7 +74,7 @@ class SellerListItem extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              SellerStatusBadge(active: seller.active),
+              StatusBadge(active: seller.active),
               const SizedBox(width: 8),
               IconButton(
                 onPressed: onEdit,

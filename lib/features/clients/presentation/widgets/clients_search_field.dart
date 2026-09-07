@@ -11,11 +11,17 @@ import 'client_status_filter.dart';
 /// para que el provider siga siendo puro y fácil de probar.
 class ClientsSearchField extends ConsumerStatefulWidget {
   final ClientStatusFilter value;
+  final int activeCount;
+  final int inactiveCount;
+  final int total;
   final ValueChanged<ClientStatusFilter> onFilterChanged;
 
   const ClientsSearchField({
     super.key,
     required this.value,
+    required this.activeCount,
+    required this.inactiveCount,
+    required this.total,
     required this.onFilterChanged,
   });
 
@@ -50,9 +56,9 @@ class _ClientsSearchFieldState extends ConsumerState<ClientsSearchField> {
   }
 
   String _labelOf(ClientStatusFilter filter) => switch (filter) {
-    ClientStatusFilter.active => 'Activos',
-    ClientStatusFilter.inactive => 'Inactivos',
-    ClientStatusFilter.all => 'Todos',
+    ClientStatusFilter.active => 'Activos (${widget.activeCount})',
+    ClientStatusFilter.inactive => 'Inactivos (${widget.inactiveCount})',
+    ClientStatusFilter.all => 'Todos (${widget.total})',
   };
 
   IconData _iconOf(ClientStatusFilter filter) => switch (filter) {
