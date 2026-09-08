@@ -3,28 +3,21 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/client.dart';
 import 'clients_providers.dart';
-import 'clients_search_query_provider.dart';
 
 part 'clients_search_provider.g.dart';
 
-/// Resultado de la consulta de clientes. Con el texto vacío devuelve la lista
-/// completa del estado seleccionado, así que también es la fuente de la
-/// pantalla al abrirla.
+/// Lista completa de clientes (activos e inactivos), cargada una sola vez.
 ///
-/// `active` y `all` se resuelven en la base (`includeInactive` true/false); el
-/// caso `inactive` pide la lista completa y descarta los activos en memoria
-/// porque la base no filtra solo inactivos.
+/// El texto de búsqueda y el filtro de estado se aplican en memoria en la
+/// página, igual que en la gestión de productos y vendedores, para que
+/// escribir o cambiar el filtro no vuelva a golpear la base de datos.
 @riverpod
 class ClientsSearch extends _$ClientsSearch {
   @override
   Future<List<Client>> build() async {
-    final query = ref.watch(clientsSearchQueryProvider);
     final useCase = ref.watch(searchClientsUseCaseProvider);
 
-    // Devuelve todos los clientes que coinciden con el texto, activos e
-    // inactivos. El filtro por estado y los contadores son responsabilidad de
-    // la página, igual que en la gestión de vendedores.
-    final result = await useCase(query: query.text, includeInactive: true);
+    final result = await useCase(query: '', includeInactive: true);
 
     return result.fold((failure) => throw failure, (clients) => clients);
   }

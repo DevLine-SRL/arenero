@@ -90,58 +90,64 @@ class _ProductsSearchFieldState extends ConsumerState<ProductsSearchField> {
             minWidth: 36,
             minHeight: 0,
           ),
-          suffixIcon: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (hasText)
-                IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 20),
-                  tooltip: 'Limpiar búsqueda',
-                  onPressed: _clear,
-                  constraints: const BoxConstraints(minWidth: 36, minHeight: 0),
-                  padding: const EdgeInsets.all(4),
-                ),
-              PopupMenuButton<ProductStatusFilter>(
-                icon: Icon(
-                  Icons.filter_list_rounded,
-                  size: 20,
-                  color: filterActive
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                ),
-                tooltip: 'Filtrar por estado',
-                onSelected: widget.onFilterChanged,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 0),
-                itemBuilder: (context) => [
-                  for (final filter in ProductStatusFilter.values)
-                    PopupMenuItem(
-                      value: filter,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _iconOf(filter),
-                            size: 18,
-                            color: filter == widget.value
-                                ? colorScheme.primary
-                                : colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(_labelOf(filter)),
-                          const SizedBox(width: 8),
-                          if (filter == widget.value)
-                            Icon(
-                              Icons.check_rounded,
-                              size: 18,
-                              color: colorScheme.primary,
-                            ),
-                        ],
-                      ),
+          suffixIcon: Focus(
+            canRequestFocus: false,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (hasText)
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    tooltip: 'Limpiar búsqueda',
+                    onPressed: _clear,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 0,
                     ),
-                ],
-              ),
-            ],
+                    padding: const EdgeInsets.all(4),
+                  ),
+                PopupMenuButton<ProductStatusFilter>(
+                  icon: Icon(
+                    Icons.filter_list_rounded,
+                    size: 20,
+                    color: filterActive
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                  tooltip: 'Filtrar por estado',
+                  onSelected: widget.onFilterChanged,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 0),
+                  itemBuilder: (context) => [
+                    for (final filter in ProductStatusFilter.values)
+                      PopupMenuItem(
+                        value: filter,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _iconOf(filter),
+                              size: 18,
+                              color: filter == widget.value
+                                  ? colorScheme.primary
+                                  : colorScheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(_labelOf(filter)),
+                            const SizedBox(width: 8),
+                            if (filter == widget.value)
+                              Icon(
+                                Icons.check_rounded,
+                                size: 18,
+                                color: colorScheme.primary,
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
           suffixIconConstraints: const BoxConstraints(
             minWidth: 36,

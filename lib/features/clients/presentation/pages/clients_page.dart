@@ -74,6 +74,33 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
     }
   }
 
+  List<Client> _filterClients(
+    List<Client> clients, {
+    required ClientStatusFilter status,
+    required String text,
+  }) {
+    final normalizedText = text.trim().toLowerCase();
+
+    return clients.where((client) {
+      final matchesStatus = switch (status) {
+        ClientStatusFilter.active => client.active,
+        ClientStatusFilter.inactive => !client.active,
+        ClientStatusFilter.all => true,
+      };
+      if (!matchesStatus) return false;
+
+      if (normalizedText.isEmpty) return true;
+
+      final haystack = [
+        client.name,
+        client.ci,
+        client.nit ?? '',
+        client.phone ?? '',
+      ].join(' ').toLowerCase();
+      return haystack.contains(normalizedText);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final clientsAsync = ref.watch(clientsSearchProvider);
@@ -95,13 +122,11 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
             final activeCount = clients.where((c) => c.active).length;
             final inactiveCount = clients.length - activeCount;
 
-            final visibleClients = switch (filter) {
-              ClientStatusFilter.active =>
-                clients.where((c) => c.active).toList(),
-              ClientStatusFilter.inactive =>
-                clients.where((c) => !c.active).toList(),
-              ClientStatusFilter.all => clients,
-            };
+            final visibleClients = _filterClients(
+              clients,
+              status: filter,
+              text: query.text,
+            );
 
             final emptyMessage = clients.isEmpty
                 ? 'Aún no hay clientes registrados'

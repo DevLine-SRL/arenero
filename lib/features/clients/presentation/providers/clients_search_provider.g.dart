@@ -8,33 +8,27 @@ part of 'clients_search_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Resultado de la consulta de clientes. Con el texto vacío devuelve la lista
-/// completa del estado seleccionado, así que también es la fuente de la
-/// pantalla al abrirla.
+/// Lista completa de clientes (activos e inactivos), cargada una sola vez.
 ///
-/// `active` y `all` se resuelven en la base (`includeInactive` true/false); el
-/// caso `inactive` pide la lista completa y descarta los activos en memoria
-/// porque la base no filtra solo inactivos.
+/// El texto de búsqueda y el filtro de estado se aplican en memoria en la
+/// página, igual que en la gestión de productos y vendedores, para que
+/// escribir o cambiar el filtro no vuelva a golpear la base de datos.
 
 @ProviderFor(ClientsSearch)
 final clientsSearchProvider = ClientsSearchProvider._();
 
-/// Resultado de la consulta de clientes. Con el texto vacío devuelve la lista
-/// completa del estado seleccionado, así que también es la fuente de la
-/// pantalla al abrirla.
+/// Lista completa de clientes (activos e inactivos), cargada una sola vez.
 ///
-/// `active` y `all` se resuelven en la base (`includeInactive` true/false); el
-/// caso `inactive` pide la lista completa y descarta los activos en memoria
-/// porque la base no filtra solo inactivos.
+/// El texto de búsqueda y el filtro de estado se aplican en memoria en la
+/// página, igual que en la gestión de productos y vendedores, para que
+/// escribir o cambiar el filtro no vuelva a golpear la base de datos.
 final class ClientsSearchProvider
     extends $AsyncNotifierProvider<ClientsSearch, List<Client>> {
-  /// Resultado de la consulta de clientes. Con el texto vacío devuelve la lista
-  /// completa del estado seleccionado, así que también es la fuente de la
-  /// pantalla al abrirla.
+  /// Lista completa de clientes (activos e inactivos), cargada una sola vez.
   ///
-  /// `active` y `all` se resuelven en la base (`includeInactive` true/false); el
-  /// caso `inactive` pide la lista completa y descarta los activos en memoria
-  /// porque la base no filtra solo inactivos.
+  /// El texto de búsqueda y el filtro de estado se aplican en memoria en la
+  /// página, igual que en la gestión de productos y vendedores, para que
+  /// escribir o cambiar el filtro no vuelva a golpear la base de datos.
   ClientsSearchProvider._()
     : super(
         from: null,
@@ -54,15 +48,13 @@ final class ClientsSearchProvider
   ClientsSearch create() => ClientsSearch();
 }
 
-String _$clientsSearchHash() => r'38572a0266effc75f8b7bba45b11eb7da1d3f69b';
+String _$clientsSearchHash() => r'932c0e8b56ed61329053d1889297d60a096ce7a3';
 
-/// Resultado de la consulta de clientes. Con el texto vacío devuelve la lista
-/// completa del estado seleccionado, así que también es la fuente de la
-/// pantalla al abrirla.
+/// Lista completa de clientes (activos e inactivos), cargada una sola vez.
 ///
-/// `active` y `all` se resuelven en la base (`includeInactive` true/false); el
-/// caso `inactive` pide la lista completa y descarta los activos en memoria
-/// porque la base no filtra solo inactivos.
+/// El texto de búsqueda y el filtro de estado se aplican en memoria en la
+/// página, igual que en la gestión de productos y vendedores, para que
+/// escribir o cambiar el filtro no vuelva a golpear la base de datos.
 
 abstract class _$ClientsSearch extends $AsyncNotifier<List<Client>> {
   FutureOr<List<Client>> build();
