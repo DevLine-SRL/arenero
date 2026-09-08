@@ -22,10 +22,7 @@ class EditSellerDialog extends ConsumerStatefulWidget {
   }) {
     return showDialog<bool>(
       context: context,
-      builder: (context) => EditSellerDialog(
-        seller: seller,
-        sellers: sellers,
-      ),
+      builder: (context) => EditSellerDialog(seller: seller, sellers: sellers),
     );
   }
 

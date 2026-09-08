@@ -7,10 +7,10 @@ import '../../../../shared/widgets/page_header.dart';
 import '../../domain/entities/client.dart';
 import '../providers/clients_search_provider.dart';
 import '../providers/clients_search_query_provider.dart';
-import '../widgets/client_list_item.dart';
 import '../widgets/client_status_filter.dart';
 import '../widgets/clients_actions_bar.dart';
 import '../widgets/clients_empty_state.dart';
+import '../widgets/clients_table.dart';
 import '../widgets/clients_search_field.dart';
 import '../widgets/create_client_dialog.dart';
 import '../widgets/edit_client_dialog.dart';
@@ -152,20 +152,11 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
                 Expanded(
                   child: visibleClients.isEmpty
                       ? ClientsEmptyState(message: emptyMessage)
-                      : ListView.separated(
-                          padding: EdgeInsets.zero,
-                          itemCount: visibleClients.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 8),
-                          itemBuilder: (context, index) {
-                            final client = visibleClients[index];
-                            return ClientListItem(
-                              client: client,
-                              isSelected: _selected.contains(client.id),
-                              onToggle: (selected) =>
-                                  _toggleSelected(client.id, selected),
-                              onEdit: () => _editClient(client),
-                            );
-                          },
+                      : ClientsTable(
+                          clients: visibleClients,
+                          selectedIds: _selected,
+                          onToggle: _toggleSelected,
+                          onEdit: _editClient,
                         ),
                 ),
               ],

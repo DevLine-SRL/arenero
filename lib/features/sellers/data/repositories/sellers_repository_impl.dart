@@ -109,7 +109,9 @@ class SellersRepositoryImpl implements SellersRepository {
       return Left(ValidationFailure(message: message, code: e.code));
     } catch (_) {
       return const Left(
-        UnexpectedFailure(message: 'No se pudo guardar los cambios del vendedor.'),
+        UnexpectedFailure(
+          message: 'No se pudo guardar los cambios del vendedor.',
+        ),
       );
     }
   }

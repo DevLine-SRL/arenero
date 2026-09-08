@@ -19,10 +19,10 @@ class SellersStatusFilter extends StatelessWidget {
   });
 
   String _labelOf(SellerStatusFilter filter) => switch (filter) {
-        SellerStatusFilter.active => 'Activos ($activeCount)',
-        SellerStatusFilter.inactive => 'Inactivos ($inactiveCount)',
-        SellerStatusFilter.all => 'Todos ($total)',
-      };
+    SellerStatusFilter.active => 'Activos ($activeCount)',
+    SellerStatusFilter.inactive => 'Inactivos ($inactiveCount)',
+    SellerStatusFilter.all => 'Todos ($total)',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +43,9 @@ class SellersStatusFilter extends StatelessWidget {
           isExpanded: true,
           isDense: true,
           icon: Icon(Icons.filter_list_rounded, color: colorScheme.primary),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
           borderRadius: BorderRadius.circular(8),
           items: [
             for (final filter in SellerStatusFilter.values)
@@ -76,8 +76,8 @@ class SellersStatusFilter extends StatelessWidget {
   }
 
   IconData _iconOf(SellerStatusFilter filter) => switch (filter) {
-        SellerStatusFilter.active => Icons.check_circle_outline_rounded,
-        SellerStatusFilter.inactive => Icons.block_rounded,
-        SellerStatusFilter.all => Icons.people_rounded,
-      };
+    SellerStatusFilter.active => Icons.check_circle_outline_rounded,
+    SellerStatusFilter.inactive => Icons.block_rounded,
+    SellerStatusFilter.all => Icons.people_rounded,
+  };
 }

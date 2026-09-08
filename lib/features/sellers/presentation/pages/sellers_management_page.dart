@@ -7,9 +7,9 @@ import '../../../../shared/widgets/page_header.dart';
 import '../../domain/entities/seller.dart';
 import '../providers/sellers_controller_provider.dart';
 import '../widgets/edit_seller_dialog.dart';
-import '../widgets/seller_list_item.dart';
 import '../widgets/sellers_actions_bar.dart';
 import '../widgets/sellers_empty_state.dart';
+import '../widgets/sellers_table.dart';
 import '../widgets/sellers_status_filter.dart';
 import '../widgets/create_seller_dialog.dart';
 
@@ -72,9 +72,7 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        const SnackBar(content: Text('Vendedor guardado')),
-      );
+      ..showSnackBar(const SnackBar(content: Text('Vendedor guardado')));
     ref.invalidate(sellersControllerProvider);
   }
 
@@ -167,20 +165,11 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
                 Expanded(
                   child: visibleSellers.isEmpty
                       ? SellersEmptyState(message: emptyMessage)
-                      : ListView.separated(
-                          padding: EdgeInsets.zero,
-                          itemCount: visibleSellers.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 8),
-                          itemBuilder: (context, index) {
-                            final seller = visibleSellers[index];
-                            return SellerListItem(
-                              seller: seller,
-                              isSelected: _selected.contains(seller.id),
-                              onToggle: (selected) =>
-                                  _toggleSelected(seller.id, selected),
-                              onEdit: () => _editSeller(seller, sellers),
-                            );
-                          },
+                      : SellersTable(
+                          sellers: visibleSellers,
+                          selectedIds: _selected,
+                          onToggle: _toggleSelected,
+                          onEdit: (seller) => _editSeller(seller, sellers),
                         ),
                 ),
               ],

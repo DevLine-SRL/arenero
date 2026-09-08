@@ -22,7 +22,7 @@ void main() {
 
       expect(find.text('Gestión de Clientes'), findsOneWidget);
       expect(find.text('Juan Pérez'), findsOneWidget);
-      expect(find.text('Activo'), findsOneWidget);
+      expect(find.byTooltip('Activo'), findsOneWidget);
       // La vista por defecto es la de activos, así que Ana (inactiva) no se ve.
       expect(find.text('Ana López'), findsNothing);
     });

@@ -8,11 +8,7 @@ class Sidebar extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
   final User user;
 
-  const Sidebar({
-    super.key,
-    required this.navigationShell,
-    required this.user,
-  });
+  const Sidebar({super.key, required this.navigationShell, required this.user});
 
   int? _selectedIndex() {
     final index = navigationShell.currentIndex;
