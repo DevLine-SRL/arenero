@@ -10,42 +10,93 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('ProductsPage', () {
-    testWidgets(
-      'does not deactivate a product when confirmation is cancelled',
-      (tester) async {
-        final repository = _ProductsRepositoryFake();
-        await _pumpPage(tester, repository);
-
-        await tester.tap(find.byTooltip('Desactivar producto'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Desactivar producto'), findsOneWidget);
-        expect(
-          find.textContaining(
-            'El producto dejará de estar disponible para nuevas ventas.',
-          ),
-          findsOneWidget,
-        );
-
-        await tester.tap(find.text('Cancelar'));
-        await tester.pumpAndSettle();
-
-        expect(repository.setActiveCalls, 0);
-      },
-    );
-
-    testWidgets('deactivates a product after confirmation', (tester) async {
+    testWidgets('shows active products by default with their status dots', (
+      tester,
+    ) async {
       final repository = _ProductsRepositoryFake();
+      repository.products = [
+        _product(id: 'product-1', name: 'Arena fina', active: true),
+      ];
       await _pumpPage(tester, repository);
 
-      await tester.tap(find.byTooltip('Desactivar producto'));
+      expect(find.text('Gestión de Productos'), findsOneWidget);
+      expect(find.text('Arena fina'), findsOneWidget);
+      expect(find.text('Metro cubico · Bs. 50'), findsOneWidget);
+      expect(find.byTooltip('Activo'), findsOneWidget);
+    });
+
+    testWidgets('does not disable a product when confirmation is cancelled', (
+      tester,
+    ) async {
+      final repository = _ProductsRepositoryFake();
+      repository.products = [
+        _product(id: 'product-1', name: 'Arena fina', active: true),
+      ];
+      await _pumpPage(tester, repository);
+
+      await tester.tap(find.byType(Checkbox));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(FilledButton, 'Desactivar'));
+      await tester.tap(find.text('Deshabilitar'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Deshabilitar productos'), findsOneWidget);
+
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+
+      expect(repository.setActiveCalls, 0);
+    });
+
+    testWidgets('disables a selected product after confirmation', (
+      tester,
+    ) async {
+      final repository = _ProductsRepositoryFake();
+      repository.products = [
+        _product(id: 'product-1', name: 'Arena fina', active: true),
+      ];
+      await _pumpPage(tester, repository);
+
+      await tester.tap(find.byType(Checkbox));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Deshabilitar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Si, deshabilitar'));
       await tester.pumpAndSettle();
 
       expect(repository.setActiveCalls, 1);
       expect(repository.lastProductId, 'product-1');
       expect(repository.lastActive, isFalse);
+    });
+
+    testWidgets('shows the edit dialog and saves name and price', (
+      tester,
+    ) async {
+      final repository = _ProductsRepositoryFake();
+      repository.products = [
+        _product(id: 'product-1', name: 'Arena fina', active: true),
+      ];
+      await _pumpPage(tester, repository);
+
+      await tester.tap(find.byTooltip('Modificar producto'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Modificar producto'), findsOneWidget);
+
+      final fields = find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      );
+      expect(fields, findsNWidgets(2));
+
+      await tester.enterText(fields.first, 'Arena gruesa');
+      await tester.enterText(fields.last, '75.00');
+      await tester.tap(find.text('Guardar cambios'));
+      await tester.pumpAndSettle();
+
+      expect(repository.lastProductId, 'product-1');
+      expect(repository.lastName, 'Arena Gruesa');
+      expect(repository.lastUnitId, 'unit-1');
+      expect(repository.lastUnitPrice, 75.0);
     });
   });
 }
@@ -63,10 +114,35 @@ Future<void> _pumpPage(
   await tester.pumpAndSettle();
 }
 
+Product _product({
+  required String id,
+  required String name,
+  required bool active,
+}) {
+  return Product(
+    id: id,
+    name: name,
+    active: active,
+    units: [
+      ProductUnitPrice(
+        id: 'unit-1',
+        productId: id,
+        unit: ProductUnitOfMeasure.m3,
+        unitPrice: 50,
+        active: true,
+      ),
+    ],
+  );
+}
+
 class _ProductsRepositoryFake implements ProductsRepository {
+  List<Product> products = [];
   int setActiveCalls = 0;
   String? lastProductId;
   bool? lastActive;
+  String? lastName;
+  String? lastUnitId;
+  double? lastUnitPrice;
 
   @override
   Future<dartz.Either<Failure, dartz.Unit>> createProduct({
@@ -79,22 +155,7 @@ class _ProductsRepositoryFake implements ProductsRepository {
 
   @override
   Future<dartz.Either<Failure, List<Product>>> getProducts() async {
-    return const dartz.Right([
-      Product(
-        id: 'product-1',
-        name: 'Arena fina',
-        active: true,
-        units: [
-          ProductUnitPrice(
-            id: 'unit-1',
-            productId: 'product-1',
-            unit: ProductUnitOfMeasure.m3,
-            unitPrice: 50,
-            active: true,
-          ),
-        ],
-      ),
-    ]);
+    return dartz.Right(products);
   }
 
   @override
@@ -113,6 +174,8 @@ class _ProductsRepositoryFake implements ProductsRepository {
     required String id,
     required String name,
   }) async {
+    lastProductId = id;
+    lastName = name;
     return const dartz.Right(dartz.unit);
   }
 
@@ -120,5 +183,9 @@ class _ProductsRepositoryFake implements ProductsRepository {
   Future<dartz.Either<Failure, dartz.Unit>> updateUnitPrice({
     required String unitId,
     required double unitPrice,
-  }) async => const dartz.Right(dartz.unit);
+  }) async {
+    lastUnitId = unitId;
+    lastUnitPrice = unitPrice;
+    return const dartz.Right(dartz.unit);
+  }
 }

@@ -16,7 +16,14 @@ void main() {
         id: 'seller-1',
         name: ' ',
         rawEmail: 'seller@example.com',
-        existingSellers: const [Seller(id: 'seller-1', email: 'seller@example.com', name: 'Ana', active: true)],
+        existingSellers: const [
+          Seller(
+            id: 'seller-1',
+            email: 'seller@example.com',
+            name: 'Ana',
+            active: true,
+          ),
+        ],
       );
 
       expect(result.isLeft(), isTrue);
@@ -35,7 +42,14 @@ void main() {
         id: 'seller-1',
         name: 'Ana López',
         rawEmail: 'ana.nueva@example.com',
-        existingSellers: const [Seller(id: 'seller-1', email: 'seller@example.com', name: 'Ana', active: true)],
+        existingSellers: const [
+          Seller(
+            id: 'seller-1',
+            email: 'seller@example.com',
+            name: 'Ana',
+            active: true,
+          ),
+        ],
       );
 
       expect(result.isRight(), isTrue);

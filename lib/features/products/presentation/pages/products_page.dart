@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../../shared/widgets/page_header.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/services/product_duplicate_guard.dart';
@@ -10,7 +11,7 @@ import '../providers/products_search_query_provider.dart';
 import '../widgets/products_empty_state.dart';
 import '../widgets/create_product_dialog.dart';
 import '../widgets/edit_product_dialog.dart';
-import '../widgets/update_product_price_dialog.dart';
+import '../widgets/products_actions_bar.dart';
 import '../widgets/products_search_field.dart';
 import '../widgets/products_table.dart';
 import '../widgets/product_status_filter.dart';
@@ -23,72 +24,65 @@ class ProductsPage extends ConsumerStatefulWidget {
 }
 
 class _ProductsPageState extends ConsumerState<ProductsPage> {
+  final Set<String> _selected = {};
   ProductStatusFilter _filter = ProductStatusFilter.active;
 
+  void _toggleSelected(String id, bool selected) {
+    setState(() {
+      if (selected) {
+        _selected.add(id);
+      } else {
+        _selected.remove(id);
+      }
+    });
+  }
+
   void _onFilterChanged(ProductStatusFilter filter) {
-    setState(() => _filter = filter);
+    setState(() {
+      _filter = filter;
+      _selected.clear();
+    });
   }
 
-  void _showFailure(Failure failure) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(failure.message)));
-  }
+  Future<void> _setActive(bool active) async {
+    if (_selected.isEmpty) return;
 
-  Future<void> _setActive(Product product, bool active) async {
-    final confirmed = await _confirmActiveChange(product, active);
-    if (!confirmed || !mounted) return;
+    final confirmed = await showConfirmDialog(
+      context: context,
+      title: active ? 'Habilitar productos' : 'Deshabilitar productos',
+      content: active
+          ? '¿Estás seguro de que deseas habilitar ${_selected.length == 1 ? 'el producto seleccionado' : 'los ${_selected.length} productos seleccionados'}?'
+          : '¿Estás seguro de que deseas deshabilitar ${_selected.length == 1 ? 'el producto seleccionado' : 'los ${_selected.length} productos seleccionados'}?',
+      confirmLabel: active ? 'Si, habilitar' : 'Si, deshabilitar',
+    );
+    if (!confirmed) return;
 
-    final failure = await ref
+    await ref
         .read(productsControllerProvider.notifier)
-        .setActive(product.id, active);
-    if (failure != null && mounted) _showFailure(failure);
-  }
-
-  Future<bool> _confirmActiveChange(Product product, bool active) async {
-    final action = active ? 'Reactivar' : 'Desactivar';
-    final description = active
-        ? 'El producto volverá a estar disponible para nuevas ventas.'
-        : 'El producto dejará de estar disponible para nuevas ventas. Las ventas existentes no cambiarán.';
-
-    return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('$action producto'),
-            content: Text('¿$action "${product.name}"?\n\n$description'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancelar'),
-              ),
-              FilledButton(
-                style: active
-                    ? null
-                    : FilledButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.error,
-                        foregroundColor: Theme.of(context).colorScheme.onError,
-                      ),
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(action),
-              ),
-            ],
-          ),
-        ) ??
-        false;
+        .setActiveBatch(_selected, active);
+    setState(_selected.clear);
   }
 
   Future<void> _openCreateDialog(List<Product> products) async {
-    await CreateProductDialog.show(context, products);
+    final created = await CreateProductDialog.show(context, products);
+    if (created == true) {
+      ref.invalidate(productsControllerProvider);
+    }
   }
 
   Future<void> _openEditDialog(Product product, List<Product> products) async {
-    await EditProductDialog.show(context, product: product, products: products);
-  }
+    final saved = await EditProductDialog.show(
+      context,
+      product: product,
+      products: products,
+    );
 
-  Future<void> _openUpdatePriceDialog(Product product) async {
-    final unit = product.primaryUnit;
-    if (unit == null || !product.active || !unit.active) return;
-    await UpdateProductPriceDialog.show(context, product: product, unit: unit);
+    if (saved != true || !mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Producto guardado')));
+    ref.invalidate(productsControllerProvider);
   }
 
   @override
@@ -159,19 +153,23 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                ProductsActionsBar(
+                  filter: _filter,
+                  selectedCount: _selected.length,
+                  onEnable: _selected.isEmpty ? null : () => _setActive(true),
+                  onDisable: _selected.isEmpty ? null : () => _setActive(false),
+                ),
                 const SizedBox(height: 16),
                 Expanded(
                   child: visibleProducts.isEmpty
                       ? ProductsEmptyState(message: emptyMessage)
-                      : SingleChildScrollView(
-                          child: ProductsTable(
-                            products: visibleProducts,
-                            onEdit: (product) =>
-                                _openEditDialog(product, products),
-                            onUpdatePrice: _openUpdatePriceDialog,
-                            onActiveChanged: (change) =>
-                                _setActive(change.product, change.active),
-                          ),
+                      : ProductsTable(
+                          products: visibleProducts,
+                          selectedIds: _selected,
+                          onToggle: _toggleSelected,
+                          onEdit: (product) =>
+                              _openEditDialog(product, products),
                         ),
                 ),
               ],

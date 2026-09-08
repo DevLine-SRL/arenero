@@ -70,6 +70,32 @@ class ProductsController extends _$ProductsController {
     }, (_) => null);
   }
 
+  Future<void> setActiveBatch(Set<String> ids, bool active) async {
+    if (ids.isEmpty) return;
+
+    final idsCopy = Set<String>.of(ids);
+    final previous = state.value;
+
+    state = state.whenData(
+      (products) => [
+        for (final product in products)
+          if (idsCopy.contains(product.id))
+            product.copyWith(active: active)
+          else
+            product,
+      ],
+    );
+
+    final useCase = ref.read(setProductActiveUseCaseProvider);
+    for (final id in idsCopy) {
+      final result = await useCase(id: id, active: active);
+      if (result.isLeft() && previous != null) {
+        state = AsyncData(previous);
+        return;
+      }
+    }
+  }
+
   Future<Failure?> updateProductName(Product product, String name) async {
     final previous = state.value;
     final currentProducts = previous ?? const <Product>[];
