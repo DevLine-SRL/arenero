@@ -9,6 +9,7 @@ import '../../domain/entities/sale.dart';
 import '../../domain/entities/sale_detail.dart';
 import '../../domain/entities/sale_delivery.dart';
 import 'register_sale_state.dart';
+import 'pending_sales_provider.dart';
 import 'sales_history_provider.dart';
 import 'sales_providers.dart';
 
@@ -549,6 +550,7 @@ class RegisterSaleController extends _$RegisterSaleController {
       },
       (sale) {
         ref.invalidate(salesHistoryDataProvider);
+        ref.invalidate(pendingSalesDataProvider);
 
         /*
          * HU-04:
@@ -623,6 +625,7 @@ class RegisterSaleController extends _$RegisterSaleController {
       },
       (_) {
         ref.invalidate(salesHistoryProvider);
+        ref.invalidate(pendingSalesDataProvider);
         reset();
         return null;
       },

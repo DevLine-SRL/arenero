@@ -4,15 +4,46 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/widgets/page_header.dart';
 import '../../domain/entities/sale.dart';
+import '../providers/cobros_search_query_provider.dart';
 import '../providers/pending_sales_provider.dart';
 import '../providers/sales_history_provider.dart';
 import '../providers/sales_providers.dart';
 import '../utils/sale_formatters.dart';
+import '../widgets/cobros_empty_state.dart';
+import '../widgets/cobros_search_field.dart';
+import '../widgets/cobros_table.dart';
 
-class SalesPaymentsPage extends ConsumerWidget {
+class SalesPaymentsPage extends ConsumerStatefulWidget {
   const SalesPaymentsPage({super.key});
 
-  Future<void> _markPaid(BuildContext context, WidgetRef ref, Sale sale) async {
+  @override
+  ConsumerState<SalesPaymentsPage> createState() => _SalesPaymentsPageState();
+}
+
+class _SalesPaymentsPageState extends ConsumerState<SalesPaymentsPage> {
+  Future<void> _markPaid(Sale sale) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cobrar total'),
+        content: Text(
+          '¿Cobrar la venta V-${sale.number ?? sale.id} por ${formatAmount(sale.total)}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cobrar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
     final result = await ref.read(updateSalePaymentUseCaseProvider)(
       saleId: sale.id!,
       paymentStatus: SalePaymentStatus.paidInFull,
@@ -20,7 +51,7 @@ class SalesPaymentsPage extends ConsumerWidget {
       pendingAmount: 0,
     );
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     result.fold(
       (failure) {
@@ -29,7 +60,7 @@ class SalesPaymentsPage extends ConsumerWidget {
         ).showSnackBar(SnackBar(content: Text(failure.message)));
       },
       (_) {
-        ref.invalidate(pendingSalesProvider);
+        ref.invalidate(pendingSalesDataProvider);
         ref.invalidate(salesHistoryProvider);
         ScaffoldMessenger.of(
           context,
@@ -38,17 +69,13 @@ class SalesPaymentsPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _registerPartialPayment(
-    BuildContext context,
-    WidgetRef ref,
-    Sale sale,
-  ) async {
+  Future<void> _registerPartialPayment(Sale sale) async {
     final amount = await showDialog<double>(
       context: context,
       builder: (context) => _PartialPaymentDialog(sale: sale),
     );
 
-    if (amount == null || !context.mounted) return;
+    if (amount == null || !mounted) return;
 
     final newAmountPaid = sale.amountPaid + amount;
     final result = await ref.read(updateSalePaymentUseCaseProvider)(
@@ -58,7 +85,7 @@ class SalesPaymentsPage extends ConsumerWidget {
       pendingAmount: sale.total - newAmountPaid,
     );
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     result.fold(
       (failure) {
@@ -67,7 +94,7 @@ class SalesPaymentsPage extends ConsumerWidget {
         ).showSnackBar(SnackBar(content: Text(failure.message)));
       },
       (_) {
-        ref.invalidate(pendingSalesProvider);
+        ref.invalidate(pendingSalesDataProvider);
         ref.invalidate(salesHistoryProvider);
         ScaffoldMessenger.of(
           context,
@@ -77,204 +104,68 @@ class SalesPaymentsPage extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final payments = ref.watch(pendingSalesProvider);
+  Widget build(BuildContext context) {
+    final paymentsAsync = ref.watch(pendingSalesDataProvider);
 
     return SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: PageHeader(
-              title: 'Cobros Pendientes',
-              description: 'Cobros pendientes de los clientes',
-              icon: Icons.credit_card_rounded,
-            ),
-          ),
-          Expanded(
-            child: payments.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: paymentsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
                     'No se pudieron cargar los cobros pendientes.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyLarge,
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: () => ref.invalidate(pendingSalesDataProvider),
+                    child: const Text('Reintentar'),
+                  ),
+                ],
               ),
-              data: (sales) {
-                if (sales.isEmpty) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Text('No hay cobros pendientes.'),
-                    ),
-                  );
-                }
-
-                return ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: sales.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final sale = sales[index];
-                    return _PendingPaymentItem(
-                      sale: sale,
-                      onMarkPaid: () => _markPaid(context, ref, sale),
-                      onRegisterPartial: () =>
-                          _registerPartialPayment(context, ref, sale),
-                    );
-                  },
-                );
-              },
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
+          data: (allSales) {
+            final query = ref.watch(cobrosSearchQueryProvider);
+            final visibleSales = ref.watch(pendingSalesProvider);
 
-class _PendingPaymentItem extends StatelessWidget {
-  final Sale sale;
-  final VoidCallback onMarkPaid;
-  final VoidCallback onRegisterPartial;
+            final emptyMessage = allSales.isEmpty
+                ? 'No hay cobros pendientes'
+                : visibleSales.isEmpty && query.trim().isNotEmpty
+                ? 'Ningún cobro coincide con "$query"'
+                : 'No hay cobros para el rango seleccionado';
 
-  const _PendingPaymentItem({
-    required this.sale,
-    required this.onMarkPaid,
-    required this.onRegisterPartial,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isPartial = sale.paymentStatus == SalePaymentStatus.partial;
-
-    return Material(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: theme.colorScheme.outline.withValues(alpha: 0.35),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Venta V-${sale.number ?? sale.id}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      Text(
-                        sale.client.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
+                const PageHeader(
+                  title: 'Cobros Pendientes',
+                  description: 'Cobros pendientes de los clientes',
+                  icon: Icons.credit_card_rounded,
                 ),
-                Chip(
-                  label: Text(isPartial ? 'Con abono' : 'Pendiente'),
-                  visualDensity: VisualDensity.compact,
+                const SizedBox(height: 16),
+                const CobrosSearchField(),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: visibleSales.isEmpty
+                      ? CobrosEmptyState(message: emptyMessage)
+                      : CobrosTable(
+                          sales: visibleSales,
+                          onMarkPaid: _markPaid,
+                          onRegisterPartial: _registerPartialPayment,
+                        ),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            _PaymentAmountRow(label: 'Total', value: formatAmount(sale.total)),
-            if (sale.amountPaid > 0)
-              _PaymentAmountRow(
-                label: 'Abonado',
-                value: formatAmount(sale.amountPaid),
-              ),
-            _PaymentAmountRow(
-              label: 'Saldo',
-              value: formatAmount(sale.pendingAmount),
-              strong: true,
-            ),
-            const SizedBox(height: 14),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final compact = constraints.maxWidth < 420;
-                final markPaid = FilledButton.icon(
-                  onPressed: onMarkPaid,
-                  icon: const Icon(Icons.check_circle_outline_rounded),
-                  label: const Text('Cobrar total'),
-                );
-                final partial = OutlinedButton.icon(
-                  onPressed: onRegisterPartial,
-                  icon: const Icon(Icons.add_card_rounded),
-                  label: const Text('Registrar abono'),
-                );
-
-                if (compact) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [markPaid, const SizedBox(height: 8), partial],
-                  );
-                }
-
-                return Row(
-                  children: [
-                    Expanded(child: markPaid),
-                    const SizedBox(width: 10),
-                    Expanded(child: partial),
-                  ],
-                );
-              },
-            ),
-          ],
+            );
+          },
         ),
-      ),
-    );
-  }
-}
-
-class _PaymentAmountRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool strong;
-
-  const _PaymentAmountRow({
-    required this.label,
-    required this.value,
-    this.strong = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final style = strong
-        ? theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)
-        : theme.textTheme.bodyMedium;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: style),
-          Text(value, style: style),
-        ],
       ),
     );
   }
@@ -320,6 +211,7 @@ class _PartialPaymentDialogState extends State<_PartialPaymentDialog> {
           const SizedBox(height: 12),
           TextField(
             controller: _controller,
+            autofocus: true,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: const InputDecoration(
