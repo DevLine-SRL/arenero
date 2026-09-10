@@ -5,6 +5,7 @@ import 'client_status_filter.dart';
 class ClientsActionsBar extends StatelessWidget {
   final ClientStatusFilter filter;
   final int selectedCount;
+  final VoidCallback onEdit;
   final VoidCallback? onEnable;
   final VoidCallback? onDisable;
 
@@ -12,6 +13,7 @@ class ClientsActionsBar extends StatelessWidget {
     super.key,
     required this.filter,
     required this.selectedCount,
+    required this.onEdit,
     required this.onEnable,
     required this.onDisable,
   });
@@ -28,6 +30,7 @@ class ClientsActionsBar extends StatelessWidget {
         filter == ClientStatusFilter.active || filter == ClientStatusFilter.all;
 
     final hasActions = showEnable || showDisable;
+    final canEdit = selectedCount == 1;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,8 +52,14 @@ class ClientsActionsBar extends StatelessWidget {
                   icon: const Icon(Icons.block_rounded),
                   label: const Text('Deshabilitar'),
                 ),
+              FilledButton.tonalIcon(
+                onPressed: canEdit ? onEdit : null,
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                label: const Text('Editar'),
+              ),
             ],
           ),
+        const SizedBox(height: 8),
         if (hasSelection) ...[
           const SizedBox(height: 12),
           Container(

@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/client.dart';
+import '../providers/clients_selection_provider.dart';
 
-class ClientsTable extends StatelessWidget {
+class ClientsTable extends ConsumerWidget {
   final List<Client> clients;
-  final Set<String> selectedIds;
-  final void Function(String id, bool selected) onToggle;
-  final ValueChanged<Client> onEdit;
 
-  const ClientsTable({
-    super.key,
-    required this.clients,
-    required this.selectedIds,
-    required this.onToggle,
-    required this.onEdit,
-  });
+  const ClientsTable({super.key, required this.clients});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selection = ref.watch(clientsSelectionProvider);
+    final allIds = clients.map((c) => c.id).toList();
+    final allSelected = allIds.isNotEmpty && allIds.every(selection.contains);
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableWidth = constraints.maxWidth;
@@ -41,24 +38,44 @@ class ClientsTable extends StatelessWidget {
                   ).colorScheme.outline.withValues(alpha: 0.4),
                 ),
               ),
-              child: ListView.separated(
-                padding: const EdgeInsets.only(top: 4, bottom: 4),
-                itemCount: clients.length,
-                separatorBuilder: (_, _) => Divider(
-                  height: 1,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.outline.withValues(alpha: 0.4),
-                ),
-                itemBuilder: (context, index) {
-                  final client = clients[index];
-                  return _ClientsTableRow(
-                    client: client,
-                    isSelected: selectedIds.contains(client.id),
-                    onToggle: (selected) => onToggle(client.id, selected),
-                    onEdit: () => onEdit(client),
-                  );
-                },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _ClientsTableHeader(
+                    allSelected: allSelected,
+                    onToggleAll: () => ref
+                        .read(clientsSelectionProvider.notifier)
+                        .toggleAll(allIds),
+                  ),
+                  Divider(
+                    height: 1,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.4),
+                  ),
+                  Flexible(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.only(top: 4, bottom: 4),
+                      itemCount: clients.length,
+                      separatorBuilder: (_, _) => Divider(
+                        height: 1,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withValues(alpha: 0.4),
+                      ),
+                      itemBuilder: (context, index) {
+                        final client = clients[index];
+                        return _ClientsTableRow(
+                          client: client,
+                          isSelected: selection.contains(client.id),
+                          onToggle: () => ref
+                              .read(clientsSelectionProvider.notifier)
+                              .toggle(client.id),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -68,10 +85,69 @@ class ClientsTable extends StatelessWidget {
   }
 }
 
+class _ClientsTableHeader extends StatelessWidget {
+  final bool allSelected;
+  final VoidCallback onToggleAll;
+
+  const _ClientsTableHeader({
+    required this.allSelected,
+    required this.onToggleAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: onToggleAll,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            SizedBox(
+              width: _ClientsTableRow.checkboxColumnWidth,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Checkbox(
+                  value: allSelected,
+                  onChanged: (_) => onToggleAll(),
+                ),
+              ),
+            ),
+            const SizedBox(width: _ClientsTableRow.checkboxGap),
+            Expanded(
+              child: Text(
+                'Cliente',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            const SizedBox(width: _ClientsTableRow.columnGap),
+            SizedBox(
+              width: _ClientsTableRow.statusDotWidth,
+              child: Align(
+                alignment: Alignment.center,
+                child: Text(
+                  'Estado',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ClientsTableRow extends StatelessWidget {
   static const checkboxColumnWidth = 20.0;
-  static const statusDotWidth = 28.0;
-  static const actionsColumnWidth = 40.0;
+  static const statusDotWidth = 44.0;
   static const columnGap = 8.0;
   static const horizontalPadding = 16.0;
   static const checkboxGap = 16.0;
@@ -82,19 +158,16 @@ class _ClientsTableRow extends StatelessWidget {
       columnGap +
       statusDotWidth +
       columnGap +
-      actionsColumnWidth +
       horizontalPadding;
 
   final Client client;
   final bool isSelected;
-  final ValueChanged<bool> onToggle;
-  final VoidCallback onEdit;
+  final VoidCallback onToggle;
 
   const _ClientsTableRow({
     required this.client,
     required this.isSelected,
     required this.onToggle,
-    required this.onEdit,
   });
 
   @override
@@ -102,7 +175,7 @@ class _ClientsTableRow extends StatelessWidget {
     final theme = Theme.of(context);
 
     return InkWell(
-      onTap: () => onToggle(!isSelected),
+      onTap: onToggle,
       hoverColor: AppColors.primaryContainer.withValues(alpha: 0.2),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -114,7 +187,7 @@ class _ClientsTableRow extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Checkbox(
                   value: isSelected,
-                  onChanged: (value) => onToggle(value ?? false),
+                  onChanged: (_) => onToggle(),
                 ),
               ),
             ),
@@ -163,9 +236,13 @@ class _ClientsTableRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: columnGap),
-            _StatusDot(active: client.active),
-            const SizedBox(width: columnGap),
-            _CompactEditButton(onPressed: onEdit, tooltip: 'Editar cliente'),
+            SizedBox(
+              width: statusDotWidth,
+              child: Align(
+                alignment: Alignment.center,
+                child: _StatusDot(active: client.active),
+              ),
+            ),
           ],
         ),
       ),
@@ -197,25 +274,6 @@ class _StatusDot extends StatelessWidget {
         height: 10,
         decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       ),
-    );
-  }
-}
-
-class _CompactEditButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final String tooltip;
-
-  const _CompactEditButton({required this.onPressed, required this.tooltip});
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: onPressed,
-      icon: const Icon(Icons.edit_outlined, size: 20),
-      tooltip: tooltip,
-      visualDensity: VisualDensity.compact,
-      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-      splashRadius: 20,
     );
   }
 }

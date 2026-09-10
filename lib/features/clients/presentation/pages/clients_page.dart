@@ -7,6 +7,7 @@ import '../../../../shared/widgets/page_header.dart';
 import '../../domain/entities/client.dart';
 import '../providers/clients_search_provider.dart';
 import '../providers/clients_search_query_provider.dart';
+import '../providers/clients_selection_provider.dart';
 import '../widgets/client_status_filter.dart';
 import '../widgets/clients_actions_bar.dart';
 import '../widgets/clients_empty_state.dart';
@@ -23,38 +24,27 @@ class ClientsPage extends ConsumerStatefulWidget {
 }
 
 class _ClientsPageState extends ConsumerState<ClientsPage> {
-  final Set<String> _selected = {};
-
-  void _toggleSelected(String id, bool selected) {
-    setState(() {
-      if (selected) {
-        _selected.add(id);
-      } else {
-        _selected.remove(id);
-      }
-    });
-  }
-
   void _onFilterChanged(ClientStatusFilter filter) {
     ref.read(clientsSearchQueryProvider.notifier).onStatusChanged(filter);
-    setState(_selected.clear);
+    ref.read(clientsSelectionProvider.notifier).clear();
   }
 
   Future<void> _setActive(bool active) async {
-    if (_selected.isEmpty) return;
+    final selected = ref.read(clientsSelectionProvider);
+    if (selected.isEmpty) return;
 
     final confirmed = await showConfirmDialog(
       context: context,
       title: active ? 'Habilitar clientes' : 'Deshabilitar clientes',
       content: active
-          ? '¿Estás seguro de que deseas habilitar ${_selected.length == 1 ? 'el cliente seleccionado' : 'los ${_selected.length} clientes seleccionados'}?'
-          : '¿Estás seguro de que deseas deshabilitar ${_selected.length == 1 ? 'el cliente seleccionado' : 'los ${_selected.length} clientes seleccionados'}?',
+          ? '¿Estás seguro de que deseas habilitar ${selected.length == 1 ? 'el cliente seleccionado' : 'los ${selected.length} clientes seleccionados'}?'
+          : '¿Estás seguro de que deseas deshabilitar ${selected.length == 1 ? 'el cliente seleccionado' : 'los ${selected.length} clientes seleccionados'}?',
       confirmLabel: active ? 'Si, habilitar' : 'Si, deshabilitar',
     );
     if (!confirmed) return;
 
-    await ref.read(clientsSearchProvider.notifier).setActive(_selected, active);
-    setState(_selected.clear);
+    await ref.read(clientsSearchProvider.notifier).setActive(selected, active);
+    ref.read(clientsSelectionProvider.notifier).clear();
   }
 
   Future<void> _editClient(Client client) async {
@@ -65,6 +55,17 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(const SnackBar(content: Text('Cliente guardado')));
+  }
+
+  Future<void> _editSelected() async {
+    final selected = ref.read(clientsSelectionProvider);
+    if (selected.length != 1) return;
+
+    final clients = ref.read(clientsSearchProvider).value;
+    if (clients == null) return;
+
+    final client = clients.firstWhere((c) => c.id == selected.first);
+    await _editClient(client);
   }
 
   Future<void> _openCreateDialog() async {
@@ -104,6 +105,7 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
   @override
   Widget build(BuildContext context) {
     final clientsAsync = ref.watch(clientsSearchProvider);
+    final selection = ref.watch(clientsSelectionProvider);
 
     return SafeArea(
       child: Padding(
@@ -143,7 +145,7 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
               children: [
                 const PageHeader(
                   title: 'Gestión de Clientes',
-                  description: 'Base de datos de clientes',
+                  description: 'Clientes registrados',
                   icon: Icons.people_rounded,
                 ),
                 const SizedBox(height: 16),
@@ -169,20 +171,16 @@ class _ClientsPageState extends ConsumerState<ClientsPage> {
                 const SizedBox(height: 12),
                 ClientsActionsBar(
                   filter: filter,
-                  selectedCount: _selected.length,
-                  onEnable: _selected.isEmpty ? null : () => _setActive(true),
-                  onDisable: _selected.isEmpty ? null : () => _setActive(false),
+                  selectedCount: selection.length,
+                  onEnable: selection.isEmpty ? null : () => _setActive(true),
+                  onDisable: selection.isEmpty ? null : () => _setActive(false),
+                  onEdit: _editSelected,
                 ),
                 const SizedBox(height: 16),
                 Expanded(
                   child: visibleClients.isEmpty
                       ? ClientsEmptyState(message: emptyMessage)
-                      : ClientsTable(
-                          clients: visibleClients,
-                          selectedIds: _selected,
-                          onToggle: _toggleSelected,
-                          onEdit: _editClient,
-                        ),
+                      : ClientsTable(clients: visibleClients),
                 ),
               ],
             );

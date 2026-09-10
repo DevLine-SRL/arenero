@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'cobros_selection_provider.dart';
+part of 'clients_selection_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,28 +9,28 @@ part of 'cobros_selection_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(CobrosSelection)
-final cobrosSelectionProvider = CobrosSelectionProvider._();
+@ProviderFor(ClientsSelection)
+final clientsSelectionProvider = ClientsSelectionProvider._();
 
-final class CobrosSelectionProvider
-    extends $NotifierProvider<CobrosSelection, Set<String>> {
-  CobrosSelectionProvider._()
+final class ClientsSelectionProvider
+    extends $NotifierProvider<ClientsSelection, Set<String>> {
+  ClientsSelectionProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'cobrosSelectionProvider',
+        name: r'clientsSelectionProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$cobrosSelectionHash();
+  String debugGetCreateSourceHash() => _$clientsSelectionHash();
 
   @$internal
   @override
-  CobrosSelection create() => CobrosSelection();
+  ClientsSelection create() => ClientsSelection();
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(Set<String> value) {
@@ -41,9 +41,9 @@ final class CobrosSelectionProvider
   }
 }
 
-String _$cobrosSelectionHash() => r'd2984ba663573fdf36e1a92578c6da4ec0110fcf';
+String _$clientsSelectionHash() => r'3a5cd9701c77c00df714289365ceecc9e652a19a';
 
-abstract class _$CobrosSelection extends $Notifier<Set<String>> {
+abstract class _$ClientsSelection extends $Notifier<Set<String>> {
   Set<String> build();
   @$mustCallSuper
   @override
