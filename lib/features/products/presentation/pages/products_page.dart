@@ -8,6 +8,7 @@ import '../../domain/entities/product.dart';
 import '../../domain/services/product_duplicate_guard.dart';
 import '../providers/products_controller_provider.dart';
 import '../providers/products_search_query_provider.dart';
+import '../providers/products_selection_provider.dart';
 import '../widgets/products_empty_state.dart';
 import '../widgets/create_product_dialog.dart';
 import '../widgets/edit_product_dialog.dart';
@@ -24,43 +25,31 @@ class ProductsPage extends ConsumerStatefulWidget {
 }
 
 class _ProductsPageState extends ConsumerState<ProductsPage> {
-  final Set<String> _selected = {};
   ProductStatusFilter _filter = ProductStatusFilter.active;
 
-  void _toggleSelected(String id, bool selected) {
-    setState(() {
-      if (selected) {
-        _selected.add(id);
-      } else {
-        _selected.remove(id);
-      }
-    });
-  }
-
   void _onFilterChanged(ProductStatusFilter filter) {
-    setState(() {
-      _filter = filter;
-      _selected.clear();
-    });
+    setState(() => _filter = filter);
+    ref.read(productsSelectionProvider.notifier).clear();
   }
 
   Future<void> _setActive(bool active) async {
-    if (_selected.isEmpty) return;
+    final selected = ref.read(productsSelectionProvider);
+    if (selected.isEmpty) return;
 
     final confirmed = await showConfirmDialog(
       context: context,
       title: active ? 'Habilitar productos' : 'Deshabilitar productos',
       content: active
-          ? '¿Estás seguro de que deseas habilitar ${_selected.length == 1 ? 'el producto seleccionado' : 'los ${_selected.length} productos seleccionados'}?'
-          : '¿Estás seguro de que deseas deshabilitar ${_selected.length == 1 ? 'el producto seleccionado' : 'los ${_selected.length} productos seleccionados'}?',
+          ? '¿Estás seguro de que deseas habilitar ${selected.length == 1 ? 'el producto seleccionado' : 'los ${selected.length} productos seleccionados'}?'
+          : '¿Estás seguro de que deseas deshabilitar ${selected.length == 1 ? 'el producto seleccionado' : 'los ${selected.length} productos seleccionados'}?',
       confirmLabel: active ? 'Si, habilitar' : 'Si, deshabilitar',
     );
     if (!confirmed) return;
 
     await ref
         .read(productsControllerProvider.notifier)
-        .setActiveBatch(_selected, active);
-    setState(_selected.clear);
+        .setActiveBatch(selected, active);
+    ref.read(productsSelectionProvider.notifier).clear();
   }
 
   Future<void> _openCreateDialog(List<Product> products) async {
@@ -85,9 +74,18 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     ref.invalidate(productsControllerProvider);
   }
 
+  Future<void> _editSelected(List<Product> products) async {
+    final selected = ref.read(productsSelectionProvider);
+    if (selected.length != 1) return;
+
+    final product = products.firstWhere((p) => p.id == selected.first);
+    await _openEditDialog(product, products);
+  }
+
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(productsControllerProvider);
+    final selection = ref.watch(productsSelectionProvider);
 
     return SafeArea(
       child: Padding(
@@ -156,21 +154,16 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                 const SizedBox(height: 12),
                 ProductsActionsBar(
                   filter: _filter,
-                  selectedCount: _selected.length,
-                  onEnable: _selected.isEmpty ? null : () => _setActive(true),
-                  onDisable: _selected.isEmpty ? null : () => _setActive(false),
+                  selectedCount: selection.length,
+                  onEnable: selection.isEmpty ? null : () => _setActive(true),
+                  onDisable: selection.isEmpty ? null : () => _setActive(false),
+                  onEdit: () => _editSelected(products),
                 ),
                 const SizedBox(height: 16),
                 Expanded(
                   child: visibleProducts.isEmpty
                       ? ProductsEmptyState(message: emptyMessage)
-                      : ProductsTable(
-                          products: visibleProducts,
-                          selectedIds: _selected,
-                          onToggle: _toggleSelected,
-                          onEdit: (product) =>
-                              _openEditDialog(product, products),
-                        ),
+                      : ProductsTable(products: visibleProducts),
                 ),
               ],
             );

@@ -1,24 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/seller.dart';
+import '../providers/sellers_selection_provider.dart';
 
-class SellersTable extends StatelessWidget {
+class SellersTable extends ConsumerWidget {
   final List<Seller> sellers;
-  final Set<String> selectedIds;
-  final void Function(String id, bool selected) onToggle;
-  final ValueChanged<Seller> onEdit;
 
-  const SellersTable({
-    super.key,
-    required this.sellers,
-    required this.selectedIds,
-    required this.onToggle,
-    required this.onEdit,
-  });
+  const SellersTable({super.key, required this.sellers});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selection = ref.watch(sellersSelectionProvider);
+    final allIds = sellers.map((s) => s.id).toList();
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableWidth = constraints.maxWidth;
@@ -41,24 +37,45 @@ class SellersTable extends StatelessWidget {
                   ).colorScheme.outline.withValues(alpha: 0.4),
                 ),
               ),
-              child: ListView.separated(
-                padding: const EdgeInsets.only(top: 4, bottom: 4),
-                itemCount: sellers.length,
-                separatorBuilder: (_, _) => Divider(
-                  height: 1,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.outline.withValues(alpha: 0.4),
-                ),
-                itemBuilder: (context, index) {
-                  final seller = sellers[index];
-                  return _SellersTableRow(
-                    seller: seller,
-                    isSelected: selectedIds.contains(seller.id),
-                    onToggle: (selected) => onToggle(seller.id, selected),
-                    onEdit: () => onEdit(seller),
-                  );
-                },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _SellersTableHeader(
+                    allSelected:
+                        allIds.isNotEmpty && allIds.every(selection.contains),
+                    onToggleAll: () => ref
+                        .read(sellersSelectionProvider.notifier)
+                        .toggleAll(allIds),
+                  ),
+                  Divider(
+                    height: 1,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.4),
+                  ),
+                  Flexible(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.only(top: 4, bottom: 4),
+                      itemCount: sellers.length,
+                      separatorBuilder: (_, _) => Divider(
+                        height: 1,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withValues(alpha: 0.4),
+                      ),
+                      itemBuilder: (context, index) {
+                        final seller = sellers[index];
+                        return _SellersTableRow(
+                          seller: seller,
+                          isSelected: selection.contains(seller.id),
+                          onToggle: () => ref
+                              .read(sellersSelectionProvider.notifier)
+                              .toggle(seller.id),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -68,10 +85,50 @@ class SellersTable extends StatelessWidget {
   }
 }
 
+class _SellersTableHeader extends StatelessWidget {
+  final bool allSelected;
+  final VoidCallback onToggleAll;
+
+  const _SellersTableHeader({
+    required this.allSelected,
+    required this.onToggleAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onToggleAll,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(
+          children: [
+            SizedBox(
+              width: _SellersTableRow.checkboxColumnWidth,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Checkbox(
+                  value: allSelected,
+                  onChanged: (_) => onToggleAll(),
+                ),
+              ),
+            ),
+            const SizedBox(width: _SellersTableRow.checkboxGap),
+            const Expanded(child: Text('Vendedor')),
+            const SizedBox(width: _SellersTableRow.columnGap),
+            SizedBox(
+              width: _SellersTableRow.statusDotWidth,
+              child: Align(alignment: Alignment.center, child: Text('Estado')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _SellersTableRow extends StatelessWidget {
   static const checkboxColumnWidth = 20.0;
-  static const statusDotWidth = 28.0;
-  static const actionsColumnWidth = 40.0;
+  static const statusDotWidth = 45.0;
   static const columnGap = 8.0;
   static const horizontalPadding = 16.0;
   static const checkboxGap = 16.0;
@@ -81,20 +138,16 @@ class _SellersTableRow extends StatelessWidget {
       checkboxGap +
       columnGap +
       statusDotWidth +
-      columnGap +
-      actionsColumnWidth +
       horizontalPadding;
 
   final Seller seller;
   final bool isSelected;
-  final ValueChanged<bool> onToggle;
-  final VoidCallback onEdit;
+  final VoidCallback onToggle;
 
   const _SellersTableRow({
     required this.seller,
     required this.isSelected,
     required this.onToggle,
-    required this.onEdit,
   });
 
   @override
@@ -102,7 +155,7 @@ class _SellersTableRow extends StatelessWidget {
     final theme = Theme.of(context);
 
     return InkWell(
-      onTap: () => onToggle(!isSelected),
+      onTap: onToggle,
       hoverColor: AppColors.primaryContainer.withValues(alpha: 0.2),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -114,7 +167,7 @@ class _SellersTableRow extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Checkbox(
                   value: isSelected,
-                  onChanged: (value) => onToggle(value ?? false),
+                  onChanged: (_) => onToggle(),
                 ),
               ),
             ),
@@ -144,9 +197,13 @@ class _SellersTableRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: columnGap),
-            _StatusDot(active: seller.active),
-            const SizedBox(width: columnGap),
-            _CompactEditButton(onPressed: onEdit, tooltip: 'Editar vendedor'),
+            SizedBox(
+              width: statusDotWidth,
+              child: Align(
+                alignment: Alignment.center,
+                child: _StatusDot(active: seller.active),
+              ),
+            ),
           ],
         ),
       ),
@@ -170,25 +227,6 @@ class _StatusDot extends StatelessWidget {
         height: 10,
         decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       ),
-    );
-  }
-}
-
-class _CompactEditButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final String tooltip;
-
-  const _CompactEditButton({required this.onPressed, required this.tooltip});
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: onPressed,
-      icon: const Icon(Icons.edit_outlined, size: 20),
-      tooltip: tooltip,
-      visualDensity: VisualDensity.compact,
-      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-      splashRadius: 20,
     );
   }
 }

@@ -147,7 +147,7 @@ class _ClientsTableHeader extends StatelessWidget {
 
 class _ClientsTableRow extends StatelessWidget {
   static const checkboxColumnWidth = 20.0;
-  static const statusDotWidth = 44.0;
+  static const statusDotWidth = 45.0;
   static const columnGap = 8.0;
   static const horizontalPadding = 16.0;
   static const checkboxGap = 16.0;

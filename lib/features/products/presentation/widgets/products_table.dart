@@ -1,24 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/product.dart';
+import '../providers/products_selection_provider.dart';
 
-class ProductsTable extends StatelessWidget {
+class ProductsTable extends ConsumerWidget {
   final List<Product> products;
-  final Set<String> selectedIds;
-  final void Function(String id, bool selected) onToggle;
-  final ValueChanged<Product> onEdit;
 
-  const ProductsTable({
-    super.key,
-    required this.products,
-    required this.selectedIds,
-    required this.onToggle,
-    required this.onEdit,
-  });
+  const ProductsTable({super.key, required this.products});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final selection = ref.watch(productsSelectionProvider);
+    final allIds = products.map((p) => p.id).toList();
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableWidth = constraints.maxWidth;
@@ -42,24 +38,45 @@ class ProductsTable extends StatelessWidget {
                   ).colorScheme.outline.withValues(alpha: 0.4),
                 ),
               ),
-              child: ListView.separated(
-                padding: const EdgeInsets.only(top: 4, bottom: 4),
-                itemCount: products.length,
-                separatorBuilder: (_, _) => Divider(
-                  height: 1,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.outline.withValues(alpha: 0.4),
-                ),
-                itemBuilder: (context, index) {
-                  final product = products[index];
-                  return _ProductsTableRow(
-                    product: product,
-                    isSelected: selectedIds.contains(product.id),
-                    onToggle: (selected) => onToggle(product.id, selected),
-                    onEdit: () => onEdit(product),
-                  );
-                },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _ProductsTableHeader(
+                    allSelected:
+                        allIds.isNotEmpty && allIds.every(selection.contains),
+                    onToggleAll: () => ref
+                        .read(productsSelectionProvider.notifier)
+                        .toggleAll(allIds),
+                  ),
+                  Divider(
+                    height: 1,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.4),
+                  ),
+                  Flexible(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.only(top: 4, bottom: 4),
+                      itemCount: products.length,
+                      separatorBuilder: (_, _) => Divider(
+                        height: 1,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withValues(alpha: 0.4),
+                      ),
+                      itemBuilder: (context, index) {
+                        final product = products[index];
+                        return _ProductsTableRow(
+                          product: product,
+                          isSelected: selection.contains(product.id),
+                          onToggle: () => ref
+                              .read(productsSelectionProvider.notifier)
+                              .toggle(product.id),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -69,10 +86,50 @@ class ProductsTable extends StatelessWidget {
   }
 }
 
+class _ProductsTableHeader extends StatelessWidget {
+  final bool allSelected;
+  final VoidCallback onToggleAll;
+
+  const _ProductsTableHeader({
+    required this.allSelected,
+    required this.onToggleAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onToggleAll,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(
+          children: [
+            SizedBox(
+              width: _ProductsTableRow.checkboxColumnWidth,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Checkbox(
+                  value: allSelected,
+                  onChanged: (_) => onToggleAll(),
+                ),
+              ),
+            ),
+            const SizedBox(width: _ProductsTableRow.checkboxGap),
+            const Expanded(child: Text('Producto')),
+            const SizedBox(width: _ProductsTableRow.columnGap),
+            SizedBox(
+              width: _ProductsTableRow.statusDotWidth,
+              child: Align(alignment: Alignment.center, child: Text('Estado')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ProductsTableRow extends StatelessWidget {
   static const checkboxColumnWidth = 20.0;
-  static const statusDotWidth = 28.0;
-  static const actionsColumnWidth = 40.0;
+  static const statusDotWidth = 45.0;
   static const columnGap = 8.0;
   static const horizontalPadding = 16.0;
   static const checkboxGap = 16.0;
@@ -82,20 +139,16 @@ class _ProductsTableRow extends StatelessWidget {
       checkboxGap +
       columnGap +
       statusDotWidth +
-      columnGap +
-      actionsColumnWidth +
       horizontalPadding;
 
   final Product product;
   final bool isSelected;
-  final ValueChanged<bool> onToggle;
-  final VoidCallback onEdit;
+  final VoidCallback onToggle;
 
   const _ProductsTableRow({
     required this.product,
     required this.isSelected,
     required this.onToggle,
-    required this.onEdit,
   });
 
   @override
@@ -103,7 +156,7 @@ class _ProductsTableRow extends StatelessWidget {
     final theme = Theme.of(context);
 
     return InkWell(
-      onTap: () => onToggle(!isSelected),
+      onTap: onToggle,
       hoverColor: AppColors.primaryContainer.withValues(alpha: 0.2),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -115,7 +168,7 @@ class _ProductsTableRow extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Checkbox(
                   value: isSelected,
-                  onChanged: (value) => onToggle(value ?? false),
+                  onChanged: (_) => onToggle(),
                 ),
               ),
             ),
@@ -155,11 +208,12 @@ class _ProductsTableRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: columnGap),
-            _StatusDot(active: product.active),
-            const SizedBox(width: columnGap),
-            _CompactEditButton(
-              onPressed: onEdit,
-              tooltip: 'Modificar producto',
+            SizedBox(
+              width: statusDotWidth,
+              child: Align(
+                alignment: Alignment.center,
+                child: _StatusDot(active: product.active),
+              ),
             ),
           ],
         ),
@@ -193,25 +247,6 @@ class _StatusDot extends StatelessWidget {
         height: 10,
         decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       ),
-    );
-  }
-}
-
-class _CompactEditButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final String tooltip;
-
-  const _CompactEditButton({required this.onPressed, required this.tooltip});
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      onPressed: onPressed,
-      icon: const Icon(Icons.edit_outlined, size: 20),
-      tooltip: tooltip,
-      visualDensity: VisualDensity.compact,
-      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-      splashRadius: 20,
     );
   }
 }

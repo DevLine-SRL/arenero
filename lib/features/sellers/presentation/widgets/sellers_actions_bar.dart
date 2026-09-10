@@ -5,6 +5,7 @@ import 'sellers_status_filter.dart';
 class SellersActionsBar extends StatelessWidget {
   final SellerStatusFilter filter;
   final int selectedCount;
+  final VoidCallback onEdit;
   final VoidCallback? onEnable;
   final VoidCallback? onDisable;
 
@@ -12,6 +13,7 @@ class SellersActionsBar extends StatelessWidget {
     super.key,
     required this.filter,
     required this.selectedCount,
+    required this.onEdit,
     required this.onEnable,
     required this.onDisable,
   });
@@ -28,13 +30,14 @@ class SellersActionsBar extends StatelessWidget {
         filter == SellerStatusFilter.active || filter == SellerStatusFilter.all;
 
     final hasActions = showEnable || showDisable;
+    final canEdit = selectedCount == 1;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (hasActions)
           Wrap(
-            spacing: 8,
+            spacing: 4,
             runSpacing: 8,
             children: [
               if (showEnable)
@@ -42,13 +45,36 @@ class SellersActionsBar extends StatelessWidget {
                   onPressed: onEnable,
                   icon: const Icon(Icons.check_circle_outline_rounded),
                   label: const Text('Habilitar'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
+                  ),
                 ),
               if (showDisable)
                 OutlinedButton.icon(
                   onPressed: onDisable,
                   icon: const Icon(Icons.block_rounded),
                   label: const Text('Deshabilitar'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
+                  ),
                 ),
+              FilledButton.icon(
+                onPressed: canEdit ? onEdit : null,
+                icon: const Icon(Icons.edit_outlined, size: 20),
+                label: const Text('Editar'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
+                  ),
+                ),
+              ),
             ],
           ),
         if (hasSelection) ...[

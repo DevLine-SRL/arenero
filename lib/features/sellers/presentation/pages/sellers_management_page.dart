@@ -6,6 +6,7 @@ import '../../../../shared/widgets/confirm_dialog.dart';
 import '../../../../shared/widgets/page_header.dart';
 import '../../domain/entities/seller.dart';
 import '../providers/sellers_controller_provider.dart';
+import '../providers/sellers_selection_provider.dart';
 import '../widgets/edit_seller_dialog.dart';
 import '../widgets/sellers_actions_bar.dart';
 import '../widgets/sellers_empty_state.dart';
@@ -22,43 +23,31 @@ class SellersManagementPage extends ConsumerStatefulWidget {
 }
 
 class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
-  final Set<String> _selected = {};
   SellerStatusFilter _filter = SellerStatusFilter.active;
 
-  void _toggleSelected(String id, bool selected) {
-    setState(() {
-      if (selected) {
-        _selected.add(id);
-      } else {
-        _selected.remove(id);
-      }
-    });
-  }
-
   void _onFilterChanged(SellerStatusFilter filter) {
-    setState(() {
-      _filter = filter;
-      _selected.clear();
-    });
+    setState(() => _filter = filter);
+    ref.read(sellersSelectionProvider.notifier).clear();
   }
 
   Future<void> _setActive(bool active) async {
-    if (_selected.isEmpty) return;
+    final selected = ref.read(sellersSelectionProvider);
+    if (selected.isEmpty) return;
 
     final confirmed = await showConfirmDialog(
       context: context,
       title: active ? 'Habilitar vendedores' : 'Deshabilitar vendedores',
       content: active
-          ? '¿Estás seguro de que deseas habilitar ${_selected.length == 1 ? 'el vendedor seleccionado' : 'los ${_selected.length} vendedores seleccionados'}?'
-          : '¿Estás seguro de que deseas deshabilitar ${_selected.length == 1 ? 'el vendedor seleccionado' : 'los ${_selected.length} vendedores seleccionados'}?',
+          ? '¿Estás seguro de que deseas habilitar ${selected.length == 1 ? 'el vendedor seleccionado' : 'los ${selected.length} vendedores seleccionados'}?'
+          : '¿Estás seguro de que deseas deshabilitar ${selected.length == 1 ? 'el vendedor seleccionado' : 'los ${selected.length} vendedores seleccionados'}?',
       confirmLabel: active ? 'Si, habilitar' : 'si, deshabilitar',
     );
     if (!confirmed) return;
 
     await ref
         .read(sellersControllerProvider.notifier)
-        .setActive(_selected, active);
-    setState(_selected.clear);
+        .setActive(selected, active);
+    ref.read(sellersSelectionProvider.notifier).clear();
   }
 
   Future<void> _editSeller(Seller seller, List<Seller> sellers) async {
@@ -76,6 +65,14 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
     ref.invalidate(sellersControllerProvider);
   }
 
+  Future<void> _editSelected(List<Seller> sellers) async {
+    final selected = ref.read(sellersSelectionProvider);
+    if (selected.length != 1) return;
+
+    final seller = sellers.firstWhere((s) => s.id == selected.first);
+    await _editSeller(seller, sellers);
+  }
+
   Future<void> _openCreateDialog() async {
     final created = await CreateSellerDialog.show(context);
     if (created == true) {
@@ -86,6 +83,7 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
   @override
   Widget build(BuildContext context) {
     final sellersAsync = ref.watch(sellersControllerProvider);
+    final selection = ref.watch(sellersSelectionProvider);
 
     return SafeArea(
       child: Padding(
@@ -157,20 +155,16 @@ class _SellersManagementPageState extends ConsumerState<SellersManagementPage> {
                 const SizedBox(height: 12),
                 SellersActionsBar(
                   filter: _filter,
-                  selectedCount: _selected.length,
-                  onEnable: _selected.isEmpty ? null : () => _setActive(true),
-                  onDisable: _selected.isEmpty ? null : () => _setActive(false),
+                  selectedCount: selection.length,
+                  onEnable: selection.isEmpty ? null : () => _setActive(true),
+                  onDisable: selection.isEmpty ? null : () => _setActive(false),
+                  onEdit: () => _editSelected(sellers),
                 ),
                 const SizedBox(height: 16),
                 Expanded(
                   child: visibleSellers.isEmpty
                       ? SellersEmptyState(message: emptyMessage)
-                      : SellersTable(
-                          sellers: visibleSellers,
-                          selectedIds: _selected,
-                          onToggle: _toggleSelected,
-                          onEdit: (seller) => _editSeller(seller, sellers),
-                        ),
+                      : SellersTable(sellers: visibleSellers),
                 ),
               ],
             );
