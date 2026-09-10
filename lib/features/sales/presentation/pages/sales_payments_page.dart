@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/widgets/page_header.dart';
 import '../../domain/entities/sale.dart';
 import '../providers/cobros_search_query_provider.dart';
+import '../providers/cobros_selection_provider.dart';
 import '../providers/pending_sales_provider.dart';
 import '../providers/sales_history_provider.dart';
 import '../providers/sales_providers.dart';
@@ -21,54 +22,6 @@ class SalesPaymentsPage extends ConsumerStatefulWidget {
 }
 
 class _SalesPaymentsPageState extends ConsumerState<SalesPaymentsPage> {
-  Future<void> _markPaid(Sale sale) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cobrar total'),
-        content: Text(
-          '¿Cobrar la venta V-${sale.number ?? sale.id} por ${formatAmount(sale.total)}?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Cobrar'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !mounted) return;
-
-    final result = await ref.read(updateSalePaymentUseCaseProvider)(
-      saleId: sale.id!,
-      paymentStatus: SalePaymentStatus.paidInFull,
-      amountPaid: sale.total,
-      pendingAmount: 0,
-    );
-
-    if (!mounted) return;
-
-    result.fold(
-      (failure) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(failure.message)));
-      },
-      (_) {
-        ref.invalidate(pendingSalesDataProvider);
-        ref.invalidate(salesHistoryProvider);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Venta cobrada')));
-      },
-    );
-  }
-
   Future<void> _registerPartialPayment(Sale sale) async {
     final amount = await showDialog<double>(
       context: context,
@@ -103,9 +56,55 @@ class _SalesPaymentsPageState extends ConsumerState<SalesPaymentsPage> {
     );
   }
 
+  Future<void> _markSelectedPaid(List<Sale> selected) async {
+    if (selected.isEmpty) return;
+
+    final total = selected.fold<double>(0, (sum, s) => sum + s.pendingAmount);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cobrar total'),
+        content: Text(
+          '¿Cobrar ${selected.length} venta(s) por ${formatAmount(total)}?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Cobrar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    for (final sale in selected) {
+      await ref.read(updateSalePaymentUseCaseProvider)(
+        saleId: sale.id!,
+        paymentStatus: SalePaymentStatus.paidInFull,
+        amountPaid: sale.total,
+        pendingAmount: 0,
+      );
+    }
+
+    if (!mounted) return;
+
+    ref.read(cobrosSelectionProvider.notifier).clear();
+    ref.invalidate(pendingSalesDataProvider);
+    ref.invalidate(salesHistoryProvider);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${selected.length} venta(s) cobrada(s)')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final paymentsAsync = ref.watch(pendingSalesDataProvider);
+    final selection = ref.watch(cobrosSelectionProvider);
 
     return SafeArea(
       child: Padding(
@@ -142,6 +141,10 @@ class _SalesPaymentsPageState extends ConsumerState<SalesPaymentsPage> {
                 ? 'Ningún cobro coincide con "$query"'
                 : 'No hay cobros para el rango seleccionado';
 
+            final selectedSales = visibleSales
+                .where((s) => selection.contains(s.id))
+                .toList();
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -152,15 +155,35 @@ class _SalesPaymentsPageState extends ConsumerState<SalesPaymentsPage> {
                 ),
                 const SizedBox(height: 16),
                 const CobrosSearchField(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    FilledButton.icon(
+                      onPressed: selection.isNotEmpty
+                          ? () => _markSelectedPaid(selectedSales)
+                          : null,
+                      icon: const Icon(Icons.check_circle_outline_rounded),
+                      label: Text(
+                        selection.isEmpty
+                            ? 'Cobrar total'
+                            : 'Cobrar total (${selection.length})',
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    OutlinedButton.icon(
+                      onPressed: selection.length == 1
+                          ? () => _registerPartialPayment(selectedSales.first)
+                          : null,
+                      icon: const Icon(Icons.add_card_rounded),
+                      label: const Text('Abonar'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
                 Expanded(
                   child: visibleSales.isEmpty
                       ? CobrosEmptyState(message: emptyMessage)
-                      : CobrosTable(
-                          sales: visibleSales,
-                          onMarkPaid: _markPaid,
-                          onRegisterPartial: _registerPartialPayment,
-                        ),
+                      : CobrosTable(sales: visibleSales),
                 ),
               ],
             );

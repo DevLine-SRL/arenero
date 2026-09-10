@@ -1,25 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/sale.dart';
+import '../providers/cobros_selection_provider.dart';
 import 'cobros_list_header.dart';
 import 'cobros_list_item.dart';
 
-class CobrosTable extends StatelessWidget {
+class CobrosTable extends ConsumerWidget {
   final List<Sale> sales;
-  final void Function(Sale sale) onMarkPaid;
-  final void Function(Sale sale) onRegisterPartial;
 
-  const CobrosTable({
-    super.key,
-    required this.sales,
-    required this.onMarkPaid,
-    required this.onRegisterPartial,
-  });
+  const CobrosTable({super.key, required this.sales});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final borderColor = AppColors.outline.withValues(alpha: 0.4);
+    final selection = ref.watch(cobrosSelectionProvider);
+    final allIds = sales.map((s) => s.id!).toList();
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -42,7 +39,7 @@ class CobrosTable extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const CobrosListHeader(),
+                  CobrosListHeader(allIds: allIds),
                   Divider(height: 1, color: borderColor),
                   Expanded(
                     child: ListView.separated(
@@ -54,8 +51,12 @@ class CobrosTable extends StatelessWidget {
                         final sale = sales[index];
                         return CobrosListItem(
                           sale: sale,
-                          onMarkPaid: () => onMarkPaid(sale),
-                          onRegisterPartial: () => onRegisterPartial(sale),
+                          isSelected: selection.contains(sale.id),
+                          onToggled: (_) {
+                            ref
+                                .read(cobrosSelectionProvider.notifier)
+                                .toggle(sale.id!);
+                          },
                         );
                       },
                     ),

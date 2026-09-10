@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../providers/cobros_selection_provider.dart';
 import '../providers/cobros_sort_provider.dart';
 import 'cobros_list_item.dart';
 
 class CobrosListHeader extends ConsumerWidget {
-  const CobrosListHeader({super.key});
+  final List<String> allIds;
+
+  const CobrosListHeader({super.key, required this.allIds});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -16,6 +19,8 @@ class CobrosListHeader extends ConsumerWidget {
     );
     final sort = ref.watch(cobrosSortProvider);
     final notifier = ref.read(cobrosSortProvider.notifier);
+    final selection = ref.watch(cobrosSelectionProvider);
+    final allSelected = allIds.isNotEmpty && allIds.every(selection.contains);
 
     return Padding(
       padding: const EdgeInsets.symmetric(
@@ -24,6 +29,17 @@ class CobrosListHeader extends ConsumerWidget {
       ),
       child: Row(
         children: [
+          SizedBox(
+            width: CobrosListItem.checkboxWidth,
+            child: Checkbox(
+              value: allSelected,
+              onChanged: allIds.isEmpty
+                  ? null
+                  : (_) => ref
+                        .read(cobrosSelectionProvider.notifier)
+                        .toggleAll(allIds),
+            ),
+          ),
           SizedBox(
             width: CobrosListItem.numberColumnWidth,
             child: _SortableHeaderCell(

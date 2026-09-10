@@ -7,6 +7,7 @@ import '../../domain/entities/sale.dart';
 import '../utils/sale_formatters.dart';
 
 class CobrosListItem extends StatelessWidget {
+  static const checkboxWidth = 40.0;
   static const numberColumnWidth = 89.0;
   static const minClientWidth = 50.0;
   static const pendingAmountColumnWidth = 106.0;
@@ -14,6 +15,7 @@ class CobrosListItem extends StatelessWidget {
   static const columnGap = 12.0;
 
   static const minContentWidth =
+      checkboxWidth +
       numberColumnWidth +
       minClientWidth +
       columnGap +
@@ -21,14 +23,14 @@ class CobrosListItem extends StatelessWidget {
       horizontalPadding;
 
   final Sale sale;
-  final VoidCallback onMarkPaid;
-  final VoidCallback onRegisterPartial;
+  final bool isSelected;
+  final ValueChanged<bool?> onToggled;
 
   const CobrosListItem({
     super.key,
     required this.sale,
-    required this.onMarkPaid,
-    required this.onRegisterPartial,
+    required this.isSelected,
+    required this.onToggled,
   });
 
   @override
@@ -46,98 +48,77 @@ class CobrosListItem extends StatelessWidget {
           horizontal: horizontalPadding,
           vertical: 12,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Row(
           children: [
-            Row(
-              children: [
-                SizedBox(
-                  width: numberColumnWidth,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '#${sale.number ?? sale.id}',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                      Text(
-                        formatDate(sale.saleDate),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        sale.client.name,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        'CI ${sale.client.ci}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: columnGap),
-                SizedBox(
-                  width: pendingAmountColumnWidth,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        formatAmount(sale.pendingAmount),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (sale.amountPaid > 0)
-                        Text(
-                          'Abonado ${formatAmount(sale.amountPaid)}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
+            SizedBox(
+              width: checkboxWidth,
+              child: Checkbox(value: isSelected, onChanged: onToggled),
             ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: onMarkPaid,
-                    icon: const Icon(Icons.check_circle_outline_rounded),
-                    label: const Text('Cobrar total'),
+            SizedBox(
+              width: numberColumnWidth,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '#${sale.number ?? sale.id}',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: theme.colorScheme.primary,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: onRegisterPartial,
-                    icon: const Icon(Icons.add_card_rounded),
-                    label: const Text('Abonar'),
+                  Text(
+                    formatDate(sale.saleDate),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    sale.client.name,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    'CI ${sale.client.ci}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: columnGap),
+            SizedBox(
+              width: pendingAmountColumnWidth,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    formatAmount(sale.pendingAmount),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (sale.amountPaid > 0)
+                    Text(
+                      'Abonado ${formatAmount(sale.amountPaid)}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ],
         ),
