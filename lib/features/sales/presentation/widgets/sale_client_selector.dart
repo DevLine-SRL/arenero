@@ -245,7 +245,7 @@ class _ClientPickerSheetState extends ConsumerState<_ClientPickerSheet> {
                   if (clients.isEmpty) {
                     return _EmptyState(
                       query: _query,
-                      onRegister: _query.isNotEmpty ? _registerClient : null,
+                      onRegister: _registerClient,
                     );
                   }
 

@@ -67,11 +67,9 @@ class _SaleDeliveryFieldsState extends ConsumerState<SaleDeliveryFields> {
 
     final controller = ref.read(registerSaleControllerProvider.notifier);
 
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
           TextField(
             controller: _vehiclePlateController,
             decoration: const InputDecoration(
@@ -102,7 +100,6 @@ class _SaleDeliveryFieldsState extends ConsumerState<SaleDeliveryFields> {
             onChanged: _onFreightChanged,
           ),
         ],
-      ),
-    );
+      );
   }
 }
