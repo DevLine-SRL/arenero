@@ -8,7 +8,6 @@ import '../../../products/presentation/providers/products_controller_provider.da
 import '../providers/register_sale_controller_provider.dart';
 import '../widgets/sale_cart_section.dart';
 import '../widgets/sale_client_selector.dart';
-import '../widgets/sale_delivery_fields.dart';
 import '../widgets/sale_delivery_selector.dart';
 import '../widgets/sale_discount_field.dart';
 import '../widgets/sale_notes_field.dart';
@@ -78,69 +77,6 @@ class RegisterSalePage extends ConsumerWidget {
         ? () => ref.read(registerSaleControllerProvider.notifier).addLine()
         : null;
 
-    String step(int adminStep) {
-      final number = isAdmin ? adminStep : adminStep - 1;
-
-      return 'Paso $number';
-    }
-
-    Widget deliveryAndPayment() {
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 620;
-
-          final fields = [
-            const SalePaymentSelector(),
-            const SaleDiscountField(),
-          ];
-
-          final deliveryCard = Material(
-            color: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.48),
-            borderRadius: BorderRadius.circular(12),
-            child: const Padding(
-              padding: EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [SaleDeliverySelector(), SaleDeliveryFields()],
-              ),
-            ),
-          );
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (wide)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (var index = 0; index < fields.length; index++) ...[
-                      if (index > 0) const SizedBox(width: 12),
-                      Expanded(child: fields[index]),
-                    ],
-                  ],
-                )
-              else
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (var index = 0; index < fields.length; index++) ...[
-                      if (index > 0) const SizedBox(height: 12),
-                      fields[index],
-                    ],
-                  ],
-                ),
-              const SizedBox(height: 12),
-              deliveryCard,
-              const SizedBox(height: 12),
-              const SaleNotesField(),
-            ],
-          );
-        },
-      );
-    }
-
     final sections = <Widget>[
       const PageHeader(
         title: 'Registrar Venta',
@@ -148,33 +84,44 @@ class RegisterSalePage extends ConsumerWidget {
         icon: Icons.point_of_sale_rounded,
       ),
       _StepSection(
-        stepLabel: isAdmin ? 'Paso 1 - Vendedor' : 'Vendedor asignado',
-        title: isAdmin ? '¿Quién realiza esta venta?' : 'Venta a tu nombre',
+        title: isAdmin ? 'Selecciona el vendedor' : 'Venta a tu nombre',
         required: true,
         child: const SaleSellerSelector(),
       ),
       _StepSection(
-        stepLabel: '${step(2)} - Cliente',
-        title: 'Cliente',
+        title: 'Selecciona el cliente',
         required: true,
         child: const SaleClientSelector(),
       ),
       _StepSection(
-        stepLabel: '${step(3)} - Productos',
-        title: 'Productos',
+        title: 'Agrega los productos',
         required: true,
-        trailing: TextButton.icon(
+        trailing: FilledButton.icon(
           onPressed: addProduct,
-          icon: const Icon(Icons.add_rounded),
+          icon: const Icon(Icons.add_rounded, size: 18),
           label: const Text('Agregar'),
         ),
         child: SaleCartSection(onAddProduct: addProduct),
       ),
       _StepSection(
-        stepLabel: '${step(4)} - Pago y entrega',
-        title: 'Pago, entrega y descuento',
+        title: 'Selecciona el tipo de pago',
         required: true,
-        child: deliveryAndPayment(),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Expanded(flex: 3, child: SalePaymentSelector()),
+            const SizedBox(width: 12),
+            const Expanded(flex: 2, child: SaleDiscountField()),
+          ],
+        ),
+      ),
+      _StepSection(
+        title: 'Modalidad de entrega',
+        child: const SaleDeliverySelector(),
+      ),
+      _StepSection(
+        title: 'Notas',
+        child: const SaleNotesField(),
       ),
       const SaleOrderSummary(),
     ];
@@ -198,14 +145,12 @@ class RegisterSalePage extends ConsumerWidget {
 }
 
 class _StepSection extends StatelessWidget {
-  final String stepLabel;
   final String title;
   final bool required;
   final Widget? trailing;
   final Widget child;
 
   const _StepSection({
-    required this.stepLabel,
     required this.title,
     this.required = false,
     this.trailing,
@@ -223,34 +168,20 @@ class _StepSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    stepLabel,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text.rich(
-                    TextSpan(
-                      text: title,
-                      children: [
-                        if (required)
-                          TextSpan(
-                            text: ' *',
-                            style: TextStyle(color: theme.colorScheme.error),
-                          ),
-                      ],
-                    ),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
+              child: Text.rich(
+                TextSpan(
+                  text: title,
+                  children: [
+                    if (required)
+                      TextSpan(
+                        text: ' *',
+                        style: TextStyle(color: theme.colorScheme.error),
+                      ),
+                  ],
+                ),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
             ?trailing,

@@ -180,32 +180,77 @@ class _ProductSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: DropdownButtonFormField<Product>(
-            key: ValueKey('product-${item.rowId}-${item.productId}'),
-            initialValue: selectedProduct,
-            isExpanded: true,
-            decoration: InputDecoration(
-              labelText: 'Producto',
-              prefixIcon: const Icon(Icons.inventory_2_outlined),
-              isDense: true,
-              helperText: productsAsync.isLoading
-                  ? 'Cargando productos...'
-                  : productsAsync.hasError
-                  ? 'No se pudieron cargar los productos'
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: productsAsync.hasValue ? () => _openPicker(context) : null,
+            child: InputDecorator(
+              isEmpty: selectedProduct == null,
+              decoration: InputDecoration(
+                isDense: true,
+                labelText: 'Producto',
+                hintText: 'Seleccionar producto',
+                prefixIcon: selectedProduct != null
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: 12, right: 8),
+                        child: Icon(
+                          Icons.inventory_2_outlined,
+                          color: theme.colorScheme.primary,
+                          size: 22,
+                        ),
+                      )
+                    : const Padding(
+                        padding: EdgeInsets.only(left: 12, right: 8),
+                        child: Icon(Icons.inventory_2_outlined),
+                      ),
+                suffixIcon: productsAsync.isLoading
+                    ? const Padding(
+                        padding: EdgeInsets.only(right: 12),
+                        child: SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : productsAsync.hasError
+                    ? Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        child: Icon(
+                          Icons.error_outline_rounded,
+                          size: 20,
+                          color: theme.colorScheme.error,
+                        ),
+                      )
+                    : const Padding(
+                        padding: EdgeInsets.only(right: 12),
+                        child: Icon(Icons.arrow_drop_down_rounded),
+                      ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 14,
+                ),
+              ),
+              child: selectedProduct != null
+                  ? Text(
+                      selectedProduct!.name,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    )
                   : null,
             ),
-            items: [
-              for (final product in selectableProducts)
-                DropdownMenuItem(
-                  value: product,
-                  child: Text(product.name, overflow: TextOverflow.ellipsis),
-                ),
-            ],
-            onChanged: productsAsync.hasValue
-                ? (product) {
-                    if (product != null) onChanged(product);
-                  }
-                : null,
           ),
         ),
         const SizedBox(width: 8),
@@ -219,6 +264,184 @@ class _ProductSelector extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  void _openPicker(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => _ProductPickerSheet(
+        products: selectableProducts,
+        selected: selectedProduct,
+        onSelect: (product) {
+          Navigator.of(context).pop();
+          onChanged(product);
+        },
+      ),
+    );
+  }
+}
+
+class _ProductPickerSheet extends StatefulWidget {
+  final List<Product> products;
+  final Product? selected;
+  final ValueChanged<Product> onSelect;
+
+  const _ProductPickerSheet({
+    required this.products,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  @override
+  State<_ProductPickerSheet> createState() => _ProductPickerSheetState();
+}
+
+class _ProductPickerSheetState extends State<_ProductPickerSheet> {
+  final _controller = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  List<Product> get _filtered {
+    if (_query.isEmpty) return widget.products;
+    final q = _query.toLowerCase();
+    return widget.products
+        .where((p) => p.name.toLowerCase().contains(q))
+        .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final filtered = _filtered;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.3,
+      maxChildSize: 0.85,
+      expand: false,
+      builder: (context, scrollController) {
+        return Column(
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.3,
+                ),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                controller: _controller,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+                decoration: InputDecoration(
+                  hintText: 'Buscar producto...',
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  suffixIcon: _query.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded),
+                          onPressed: () {
+                            _controller.clear();
+                            setState(() => _query = '');
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+                onChanged: (value) => setState(() => _query = value.trim()),
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (filtered.isEmpty)
+              Expanded(
+                child: Center(
+                  child: Text(
+                    _query.isEmpty
+                        ? 'No hay productos disponibles'
+                        : 'Sin resultados para "$_query"',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, index) {
+                    final product = filtered[index];
+                    final isSelected = product.id == widget.selected?.id;
+                    final activeUnits = product.units
+                        .where((u) => u.active)
+                        .toList();
+
+                    return ListTile(
+                      leading: Icon(
+                        Icons.inventory_2_outlined,
+                        color: isSelected ? theme.colorScheme.primary : null,
+                      ),
+                      title: Text(
+                        product.name,
+                        style: TextStyle(
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      subtitle: Text(
+                        activeUnits
+                            .map(
+                              (u) =>
+                                  '${u.unit.shortLabel} ${formatAmount(u.unitPrice)}',
+                            )
+                            .join(' · '),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: isSelected
+                          ? Icon(
+                              Icons.check_circle_rounded,
+                              color: theme.colorScheme.primary,
+                            )
+                          : null,
+                      selected: isSelected,
+                      selectedTileColor: theme.colorScheme.primaryContainer
+                          .withValues(alpha: 0.3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onTap: () => widget.onSelect(product),
+                    );
+                  },
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -248,7 +471,6 @@ class _UnitAndQuantityRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 520;
         final unitField = DropdownButtonFormField<ProductUnitOfMeasure>(
           key: ValueKey('unit-${item.rowId}-${item.unit}'),
           initialValue: item.unit,
@@ -263,16 +485,17 @@ class _UnitAndQuantityRow extends StatelessWidget {
               DropdownMenuItem(
                 value: entry.unit,
                 child: Text(
-                  '${entry.unit.label} - ${formatAmount(entry.unitPrice)}',
+                  entry.unit.label,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
           ],
-          onChanged: hasProduct
-              ? (unit) {
-                  if (unit != null) onUnitChanged(unit);
-                }
-              : null,
+          onChanged:
+              hasProduct && availableUnits.length > 1
+                  ? (unit) {
+                      if (unit != null) onUnitChanged(unit);
+                    }
+                  : null,
         );
         final quantityField = QuantityStepper(
           controller: quantityController,
@@ -281,26 +504,15 @@ class _UnitAndQuantityRow extends StatelessWidget {
           onChanged: onQuantityChanged,
         );
 
-        if (wide) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: unitField),
-              const SizedBox(width: 12),
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: quantityField,
-              ),
-            ],
-          );
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            unitField,
-            const SizedBox(height: 12),
-            Align(alignment: Alignment.centerLeft, child: quantityField),
+            Expanded(child: unitField),
+            const SizedBox(width: 8),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: quantityField,
+            ),
           ],
         );
       },
@@ -318,7 +530,6 @@ class _AmountsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 420;
         final fields = [
           ReadOnlyAmount(
             label: 'Precio unitario',
@@ -330,20 +541,13 @@ class _AmountsRow extends StatelessWidget {
           ),
         ];
 
-        if (wide) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: fields[0]),
-              const SizedBox(width: 12),
-              Expanded(child: fields[1]),
-            ],
-          );
-        }
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [fields[0], const SizedBox(height: 12), fields[1]],
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: fields[0]),
+            const SizedBox(width: 12),
+            Expanded(child: fields[1]),
+          ],
         );
       },
     );

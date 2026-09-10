@@ -30,93 +30,93 @@ class SaleOrderSummary extends ConsumerWidget {
     final canSubmit =
         state.canSubmit && (!requiresSeller || state.seller != null);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Align(
-          alignment: Alignment.centerRight,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 280),
-            child: Column(
-              children: [
-                _AmountRow(
-                  label: 'Subtotal',
-                  value: formatAmount(state.subtotal),
-                ),
-                _AmountRow(
-                  label: 'Descuento',
-                  value: state.discountAmount > 0
-                      ? '-${formatAmount(state.discountAmount)}'
-                      : formatAmount(0),
-                  color: state.discountAmount > 0
-                      ? theme.colorScheme.error
-                      : theme.colorScheme.onSurfaceVariant,
-                ),
-                _AmountRow(
-                  label: 'Flete',
-                  value:
-                      '+${formatAmount(state.deliveryMode == SaleDeliveryMode.companyDelivery ? state.freightAmount : 0)}',
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const Divider(height: 18),
-                _AmountRow(
-                  label: 'Total',
-                  value: formatAmount(state.total),
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
+    final count = state.completedItems.length;
+    final summaryText = '$count ${count == 1 ? 'producto' : 'productos'}'
+        '${state.client == null ? '' : ' · ${state.client!.name}'}';
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.14),
         ),
-        const SizedBox(height: 4),
-        Builder(
-          builder: (context) {
-            final count = state.completedItems.length;
-            return Text(
-              '$count ${count == 1 ? 'producto' : 'productos'}'
-              '${state.client == null ? '' : ' · ${state.client!.name}'}',
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              summaryText,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
-            );
-          },
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            onPressed: canSubmit ? () => _submit(context, ref) : null,
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              textStyle: const TextStyle(fontSize: 16),
             ),
-            child: state.isSubmitting
-                ? const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+            const SizedBox(height: 12),
+            _AmountRow(
+              label: 'Subtotal',
+              value: formatAmount(state.subtotal),
+            ),
+            _AmountRow(
+              label: 'Descuento',
+              value: state.discountAmount > 0
+                  ? '-${formatAmount(state.discountAmount)}'
+                  : formatAmount(0),
+              color: state.discountAmount > 0
+                  ? theme.colorScheme.error
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
+            _AmountRow(
+              label: 'Flete',
+              value:
+                  '+${formatAmount(state.deliveryMode == SaleDeliveryMode.companyDelivery ? state.freightAmount : 0)}',
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const Divider(height: 18),
+            _AmountRow(
+              label: 'Total',
+              value: formatAmount(state.total),
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: canSubmit ? () => _submit(context, ref) : null,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  textStyle: const TextStyle(fontSize: 16),
+                ),
+                child: state.isSubmitting
+                    ? const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 8),
+                          Text('Registrando venta...'),
+                        ],
+                      )
+                    : const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.shopping_cart_checkout_rounded),
+                          SizedBox(width: 8),
+                          Text('Registrar venta'),
+                        ],
                       ),
-                      SizedBox(width: 8),
-                      Text('Registrando venta...'),
-                    ],
-                  )
-                : const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.shopping_cart_checkout_rounded),
-                      SizedBox(width: 8),
-                      Text('Registrar venta'),
-                    ],
-                  ),
-          ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

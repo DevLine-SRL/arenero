@@ -10,13 +10,11 @@ class SaleNotesField extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return TextField(
       decoration: const InputDecoration(
-        labelText: 'Notas',
         hintText: 'Observaciones sobre la venta (opcional)',
-        prefixIcon: Icon(Icons.notes_rounded),
-        alignLabelWithHint: true,
+        isDense: true,
       ),
-      minLines: 2,
-      maxLines: 4,
+      minLines: 1,
+      maxLines: 3,
       textCapitalization: TextCapitalization.sentences,
       onChanged: ref
           .read(registerSaleControllerProvider.notifier)

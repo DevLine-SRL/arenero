@@ -69,57 +69,39 @@ class _SaleDeliveryFieldsState extends ConsumerState<SaleDeliveryFields> {
 
     return Padding(
       padding: const EdgeInsets.only(top: 12),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 520;
-
-          final fields = [
-            TextField(
-              controller: _vehiclePlateController,
-              decoration: const InputDecoration(
-                labelText: 'Placa del vehículo',
-                hintText: 'Ej: ABC-123',
-                prefixIcon: Icon(Icons.directions_car_outlined),
-                isDense: true,
-              ),
-              textCapitalization: TextCapitalization.characters,
-              onChanged: controller.onVehiclePlateChanged,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _vehiclePlateController,
+            decoration: const InputDecoration(
+              labelText: 'Placa del vehículo',
+              hintText: 'Ej: ABC-123',
+              prefixIcon: Icon(Icons.directions_car_outlined),
+              isDense: true,
             ),
-            TextField(
-              controller: _freightController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
-              ],
-              decoration: const InputDecoration(
-                labelText: 'Valor del flete',
-                helperText: 'Vacío o Bs. 0 no modifica el total',
-                prefixText: 'Bs. ',
-                prefixIcon: Icon(Icons.local_shipping_outlined),
-                isDense: true,
-              ),
-              onChanged: _onFreightChanged,
+            textCapitalization: TextCapitalization.characters,
+            onChanged: controller.onVehiclePlateChanged,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _freightController,
+            keyboardType: const TextInputType.numberWithOptions(
+              decimal: true,
             ),
-          ];
-
-          if (wide) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: fields[0]),
-                const SizedBox(width: 12),
-                Expanded(child: fields[1]),
-              ],
-            );
-          }
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [fields[0], const SizedBox(height: 12), fields[1]],
-          );
-        },
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+            ],
+            decoration: const InputDecoration(
+              labelText: 'Valor del flete',
+              helperText: 'Vacío o Bs. 0 no modifica el total',
+              prefixText: 'Bs. ',
+              prefixIcon: Icon(Icons.local_shipping_outlined),
+              isDense: true,
+            ),
+            onChanged: _onFreightChanged,
+          ),
+        ],
       ),
     );
   }
