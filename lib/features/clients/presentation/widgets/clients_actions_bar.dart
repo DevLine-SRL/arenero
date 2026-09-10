@@ -45,17 +45,35 @@ class ClientsActionsBar extends StatelessWidget {
                   onPressed: onEnable,
                   icon: const Icon(Icons.check_circle_outline_rounded),
                   label: const Text('Habilitar'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
+                  ),
                 ),
               if (showDisable)
                 OutlinedButton.icon(
                   onPressed: onDisable,
                   icon: const Icon(Icons.block_rounded),
                   label: const Text('Deshabilitar'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
+                  ),
                 ),
-              FilledButton.tonalIcon(
+              FilledButton.icon(
                 onPressed: canEdit ? onEdit : null,
                 icon: const Icon(Icons.edit_outlined, size: 20),
                 label: const Text('Editar'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                ),
               ),
             ],
           ),

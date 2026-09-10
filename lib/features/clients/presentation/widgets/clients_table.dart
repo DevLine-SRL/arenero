@@ -101,7 +101,7 @@ class _ClientsTableHeader extends StatelessWidget {
     return InkWell(
       onTap: onToggleAll,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Row(
           children: [
             SizedBox(
@@ -178,7 +178,7 @@ class _ClientsTableRow extends StatelessWidget {
       onTap: onToggle,
       hoverColor: AppColors.primaryContainer.withValues(alpha: 0.2),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Row(
           children: [
             SizedBox(

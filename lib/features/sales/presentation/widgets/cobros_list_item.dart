@@ -8,7 +8,7 @@ import '../utils/sale_formatters.dart';
 
 class CobrosListItem extends StatelessWidget {
   static const checkboxWidth = 40.0;
-  static const numberColumnWidth = 89.0;
+  static const numberColumnWidth = 90.0;
   static const minClientWidth = 50.0;
   static const pendingAmountColumnWidth = 106.0;
   static const horizontalPadding = 16.0;
@@ -44,9 +44,11 @@ class CobrosListItem extends StatelessWidget {
       ),
       hoverColor: AppColors.primaryContainer.withValues(alpha: 0.3),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: horizontalPadding,
-          vertical: 12,
+        padding: const EdgeInsets.only(
+          left: 7,
+          right: horizontalPadding,
+          top: 8,
+          bottom: 8,
         ),
         child: Row(
           children: [

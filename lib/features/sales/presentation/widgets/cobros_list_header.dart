@@ -23,9 +23,11 @@ class CobrosListHeader extends ConsumerWidget {
     final allSelected = allIds.isNotEmpty && allIds.every(selection.contains);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: CobrosListItem.horizontalPadding,
-        vertical: 12,
+      padding: const EdgeInsets.only(
+        left: 7,
+        right: CobrosListItem.horizontalPadding,
+        top: 4,
+        bottom: 4,
       ),
       child: Row(
         children: [
