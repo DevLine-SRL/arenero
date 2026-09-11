@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import '../../../../core/providers/last_seen_sync_provider.dart';
 import '../../../../shared/value_objects/email.dart';
 import '../../../../shared/value_objects/verification_code.dart';
 import 'auth_providers.dart';
@@ -65,7 +66,10 @@ class ForgotPasswordForm extends _$ForgotPasswordForm {
         isLoadingCode: false,
         submitCodeError: failure.message,
       ),
-      (_) => state = state.copyWith(isLoadingCode: false, isVerified: true),
+      (_) {
+        ref.read(lastSeenSyncProvider.notifier).notifyRecoveryLogin();
+        state = state.copyWith(isLoadingCode: false, isVerified: true);
+      },
     );
   }
 }

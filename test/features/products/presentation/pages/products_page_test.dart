@@ -34,7 +34,7 @@ void main() {
       ];
       await _pumpPage(tester, repository);
 
-      await tester.tap(find.byType(Checkbox));
+      await tester.tap(find.byType(Checkbox).last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Deshabilitar'));
       await tester.pumpAndSettle();
@@ -56,7 +56,7 @@ void main() {
       ];
       await _pumpPage(tester, repository);
 
-      await tester.tap(find.byType(Checkbox));
+      await tester.tap(find.byType(Checkbox).last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Deshabilitar'));
       await tester.pumpAndSettle();
@@ -77,7 +77,9 @@ void main() {
       ];
       await _pumpPage(tester, repository);
 
-      await tester.tap(find.byTooltip('Modificar producto'));
+      await tester.tap(find.byType(Checkbox).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Editar'));
       await tester.pumpAndSettle();
 
       expect(find.text('Modificar producto'), findsOneWidget);

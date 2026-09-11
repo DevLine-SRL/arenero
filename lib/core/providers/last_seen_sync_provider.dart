@@ -13,6 +13,11 @@ part 'last_seen_sync_provider.g.dart';
 @Riverpod(keepAlive: true)
 class LastSeenSync extends _$LastSeenSync {
   Timer? _timer;
+  bool _skipAbsenceCheck = false;
+
+  void notifyRecoveryLogin() {
+    _skipAbsenceCheck = true;
+  }
 
   @override
   void build() {
@@ -30,7 +35,11 @@ class LastSeenSync extends _$LastSeenSync {
 
   Future<void> _handleLoggedIn(User user) async {
     final lastSeenAt = user.lastSeenAt;
-    if (lastSeenAt != null &&
+    final isRecoveryLogin = _skipAbsenceCheck;
+    _skipAbsenceCheck = false;
+
+    if (!isRecoveryLogin &&
+        lastSeenAt != null &&
         DateTime.now().toUtc().difference(lastSeenAt) >
             AppConfig.sessionMaxAbsence) {
       await _forceLogout();

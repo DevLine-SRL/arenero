@@ -31,12 +31,15 @@ class SaleOrderSummary extends ConsumerWidget {
         state.canSubmit && (!requiresSeller || state.seller != null);
 
     final count = state.completedItems.length;
-    final summaryText = '$count ${count == 1 ? 'producto' : 'productos'}'
+    final summaryText =
+        '$count ${count == 1 ? 'producto' : 'productos'}'
         '${state.client == null ? '' : ' · ${state.client!.name}'}';
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        color: theme.colorScheme.surfaceContainerHighest.withValues(
+          alpha: 0.45,
+        ),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: theme.colorScheme.outline.withValues(alpha: 0.14),
@@ -54,10 +57,7 @@ class SaleOrderSummary extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
-            _AmountRow(
-              label: 'Subtotal',
-              value: formatAmount(state.subtotal),
-            ),
+            _AmountRow(label: 'Subtotal', value: formatAmount(state.subtotal)),
             _AmountRow(
               label: 'Descuento',
               value: state.discountAmount > 0

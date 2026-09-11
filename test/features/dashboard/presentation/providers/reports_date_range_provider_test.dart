@@ -58,8 +58,9 @@ void main() {
 
       notifier.reset();
 
+      final now = DateTime.now();
       final state = container.read(reportsDateRangeProvider);
-      expect(state.startDate, DateTime(2026, 8, 1));
+      expect(state.startDate, DateTime(now.year, now.month, 1));
     });
   });
 }

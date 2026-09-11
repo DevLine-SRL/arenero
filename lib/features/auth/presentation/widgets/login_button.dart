@@ -11,7 +11,7 @@ class LoginButton extends ConsumerWidget {
     final state = ref.watch(loginFormProvider);
 
     return FilledButton(
-      onPressed: state.isValid && !state.isSubmitting && !state.isLocked
+      onPressed: state.isValid && !state.isSubmitting
           ? () => ref.read(loginFormProvider.notifier).submit()
           : null,
       style: FilledButton.styleFrom(
