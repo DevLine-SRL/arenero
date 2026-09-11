@@ -214,7 +214,6 @@ class _ClientPickerSheetState extends ConsumerState<_ClientPickerSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: TextField(
                 controller: _controller,
-                autofocus: true,
                 decoration: InputDecoration(
                   hintText: 'Buscar por nombre, CI o teléfono...',
                   prefixIcon: const Icon(Icons.search_rounded),

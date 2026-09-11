@@ -77,7 +77,6 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final controller = ref.read(registerSaleControllerProvider.notifier);
     final productsAsync = ref.watch(productsControllerProvider);
 
@@ -117,39 +116,35 @@ class _SaleLineItemCardState extends ConsumerState<SaleLineItemCard> {
 
     final subtotal = item.isComplete ? item.subtotal : null;
 
-    return Material(
-      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _ProductSelector(
-              item: item,
-              productsAsync: productsAsync,
-              selectableProducts: selectableProducts,
-              selectedProduct: selectedProduct,
-              onChanged: (product) =>
-                  controller.changeLineProduct(item.rowId, product),
-              onRemove: () => controller.removeLine(item.rowId),
-            ),
-            const SizedBox(height: 12),
-            _UnitAndQuantityRow(
-              item: item,
-              availableUnits: availableUnits,
-              hasProduct: hasProduct,
-              quantityController: _quantityController,
-              onUnitChanged: (unit) =>
-                  controller.changeLineUnit(item.rowId, unit),
-              onQuantityChanged: _onQuantityText,
-              onDecrement: () => _stepQuantity(item.quantity - 1),
-              onIncrement: () => _stepQuantity(item.quantity + 1),
-            ),
-            const SizedBox(height: 12),
-            _AmountsRow(item: item, subtotal: subtotal),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _ProductSelector(
+            item: item,
+            productsAsync: productsAsync,
+            selectableProducts: selectableProducts,
+            selectedProduct: selectedProduct,
+            onChanged: (product) =>
+                controller.changeLineProduct(item.rowId, product),
+            onRemove: () => controller.removeLine(item.rowId),
+          ),
+          const SizedBox(height: 12),
+          _UnitAndQuantityRow(
+            item: item,
+            availableUnits: availableUnits,
+            hasProduct: hasProduct,
+            quantityController: _quantityController,
+            onUnitChanged: (unit) =>
+                controller.changeLineUnit(item.rowId, unit),
+            onQuantityChanged: _onQuantityText,
+            onDecrement: () => _stepQuantity(item.quantity - 1),
+            onIncrement: () => _stepQuantity(item.quantity + 1),
+          ),
+          const SizedBox(height: 12),
+          _AmountsRow(item: item, subtotal: subtotal),
+        ],
       ),
     );
   }
@@ -345,7 +340,6 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: TextField(
                 controller: _controller,
-                autofocus: true,
                 textCapitalization: TextCapitalization.words,
                 decoration: InputDecoration(
                   hintText: 'Buscar producto...',
@@ -484,18 +478,14 @@ class _UnitAndQuantityRow extends StatelessWidget {
             for (final entry in availableUnits)
               DropdownMenuItem(
                 value: entry.unit,
-                child: Text(
-                  entry.unit.label,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: Text(entry.unit.label, overflow: TextOverflow.ellipsis),
               ),
           ],
-          onChanged:
-              hasProduct && availableUnits.length > 1
-                  ? (unit) {
-                      if (unit != null) onUnitChanged(unit);
-                    }
-                  : null,
+          onChanged: hasProduct && availableUnits.length > 1
+              ? (unit) {
+                  if (unit != null) onUnitChanged(unit);
+                }
+              : null,
         );
         final quantityField = QuantityStepper(
           controller: quantityController,

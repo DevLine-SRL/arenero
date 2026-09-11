@@ -202,7 +202,6 @@ class _SellerPickerSheetState extends State<_SellerPickerSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: TextField(
                 controller: _controller,
-                autofocus: true,
                 decoration: InputDecoration(
                   hintText: 'Buscar vendedor...',
                   prefixIcon: const Icon(Icons.search_rounded),
@@ -228,9 +227,7 @@ class _SellerPickerSheetState extends State<_SellerPickerSheet> {
             ),
             const SizedBox(height: 8),
             if (widget.sellersAsync.isLoading)
-              const Expanded(
-                child: Center(child: CircularProgressIndicator()),
-              )
+              const Expanded(child: Center(child: CircularProgressIndicator()))
             else if (widget.sellersAsync.hasError)
               Expanded(
                 child: Center(

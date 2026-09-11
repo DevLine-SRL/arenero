@@ -119,10 +119,7 @@ class RegisterSalePage extends ConsumerWidget {
         title: 'Modalidad de entrega',
         child: const SaleDeliverySelector(),
       ),
-      _StepSection(
-        title: 'Notas',
-        child: const SaleNotesField(),
-      ),
+      _StepSection(title: 'Notas', child: const SaleNotesField()),
       const SaleOrderSummary(),
     ];
 
@@ -161,35 +158,44 @@ class _StepSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: Text.rich(
-                TextSpan(
-                  text: title,
-                  children: [
-                    if (required)
-                      TextSpan(
-                        text: ' *',
-                        style: TextStyle(color: theme.colorScheme.error),
-                      ),
-                  ],
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      text: title,
+                      children: [
+                        if (required)
+                          TextSpan(
+                            text: ' *',
+                            style: TextStyle(color: theme.colorScheme.error),
+                          ),
+                      ],
+                    ),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                 ),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
+                ?trailing,
+              ],
             ),
-            ?trailing,
+            const SizedBox(height: 10),
+            child,
           ],
         ),
-        const SizedBox(height: 10),
-        child,
-      ],
+      ),
     );
   }
 }
