@@ -1,7 +1,7 @@
 abstract final class RoutePaths {
   static const home = '/';
-  static const login = '/login';
-  static const forgotPassword = '/forgot-password';
+  static const login = '/iniciar-sesion';
+  static const forgotPassword = '/recuperar-contrasena';
   static const changePassword = '/cambiar-contrasena';
   static const dashboard = '/panel';
   static const registerSale = '/ventas/registrar';

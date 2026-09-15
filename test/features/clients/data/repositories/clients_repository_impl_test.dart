@@ -57,6 +57,34 @@ void main() {
       expect(failure.message, contains('Ya existe un cliente'));
     });
 
+    // BUG-CLI-001: el NIT también identifica al cliente y no puede repetirse.
+    test(
+      'maps a duplicated nit to a ValidationFailure on the nit field',
+      () async {
+        dataSource.errorToThrow = supabase.PostgrestException(
+          message:
+              'duplicate key value violates unique constraint '
+              '"clients_nit_unique"',
+          code: '23505',
+        );
+
+        final failure = _failureOf(
+          await repository.createClient(
+            name: 'Juan',
+            ci: _ci('1234567'),
+            nit: '12345',
+          ),
+        );
+
+        expect(failure, isA<ValidationFailure>());
+        expect(
+          (failure as ValidationFailure).errors,
+          containsPair('nit', isNotNull),
+        );
+        expect(failure.message, contains('NIT'));
+      },
+    );
+
     test(
       'maps a unique violation on another constraint to a generic message',
       () async {
@@ -160,6 +188,22 @@ void main() {
       final result = await repository.existsByCi(_ci('1234567'));
 
       expect(result.getOrElse(() => true), isFalse);
+    });
+  });
+
+  group('existsByNit', () {
+    test('returns true when the data source finds a row', () async {
+      dataSource.existsByNitResult = true;
+
+      final result = await repository.existsByNit('12345');
+
+      expect(result.getOrElse(() => false), isTrue);
+    });
+
+    test('trims the nit before querying', () async {
+      await repository.existsByNit('  12345  ');
+
+      expect(dataSource.lastCheckedNit, '12345');
     });
   });
 }

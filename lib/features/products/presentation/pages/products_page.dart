@@ -2,14 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../shared/widgets/confirm_dialog.dart';
+import '../../../../shared/widgets/page_header.dart';
 import '../../domain/entities/product.dart';
 import '../../domain/services/product_duplicate_guard.dart';
 import '../providers/products_controller_provider.dart';
+import '../providers/products_search_query_provider.dart';
+import '../providers/products_selection_provider.dart';
 import '../widgets/products_empty_state.dart';
 import '../widgets/create_product_dialog.dart';
 import '../widgets/edit_product_dialog.dart';
-import '../widgets/update_product_price_dialog.dart';
+import '../widgets/products_actions_bar.dart';
+import '../widgets/products_search_field.dart';
 import '../widgets/products_table.dart';
+import '../widgets/product_status_filter.dart';
 
 class ProductsPage extends ConsumerStatefulWidget {
   const ProductsPage({super.key});
@@ -19,73 +25,67 @@ class ProductsPage extends ConsumerStatefulWidget {
 }
 
 class _ProductsPageState extends ConsumerState<ProductsPage> {
-  String _query = '';
+  ProductStatusFilter _filter = ProductStatusFilter.active;
 
-  void _showFailure(Failure failure) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(failure.message)));
+  void _onFilterChanged(ProductStatusFilter filter) {
+    setState(() => _filter = filter);
+    ref.read(productsSelectionProvider.notifier).clear();
   }
 
-  Future<void> _setActive(Product product, bool active) async {
-    final confirmed = await _confirmActiveChange(product, active);
-    if (!confirmed || !mounted) return;
+  Future<void> _setActive(bool active) async {
+    final selected = ref.read(productsSelectionProvider);
+    if (selected.isEmpty) return;
 
-    final failure = await ref
+    final confirmed = await showConfirmDialog(
+      context: context,
+      title: active ? 'Habilitar productos' : 'Deshabilitar productos',
+      content: active
+          ? '¿Estás seguro de que deseas habilitar ${selected.length == 1 ? 'el producto seleccionado' : 'los ${selected.length} productos seleccionados'}?'
+          : '¿Estás seguro de que deseas deshabilitar ${selected.length == 1 ? 'el producto seleccionado' : 'los ${selected.length} productos seleccionados'}?',
+      confirmLabel: active ? 'Si, habilitar' : 'Si, deshabilitar',
+    );
+    if (!confirmed) return;
+
+    await ref
         .read(productsControllerProvider.notifier)
-        .setActive(product.id, active);
-    if (failure != null && mounted) _showFailure(failure);
-  }
-
-  Future<bool> _confirmActiveChange(Product product, bool active) async {
-    final action = active ? 'Reactivar' : 'Desactivar';
-    final description = active
-        ? 'El producto volverá a estar disponible para nuevas ventas.'
-        : 'El producto dejará de estar disponible para nuevas ventas. Las ventas existentes no cambiarán.';
-
-    return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('$action producto'),
-            content: Text('¿$action "${product.name}"?\n\n$description'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancelar'),
-              ),
-              FilledButton(
-                style: active
-                    ? null
-                    : FilledButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.error,
-                        foregroundColor: Theme.of(context).colorScheme.onError,
-                      ),
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(action),
-              ),
-            ],
-          ),
-        ) ??
-        false;
+        .setActiveBatch(selected, active);
+    ref.read(productsSelectionProvider.notifier).clear();
   }
 
   Future<void> _openCreateDialog(List<Product> products) async {
-    await CreateProductDialog.show(context, products);
+    final created = await CreateProductDialog.show(context, products);
+    if (created == true) {
+      ref.invalidate(productsControllerProvider);
+    }
   }
 
   Future<void> _openEditDialog(Product product, List<Product> products) async {
-    await EditProductDialog.show(context, product: product, products: products);
+    final saved = await EditProductDialog.show(
+      context,
+      product: product,
+      products: products,
+    );
+
+    if (saved != true || !mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(const SnackBar(content: Text('Producto guardado')));
+    ref.invalidate(productsControllerProvider);
   }
 
-  Future<void> _openUpdatePriceDialog(Product product) async {
-    final unit = product.primaryUnit;
-    if (unit == null || !product.active || !unit.active) return;
-    await UpdateProductPriceDialog.show(context, product: product, unit: unit);
+  Future<void> _editSelected(List<Product> products) async {
+    final selected = ref.read(productsSelectionProvider);
+    if (selected.length != 1) return;
+
+    final product = products.firstWhere((p) => p.id == selected.first);
+    await _openEditDialog(product, products);
   }
 
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(productsControllerProvider);
+    final selection = ref.watch(productsSelectionProvider);
 
     return SafeArea(
       child: Padding(
@@ -106,42 +106,41 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
             ),
           ),
           data: (products) {
-            final activeCount = products
-                .where((product) => product.active)
-                .length;
-            final visibleProducts = _filterProducts(products);
+            final activeCount = products.where((p) => p.active).length;
+            final inactiveCount = products.length - activeCount;
+
+            final query = ref.watch(productsSearchQueryProvider);
+            final visibleProducts = _filterProducts(products, query);
 
             final emptyMessage = products.isEmpty
                 ? 'Aun no hay productos registrados'
-                : visibleProducts.isEmpty && _query.trim().isNotEmpty
+                : visibleProducts.isEmpty && query.trim().isNotEmpty
                 ? 'No se encontraron productos para esa busqueda'
-                : 'No hay productos';
+                : switch (_filter) {
+                    ProductStatusFilter.active => 'No hay productos activos',
+                    ProductStatusFilter.inactive =>
+                      'No hay productos inactivos',
+                    ProductStatusFilter.all => 'No hay productos',
+                  };
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const PageHeader(
+                  title: 'Gestión de Productos',
+                  description: 'Materiales e insumos disponibles',
+                  icon: Icons.inventory_2_rounded,
+                ),
+                const SizedBox(height: 16),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Productos',
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '$activeCount activo${activeCount == 1 ? '' : 's'}',
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(color: const Color(0xFF7D5A3C)),
-                          ),
-                        ],
+                      child: ProductsSearchField(
+                        value: _filter,
+                        activeCount: activeCount,
+                        inactiveCount: inactiveCount,
+                        total: products.length,
+                        onFilterChanged: _onFilterChanged,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -152,52 +151,19 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 28),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: SizedBox(
-                    width: 375,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Buscar en productos...',
-                        prefixIcon: const Icon(Icons.search_rounded),
-                        filled: true,
-                        fillColor: const Color(0xFFF3E8D6),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(7),
-                          borderSide: const BorderSide(
-                            color: Color(0xFFD7C7AE),
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(7),
-                          borderSide: const BorderSide(
-                            color: Color(0xFF7B4318),
-                          ),
-                        ),
-                      ),
-                      onChanged: (value) => setState(() => _query = value),
-                    ),
-                  ),
+                const SizedBox(height: 12),
+                ProductsActionsBar(
+                  filter: _filter,
+                  selectedCount: selection.length,
+                  onEnable: selection.isEmpty ? null : () => _setActive(true),
+                  onDisable: selection.isEmpty ? null : () => _setActive(false),
+                  onEdit: () => _editSelected(products),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
                 Expanded(
                   child: visibleProducts.isEmpty
                       ? ProductsEmptyState(message: emptyMessage)
-                      : SingleChildScrollView(
-                          child: ProductsTable(
-                            products: visibleProducts,
-                            onEdit: (product) =>
-                                _openEditDialog(product, products),
-                            onUpdatePrice: _openUpdatePriceDialog,
-                            onActiveChanged: (change) =>
-                                _setActive(change.product, change.active),
-                          ),
-                        ),
+                      : ProductsTable(products: visibleProducts),
                 ),
               ],
             );
@@ -207,10 +173,17 @@ class _ProductsPageState extends ConsumerState<ProductsPage> {
     );
   }
 
-  List<Product> _filterProducts(List<Product> products) {
-    final normalizedQuery = normalizeProductName(_query);
+  List<Product> _filterProducts(List<Product> products, String query) {
+    final normalizedQuery = normalizeProductName(query);
 
     return products.where((product) {
+      final matchesFilter = switch (_filter) {
+        ProductStatusFilter.active => product.active,
+        ProductStatusFilter.inactive => !product.active,
+        ProductStatusFilter.all => true,
+      };
+      if (!matchesFilter) return false;
+
       if (normalizedQuery.isEmpty) return true;
       return normalizeProductName(product.name).contains(normalizedQuery);
     }).toList();

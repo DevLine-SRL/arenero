@@ -247,3 +247,99 @@ final class CheckCiAvailableUseCaseProvider
 
 String _$checkCiAvailableUseCaseHash() =>
     r'706f1c95bd9624f87187831a7dc4f35ee61fa628';
+
+@ProviderFor(setClientsActiveUseCase)
+final setClientsActiveUseCaseProvider = SetClientsActiveUseCaseProvider._();
+
+final class SetClientsActiveUseCaseProvider
+    extends
+        $FunctionalProvider<
+          SetClientsActiveUseCase,
+          SetClientsActiveUseCase,
+          SetClientsActiveUseCase
+        >
+    with $Provider<SetClientsActiveUseCase> {
+  SetClientsActiveUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'setClientsActiveUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$setClientsActiveUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<SetClientsActiveUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SetClientsActiveUseCase create(Ref ref) {
+    return setClientsActiveUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SetClientsActiveUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SetClientsActiveUseCase>(value),
+    );
+  }
+}
+
+String _$setClientsActiveUseCaseHash() =>
+    r'601880b149f0caaae83dc33b170b31c69a730353';
+
+@ProviderFor(updateClientUseCase)
+final updateClientUseCaseProvider = UpdateClientUseCaseProvider._();
+
+final class UpdateClientUseCaseProvider
+    extends
+        $FunctionalProvider<
+          UpdateClientUseCase,
+          UpdateClientUseCase,
+          UpdateClientUseCase
+        >
+    with $Provider<UpdateClientUseCase> {
+  UpdateClientUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'updateClientUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$updateClientUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<UpdateClientUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  UpdateClientUseCase create(Ref ref) {
+    return updateClientUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(UpdateClientUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<UpdateClientUseCase>(value),
+    );
+  }
+}
+
+String _$updateClientUseCaseHash() =>
+    r'1ad817326a1aa902fc83b035eadde56af3c1cc76';

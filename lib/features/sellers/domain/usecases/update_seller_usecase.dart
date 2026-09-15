@@ -24,33 +24,28 @@ class UpdateSellerUseCase {
     }
 
     final emailResult = Email.create(rawEmail);
-    return emailResult.fold(
-      (failure) => Left<Failure, Unit>(failure),
-      (email) {
-        final duplicate = existingSellers.any(
-          (seller) =>
-              seller.email.toLowerCase() == email.value.toLowerCase() &&
-              seller.id != id,
-        );
+    return emailResult.fold((failure) => Left<Failure, Unit>(failure), (email) {
+      final duplicate = existingSellers.any(
+        (seller) =>
+            seller.email.toLowerCase() == email.value.toLowerCase() &&
+            seller.id != id,
+      );
 
-        if (duplicate) {
-          return const Left(
-            ValidationFailure(
-              message: 'Ya existe un vendedor registrado con ese correo electrónico.',
-              code: 'EMAIL_TAKEN',
-            ),
-          );
-        }
-
-        return FullName.create(normalizedName).fold(
-          (failure) => Left<Failure, Unit>(failure),
-          (fullName) => repository.updateSeller(
-            id: id,
-            name: fullName,
-            email: email,
+      if (duplicate) {
+        return const Left(
+          ValidationFailure(
+            message:
+                'Ya existe un vendedor registrado con ese correo electrónico.',
+            code: 'EMAIL_TAKEN',
           ),
         );
-      },
-    );
+      }
+
+      return FullName.create(normalizedName).fold(
+        (failure) => Left<Failure, Unit>(failure),
+        (fullName) =>
+            repository.updateSeller(id: id, name: fullName, email: email),
+      );
+    });
   }
 }

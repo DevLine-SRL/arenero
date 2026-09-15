@@ -14,6 +14,7 @@ class FakeClientsRemoteDataSource implements ClientsRemoteDataSource {
   ClientModel? createResult;
   ClientModel? updateResult;
   bool existsResult = false;
+  bool existsByNitResult = false;
 
   String? lastSearchQuery;
   bool? lastIncludeInactive;
@@ -21,6 +22,7 @@ class FakeClientsRemoteDataSource implements ClientsRemoteDataSource {
   String? lastCreatedName;
   String? lastCreatedPhone;
   String? lastCreatedNit;
+  String? lastCheckedNit;
   int setActiveCallCount = 0;
 
   @override
@@ -61,6 +63,13 @@ class FakeClientsRemoteDataSource implements ClientsRemoteDataSource {
   Future<bool> existsByCi(String ci) async {
     _throwIfConfigured();
     return existsResult;
+  }
+
+  @override
+  Future<bool> existsByNit(String nit) async {
+    lastCheckedNit = nit;
+    _throwIfConfigured();
+    return existsByNitResult;
   }
 
   @override

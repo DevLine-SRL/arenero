@@ -2,22 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/route_paths.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../domain/entities/sale_history_item.dart';
 import '../utils/sale_formatters.dart';
 
 class SalesHistoryListItem extends StatelessWidget {
-  static const numberColumnWidth = 96.0;
+  static const numberColumnWidth = 89.0;
   static const minClientWidth = 50.0;
-  static const totalColumnWidth = 120.0;
+  static const totalColumnWidth = 106.0;
   static const horizontalPadding = 16.0;
-  static const borderWidth = 2.0;
+  static const columnGap = 12.0;
 
   static const minContentWidth =
       numberColumnWidth +
       minClientWidth +
+      columnGap +
       totalColumnWidth +
-      horizontalPadding +
-      borderWidth;
+      horizontalPadding;
   final SaleHistoryItem sale;
 
   const SalesHistoryListItem({super.key, required this.sale});
@@ -31,17 +32,9 @@ class SalesHistoryListItem extends StatelessWidget {
         RouteNames.saleDetail,
         pathParameters: {'id': sale.id},
       ),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: theme.colorScheme.outline.withValues(alpha: 0.4),
-          ),
-        ),
+      hoverColor: AppColors.primaryContainer.withValues(alpha: 0.3),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
             SizedBox(
@@ -50,9 +43,9 @@ class SalesHistoryListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${sale.number}',
+                    '#${sale.number}',
                     style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                       color: theme.colorScheme.primary,
                     ),
                   ),
@@ -71,7 +64,9 @@ class SalesHistoryListItem extends StatelessWidget {
                 children: [
                   Text(
                     sale.clientName,
-                    style: theme.textTheme.bodyLarge,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -84,6 +79,7 @@ class SalesHistoryListItem extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(width: columnGap),
             SizedBox(
               width: totalColumnWidth,
               child: Column(
@@ -91,7 +87,9 @@ class SalesHistoryListItem extends StatelessWidget {
                 children: [
                   Text(
                     formatAmount(sale.total),
-                    style: theme.textTheme.bodyLarge?.copyWith(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),

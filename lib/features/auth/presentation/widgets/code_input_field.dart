@@ -20,6 +20,13 @@ class _CodeInputFieldState extends State<CodeInputField> {
   );
   final _focusNodes = List.generate(_digitCount, (_) => FocusNode());
 
+  late final _pasteFormatter = _PasteDistributorFormatter(
+    onPaste: _schedulePaste,
+  );
+
+  bool _isPasting = false;
+  String _pendingPaste = '';
+
   @override
   void dispose() {
     for (final controller in _controllers) {
@@ -36,7 +43,29 @@ class _CodeInputFieldState extends State<CodeInputField> {
     widget.onChanged(code);
   }
 
+  void _schedulePaste(String digits) {
+    if (digits.isEmpty) return;
+    _pendingPaste = digits;
+    _isPasting = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handlePaste(_pendingPaste);
+    });
+  }
+
+  void _handlePaste(String digits) {
+    if (digits.isEmpty) return;
+    final code = digits.substring(0, digits.length.clamp(0, _digitCount));
+    for (var i = 0; i < code.length; i++) {
+      _controllers[i].text = code[i];
+    }
+    final nextIndex = code.length.clamp(0, _digitCount - 1);
+    _focusNodes[nextIndex].requestFocus();
+    _notifyChange();
+    _isPasting = false;
+  }
+
   void _onDigitChanged(int index, String value) {
+    if (_isPasting) return;
     if (value.isNotEmpty && index < _digitCount - 1) {
       _focusNodes[index + 1].requestFocus();
     }
@@ -81,7 +110,10 @@ class _CodeInputFieldState extends State<CodeInputField> {
                   keyboardType: TextInputType.number,
                   maxLength: 1,
                   style: theme.textTheme.headlineSmall,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  inputFormatters: [
+                    _pasteFormatter,
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
                   decoration: InputDecoration(
                     counterText: '',
                     contentPadding: EdgeInsets.zero,
@@ -120,5 +152,25 @@ class _CodeInputFieldState extends State<CodeInputField> {
         ],
       ],
     );
+  }
+}
+
+class _PasteDistributorFormatter extends TextInputFormatter {
+  final void Function(String)? onPaste;
+
+  _PasteDistributorFormatter({this.onPaste});
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text;
+    if (text.length > 1) {
+      final digits = text.replaceAll(RegExp(r'[^0-9]'), '');
+      onPaste?.call(digits);
+      return oldValue;
+    }
+    return newValue;
   }
 }

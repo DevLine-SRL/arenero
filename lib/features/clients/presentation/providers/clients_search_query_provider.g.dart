@@ -8,7 +8,8 @@ part of 'clients_search_query_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Texto de búsqueda y filtro de inactivos. Vacío significa "todos".
+/// Texto de búsqueda y filtro de estado. `active` por defecto: coincide con el
+/// comportamiento previo (`includeInactive: false`).
 ///
 /// El rebote del teclado lo hace el campo de texto, no este provider, para que
 /// siga siendo puro y fácil de probar.
@@ -16,13 +17,15 @@ part of 'clients_search_query_provider.dart';
 @ProviderFor(ClientsSearchQuery)
 final clientsSearchQueryProvider = ClientsSearchQueryProvider._();
 
-/// Texto de búsqueda y filtro de inactivos. Vacío significa "todos".
+/// Texto de búsqueda y filtro de estado. `active` por defecto: coincide con el
+/// comportamiento previo (`includeInactive: false`).
 ///
 /// El rebote del teclado lo hace el campo de texto, no este provider, para que
 /// siga siendo puro y fácil de probar.
 final class ClientsSearchQueryProvider
     extends $NotifierProvider<ClientsSearchQuery, ClientsQuery> {
-  /// Texto de búsqueda y filtro de inactivos. Vacío significa "todos".
+  /// Texto de búsqueda y filtro de estado. `active` por defecto: coincide con el
+  /// comportamiento previo (`includeInactive: false`).
   ///
   /// El rebote del teclado lo hace el campo de texto, no este provider, para que
   /// siga siendo puro y fácil de probar.
@@ -54,9 +57,10 @@ final class ClientsSearchQueryProvider
 }
 
 String _$clientsSearchQueryHash() =>
-    r'8d54b571f4eedb3e2e368a0b5c8039a6e49df07d';
+    r'bae4dbcaf8012891d355d4b134ce7a248d0585e6';
 
-/// Texto de búsqueda y filtro de inactivos. Vacío significa "todos".
+/// Texto de búsqueda y filtro de estado. `active` por defecto: coincide con el
+/// comportamiento previo (`includeInactive: false`).
 ///
 /// El rebote del teclado lo hace el campo de texto, no este provider, para que
 /// siga siendo puro y fácil de probar.

@@ -64,10 +64,7 @@ class _ProductsRepositoryFake implements ProductsRepository {
   }
 
   @override
-  Future<dartz.Either<Failure, dartz.Unit>> setActive(
-    String id,
-    bool active,
-  ) {
+  Future<dartz.Either<Failure, dartz.Unit>> setActive(String id, bool active) {
     throw UnimplementedError();
   }
 

@@ -12,6 +12,7 @@ class FakeClientsRepository implements ClientsRepository {
   Either<Failure, Client>? createResult;
   Either<Failure, List<Client>>? searchResult;
   Either<Failure, bool>? existsResult;
+  Either<Failure, bool>? existsByNitResult;
   Either<Failure, Client>? updateResult;
   Either<Failure, Unit>? setActiveResult;
 
@@ -22,8 +23,17 @@ class FakeClientsRepository implements ClientsRepository {
   String? lastSearchQuery;
   bool? lastIncludeInactive;
   Ci? lastCheckedCi;
+  String? lastCheckedNit;
   int createCallCount = 0;
   int existsCallCount = 0;
+  int existsByNitCallCount = 0;
+  String? lastUpdatedId;
+  String? lastUpdatedName;
+  String? lastUpdatedCi;
+  String? lastUpdatedPhone;
+  String? lastUpdatedNit;
+  int updateCallCount = 0;
+  int setActiveCallCount = 0;
 
   @override
   Future<Either<Failure, Client>> createClient({
@@ -59,6 +69,13 @@ class FakeClientsRepository implements ClientsRepository {
   }
 
   @override
+  Future<Either<Failure, bool>> existsByNit(String nit) async {
+    existsByNitCallCount++;
+    lastCheckedNit = nit;
+    return existsByNitResult ?? const Right(false);
+  }
+
+  @override
   Future<Either<Failure, Client>> updateClient({
     required String id,
     required String name,
@@ -66,12 +83,19 @@ class FakeClientsRepository implements ClientsRepository {
     String? phone,
     String? nit,
   }) async {
+    updateCallCount++;
+    lastUpdatedId = id;
+    lastUpdatedName = name;
+    lastUpdatedCi = ci.value;
+    lastUpdatedPhone = phone;
+    lastUpdatedNit = nit;
     return updateResult ??
         Right(buildClient(id: id, name: name, ci: ci.value, nit: nit));
   }
 
   @override
   Future<Either<Failure, Unit>> setActive(String id, bool active) async {
+    setActiveCallCount++;
     return setActiveResult ?? const Right(unit);
   }
 }

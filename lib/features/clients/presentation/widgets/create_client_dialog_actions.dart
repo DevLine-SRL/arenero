@@ -18,7 +18,7 @@ class CreateClientDialogActions extends ConsumerWidget {
         TextButton(
           onPressed: state.isSubmitting
               ? null
-              : () => Navigator.of(context).pop(false),
+              : () => Navigator.of(context).pop(),
           child: const Text('Cancelar'),
         ),
         const SizedBox(width: 8),

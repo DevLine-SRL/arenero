@@ -7,6 +7,8 @@ import '../../domain/repositories/clients_repository.dart';
 import '../../domain/usecases/check_ci_available_usecase.dart';
 import '../../domain/usecases/create_client_usecase.dart';
 import '../../domain/usecases/search_clients_usecase.dart';
+import '../../domain/usecases/set_clients_active_usecase.dart';
+import '../../domain/usecases/update_client_usecase.dart';
 
 part 'clients_providers.g.dart';
 
@@ -33,4 +35,14 @@ CreateClientUseCase createClientUseCase(Ref ref) {
 @riverpod
 CheckCiAvailableUseCase checkCiAvailableUseCase(Ref ref) {
   return CheckCiAvailableUseCase(ref.watch(clientsRepositoryProvider));
+}
+
+@riverpod
+SetClientsActiveUseCase setClientsActiveUseCase(Ref ref) {
+  return SetClientsActiveUseCase(ref.watch(clientsRepositoryProvider));
+}
+
+@riverpod
+UpdateClientUseCase updateClientUseCase(Ref ref) {
+  return UpdateClientUseCase(ref.watch(clientsRepositoryProvider));
 }

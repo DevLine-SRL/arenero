@@ -68,6 +68,7 @@ class SaleCartSection extends ConsumerWidget {
       width: double.infinity,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 4,
         children: [
           ...items.map(
             (item) => SaleLineItemCard(key: ValueKey(item.rowId), item: item),
