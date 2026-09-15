@@ -8,9 +8,9 @@ import '../providers/reports_providers.dart';
 import '../providers/sale_details_page_provider.dart';
 import '../providers/selected_client_report_provider.dart';
 import '../utils/report_formatters.dart';
-import 'entity_autocomplete_field.dart';
 import 'report_kpi_card.dart';
 import 'reports_empty_state.dart';
+import 'reports_entity_picker.dart';
 import 'reports_error_state.dart';
 import 'sale_details_section.dart';
 import 'stack_or_row.dart';
@@ -23,21 +23,13 @@ class ReportsClientTab extends ConsumerStatefulWidget {
 }
 
 class _ReportsClientTabState extends ConsumerState<ReportsClientTab> {
-  String? _selectedClientId;
-
-  void _onSelected(ReportSuggestion suggestion) {
-    setState(() => _selectedClientId = suggestion.id);
-  }
-
-  void _onCleared() {
-    setState(() => _selectedClientId = null);
-  }
+  ReportSuggestion? _selected;
 
   @override
   Widget build(BuildContext context) {
     final range = ref.watch(reportsDateRangeProvider);
     final clientReportAsync = ref.watch(
-      selectedClientReportProvider(_selectedClientId),
+      selectedClientReportProvider(_selected?.id),
     );
 
     return Padding(
@@ -45,20 +37,19 @@ class _ReportsClientTabState extends ConsumerState<ReportsClientTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          EntityAutocompleteField(
-            loadSuggestions: (ref, query) async {
-              final result = await ref.read(searchClientsUseCaseProvider)(
-                query.trim(),
-              );
+          ReportsEntityPicker(
+            selected: _selected,
+            icon: Icons.person_rounded,
+            hintText: 'Seleccionar cliente',
+            search: (query) async {
+              final result = await ref.read(searchClientsUseCaseProvider)(query);
               return result.fold((failure) => throw failure, (rows) => rows);
             },
-            labelText: 'Cliente',
-            hintText: 'Escribe el nombre del cliente',
-            onSelected: _onSelected,
-            onCleared: _onCleared,
+            onSelected: (suggestion) => setState(() => _selected = suggestion),
+            onCleared: () => setState(() => _selected = null),
           ),
           const SizedBox(height: 16),
-          if (_selectedClientId == null)
+          if (_selected == null)
             const Expanded(
               child: ReportsEmptyState(
                 message: 'Busca un cliente para ver sus ventas del período',
@@ -75,7 +66,7 @@ class _ReportsClientTabState extends ConsumerState<ReportsClientTab> {
                     ? error.message
                     : 'No se pudieron cargar los datos del cliente.',
                 onRetry: () => ref.invalidate(
-                  selectedClientReportProvider(_selectedClientId),
+                  selectedClientReportProvider(_selected?.id),
                 ),
               ),
               data: (row) => StackOrRow(
@@ -96,7 +87,11 @@ class _ReportsClientTabState extends ConsumerState<ReportsClientTab> {
             const SizedBox(height: 16),
             Expanded(
               child: SaleDetailsSection(
-                key: ValueKey('client-$_selectedClientId'),
+                key: ValueKey(
+                  'client-${_selected?.id}-'
+                  '${range.startDate.millisecondsSinceEpoch}-'
+                  '${range.endDate.millisecondsSinceEpoch}',
+                ),
                 requestBuilder:
                     ({
                       required int page,
@@ -107,7 +102,7 @@ class _ReportsClientTabState extends ConsumerState<ReportsClientTab> {
                       return SaleDetailsRequest(
                         startDate: range.startDate,
                         endDate: range.endDate,
-                        clientId: _selectedClientId,
+                        clientId: _selected?.id,
                         search: search,
                         orderColumn: orderColumn,
                         ascending: ascending,

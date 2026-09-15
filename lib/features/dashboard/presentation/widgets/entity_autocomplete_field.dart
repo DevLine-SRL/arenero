@@ -107,6 +107,7 @@ class _EntityAutocompleteFieldState
       );
     }
 
+    final colorScheme = Theme.of(context).colorScheme;
     final suggestionsAsync = _overlayPortalController.isShowing
         ? ref.watch(_suggestionsProvider(_query))
         : null;
@@ -122,6 +123,26 @@ class _EntityAutocompleteFieldState
           labelText: widget.labelText,
           hintText: widget.hintText,
           prefixIcon: const Icon(Icons.search_rounded),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: colorScheme.outline.withValues(alpha: 0.3),
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: colorScheme.outline.withValues(alpha: 0.3),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: colorScheme.primary, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 14,
+          ),
         ),
       ),
       overlayChildBuilder: (context, info) => _SuggestionsOverlay(

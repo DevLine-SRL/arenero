@@ -8,9 +8,9 @@ import '../providers/reports_providers.dart';
 import '../providers/sale_details_page_provider.dart';
 import '../providers/selected_seller_report_provider.dart';
 import '../utils/report_formatters.dart';
-import 'entity_autocomplete_field.dart';
 import 'report_kpi_card.dart';
 import 'reports_empty_state.dart';
+import 'reports_entity_picker.dart';
 import 'reports_error_state.dart';
 import 'sale_details_section.dart';
 import 'stack_or_row.dart';
@@ -23,21 +23,13 @@ class ReportsSellerTab extends ConsumerStatefulWidget {
 }
 
 class _ReportsSellerTabState extends ConsumerState<ReportsSellerTab> {
-  String? _selectedSellerId;
-
-  void _onSelected(ReportSuggestion suggestion) {
-    setState(() => _selectedSellerId = suggestion.id);
-  }
-
-  void _onCleared() {
-    setState(() => _selectedSellerId = null);
-  }
+  ReportSuggestion? _selected;
 
   @override
   Widget build(BuildContext context) {
     final range = ref.watch(reportsDateRangeProvider);
     final sellerReportAsync = ref.watch(
-      selectedSellerReportProvider(_selectedSellerId),
+      selectedSellerReportProvider(_selected?.id),
     );
 
     return Padding(
@@ -45,20 +37,19 @@ class _ReportsSellerTabState extends ConsumerState<ReportsSellerTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          EntityAutocompleteField(
-            loadSuggestions: (ref, query) async {
-              final result = await ref.read(searchSellersUseCaseProvider)(
-                query.trim(),
-              );
+          ReportsEntityPicker(
+            selected: _selected,
+            icon: Icons.badge_rounded,
+            hintText: 'Seleccionar vendedor',
+            search: (query) async {
+              final result = await ref.read(searchSellersUseCaseProvider)(query);
               return result.fold((failure) => throw failure, (rows) => rows);
             },
-            labelText: 'Vendedor',
-            hintText: 'Escribe el nombre del vendedor',
-            onSelected: _onSelected,
-            onCleared: _onCleared,
+            onSelected: (suggestion) => setState(() => _selected = suggestion),
+            onCleared: () => setState(() => _selected = null),
           ),
           const SizedBox(height: 16),
-          if (_selectedSellerId == null)
+          if (_selected == null)
             const Expanded(
               child: ReportsEmptyState(
                 message: 'Busca un vendedor para ver sus ventas del período',
@@ -75,7 +66,7 @@ class _ReportsSellerTabState extends ConsumerState<ReportsSellerTab> {
                     ? error.message
                     : 'No se pudieron cargar los datos del vendedor.',
                 onRetry: () => ref.invalidate(
-                  selectedSellerReportProvider(_selectedSellerId),
+                  selectedSellerReportProvider(_selected?.id),
                 ),
               ),
               data: (row) => StackOrRow(
@@ -96,7 +87,11 @@ class _ReportsSellerTabState extends ConsumerState<ReportsSellerTab> {
             const SizedBox(height: 16),
             Expanded(
               child: SaleDetailsSection(
-                key: ValueKey('seller-$_selectedSellerId'),
+                key: ValueKey(
+                  'seller-${_selected?.id}-'
+                  '${range.startDate.millisecondsSinceEpoch}-'
+                  '${range.endDate.millisecondsSinceEpoch}',
+                ),
                 requestBuilder:
                     ({
                       required int page,
@@ -107,7 +102,7 @@ class _ReportsSellerTabState extends ConsumerState<ReportsSellerTab> {
                       return SaleDetailsRequest(
                         startDate: range.startDate,
                         endDate: range.endDate,
-                        sellerId: _selectedSellerId,
+                        sellerId: _selected?.id,
                         search: search,
                         orderColumn: orderColumn,
                         ascending: ascending,

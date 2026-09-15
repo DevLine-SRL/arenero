@@ -1,5 +1,7 @@
 import 'package:arenero/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:arenero/features/dashboard/presentation/providers/reports_providers.dart';
+import 'package:arenero/features/dashboard/presentation/widgets/reports_client_tab.dart';
+import 'package:arenero/features/dashboard/presentation/widgets/reports_section_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,15 +10,15 @@ import '../../../../support/fakes/fake_reports_repository.dart';
 
 void main() {
   group('DashboardPage', () {
-    testWidgets('shows the four report tabs', (tester) async {
+    testWidgets('shows the section selector with Resumen as default', (
+      tester,
+    ) async {
       await tester.pumpWidget(_pumpPage());
       await tester.pumpAndSettle();
 
+      expect(find.byType(ReportsSectionSelector), findsOneWidget);
       expect(find.text('Resumen'), findsOneWidget);
-      expect(find.text('Cliente'), findsOneWidget);
-      expect(find.text('Vendedor'), findsOneWidget);
-      expect(find.text('Producto'), findsOneWidget);
-      expect(find.byType(TabBar), findsOneWidget);
+      expect(find.byType(TabBar), findsNothing);
     });
 
     testWidgets(
@@ -49,10 +51,19 @@ void main() {
         );
         await tester.pumpAndSettle();
 
+        // Open the section picker bottom sheet and select "Cliente".
+        await tester.tap(find.byType(ReportsSectionSelector));
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Cliente'));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byType(TextField));
+        // Interact with the autocomplete field in the client tab.
+        await tester.tap(
+          find.descendant(
+            of: find.byType(ReportsClientTab),
+            matching: find.byType(TextField),
+          ),
+        );
         await tester.pumpAndSettle();
         expect(find.text('Juan Pérez'), findsOneWidget);
 

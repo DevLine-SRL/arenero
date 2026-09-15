@@ -6,14 +6,13 @@ import '../providers/reports_summary_provider.dart';
 import '../utils/report_formatters.dart';
 import 'report_kpi_card.dart';
 import 'reports_error_state.dart';
+import 'reports_section_selector.dart';
 import 'stack_or_row.dart';
 
 class ReportsSummaryTab extends ConsumerWidget {
-  const ReportsSummaryTab({super.key});
+  final ValueChanged<ReportSection> onShowSection;
 
-  void _goToTab(BuildContext context, int index) {
-    DefaultTabController.of(context).animateTo(index);
-  }
+  const ReportsSummaryTab({super.key, required this.onShowSection});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -66,12 +65,12 @@ class ReportsSummaryTab extends ConsumerWidget {
             _TopRankedList(
               title: 'Top clientes',
               entries: topClients,
-              onSeeAll: () => _goToTab(context, 1),
+              onSeeAll: () => onShowSection(ReportSection.client),
             ),
             _TopRankedList(
               title: 'Top vendedores',
               entries: topSellers,
-              onSeeAll: () => _goToTab(context, 2),
+              onSeeAll: () => onShowSection(ReportSection.seller),
             ),
           ];
 

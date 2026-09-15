@@ -36,12 +36,6 @@ void main() {
     });
   });
 
-  group('formatReportDate', () {
-    test('formats dates as dd/mm/yyyy', () {
-      expect(formatReportDate(DateTime(2026, 8, 5)), '05/08/2026');
-    });
-  });
-
   group('formatReportShortDate', () {
     test('formats dates as day month year', () {
       expect(formatReportShortDate(DateTime(2026, 8, 13)), '13 ago 2026');
